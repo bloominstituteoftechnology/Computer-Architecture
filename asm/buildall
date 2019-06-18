@@ -1,0 +1,6 @@
+#!/bin/sh
+
+for a in *.asm; do
+    outfile=$(basename $a .asm).ls8
+    node asm $a > ../project/ls8/$outfile
+done
