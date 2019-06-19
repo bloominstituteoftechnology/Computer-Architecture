@@ -12,7 +12,7 @@ files.
 This will produce a `.ls8` file for a given source.
 
 ```
-node asm source.asm
+python asm.py source.asm
 ```
 
 ## Features
@@ -21,7 +21,3 @@ node asm source.asm
 * String constants
 * Numeric constants
 * Comments
-
-## TODO
-
-* Port this to Python
