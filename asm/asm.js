@@ -1,3 +1,5 @@
+/* DEPRECATED: use asm.py instead */
+
 /**
  * Assembler for LS-8 v4.0
  * 
