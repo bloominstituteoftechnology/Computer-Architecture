@@ -241,47 +241,52 @@ Check the LS-8 spec for what the `MUL` instruction does.
 > work done.
 
 
-## Step 10: Beautify your `run()` loop, if desired
-
-_[Optional]_
+## Step 10: Beautify your `run()` loop
 
 Do you have a big `if-elif` block in your `cpu_run()` function? Is there a way
-to better modularize your code?
+to better modularize your code? There are plenty of them!
 
-If you haven't done so, consider having independent handler functions, one per
-instruction, that does each instruction's work.
+> What is the time complexity of the `if-elif` cascade? In the worst case, we're
+> going to have to check the value in `IR` against all of the possible opcode
+> values. This is `O(n)`. It would be a lot better if it we an `O(1)` process...
 
-Another option is to use something called a _branch table_ or _dispatch table_
-to simplify the instruction handler dispatch code. This is an array of functions
-that you can index by opcode value. The upshot is that you fetch the instruction
-value from RAM, then use that value to look up the handler function in the
-branch table. Then call it.
+One option is to use something called a _branch table_ or _dispatch table_ to
+simplify the instruction handler dispatch code. This is a list or dictionary of
+functions that you can index by opcode value. The upshot is that you fetch the
+instruction value from RAM, then use that value to look up the handler function
+in the branch table. Then call it.
 
-```js
-// !PSEUDOCODE!
+Example of a branch table:
 
-const LDI = 0b10011001; // From the LS-8 spec
-const HLT = 0b00000001;
+```python
+OP1 = 0b10101010
+OP2 = 0b11110000
 
-function handle_LDI() { ... }
-function handle_HLT() { ... }
+class Foo:
 
-branchTable[LDI] = handle_LDI;
-branchTable[HLT] = handle_HLT;
+    def __init__(self):
+        # Set up the branch table
+        self.branchtable = {}
+        self.branchtable[OP1] = self.handle_op1
+        self.branchtable[OP2] = self.handle_op2
 
-let IR = ram_read(this.reg.PC); // Fetch instruction
-let handler = branchTable[IR]; // Look up handler in branch table
+    def handle_op1(self, a):
+        print("op 1: " + a)
 
-handler(); // Call it
+    def handle_op2(self, a):
+        print("op 2: " + a)
 
-// etc.
+    def run(self):
+        # Example calls into the branch table
+        ir = OP1
+        self.branchtable[ir]("foo")
+
+        ir = OP2
+        self.branchtable[ir]("bar")
+
+c = Foo()
+c.run()
 ```
-
-This solution involves _pointers to functions_. This is something you've already
-likely used for callbacks in other languages.
-
-Whether you do an `if-elif` cascade or a branch table or anything else is up to
-you.
 
 ## Step 11: Implement System Stack
 
