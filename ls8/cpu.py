@@ -46,10 +46,10 @@ class CPU:
         from run() if you need help debugging.
         """
 
-        print(f"TRACE: %02X | %02X | %d | %02X %02X %02X |" % (
+        print(f"TRACE: %02X | %02X %02X %02X |" % (
             self.pc,
-            self.fl,
-            self.ie,
+            #self.fl,
+            #self.ie,
             self.ram_read(self.pc),
             self.ram_read(self.pc + 1),
             self.ram_read(self.pc + 2)
