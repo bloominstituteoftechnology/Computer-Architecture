@@ -127,7 +127,7 @@ to point to the next instruction for the next iteration of the loop in `run()`.
 The number of bytes an instruction uses can be determined from the two high bits
 (bits 6-7) of the instruction opcode. See the LS-8 spec for details.
 
-## Step 5: Implement the `HLT` instruction handler
+## Step 4: Implement the `HLT` instruction handler
 
 Add the `HLT` instruction define to `cpu.h`.
 
@@ -138,14 +138,14 @@ you loaded.
 We can consider `HLT` to be similar to Python's `exit()` in that we stop
 whatever we are doing, wherever we are.
 
-## Step 6: Add the `LDI` instruction
+## Step 5: Add the `LDI` instruction
 
 This instruction sets a specified register to a specified value.
 
 See the LS-8 spec for the details of what this instructions does and its opcode
 value.
 
-## Step 7: Add the `PRN` instruction
+## Step 6: Add the `PRN` instruction
 
 This is a very similar process to adding `LDI`, but the handler is simpler. See
 the LS-8 spec.
@@ -153,7 +153,7 @@ the LS-8 spec.
 *At this point, you should be able to run the program and have it print `8` to
 the console!*
 
-## Step 8: Un-hardcode the machine code
+## Step 7: Un-hardcode the machine code
 
 In `cpu.py`, the LS-8 programs you've been running so far have been hardcoded
 into the source. This isn't particularly user-friendly.
@@ -207,7 +207,7 @@ second argument:
 x = int("1010101", 2)  # Convert binary string to integer
 ```
 
-## Step 9: Implement a Multiply and Print the Result
+## Step 8: Implement a Multiply and Print the Result
 
 Extend your LS8 emulator to support the following program:
 
@@ -240,8 +240,7 @@ Check the LS-8 spec for what the `MUL` instruction does.
 > eventually called the `alu()` function with appropriate arguments to get the
 > work done.
 
-
-## Step 10: Beautify your `run()` loop
+## Step 9: Beautify your `run()` loop
 
 Do you have a big `if-elif` block in your `cpu_run()` function? Is there a way
 to better modularize your code? There are plenty of them!
@@ -288,7 +287,7 @@ c = Foo()
 c.run()
 ```
 
-## Step 11: Implement System Stack
+## Step 10: Implement System Stack
 
 All CPUs manage a _stack_ that can be used to store information temporarily.
 This stack resides in main memory and typically starts at the top of memory (at
@@ -310,7 +309,7 @@ If you run `python3 ls8.py examples/stack.ls8` you should see the output:
 1
 ```
 
-## Step 12: Implement Subroutine Calls
+## Step 11: Implement Subroutine Calls
 
 Back in the old days, functions were called _subroutines_. In machine code,
 subroutines enable you to jump to any address with the `CALL` instruction, and
