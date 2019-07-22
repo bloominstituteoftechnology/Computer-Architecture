@@ -7,7 +7,18 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        register = [0] * 8
+        memory = [0] * 256
+        pc = []
+        FL = 0b0000
+        L = 0
+        G = 0
+        E = 0
+        stack = []
+        if len(stack) > 0:
+            SP = stack[0]
+        else:
+            SP = memory[0xF4]
 
     def load(self):
         """Load a program into memory."""
