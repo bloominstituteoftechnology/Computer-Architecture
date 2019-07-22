@@ -8,7 +8,7 @@ class CPU:
     def __init__(self):
         """Construct a new CPU."""
         register = [0] * 8
-        memory = [0] * 256
+        random_access_memory = 0b00000000 * 256
         pc = []
         # This is a flag
         fl = 0b0000
@@ -80,12 +80,24 @@ class CPU:
         print()
 
     def ram_read(self, address):
-        return self.memory[address]
+        return self.random_access_memory[address]
     
     def ram_write(self, address, value):
-        self.memory[address] = value
+        self.random_access_memory[address] = value
     
 
     def run(self):
+        HLT = 0b00000001
+        PRN = 0b01000111
+        LDI = 0b10000010
         """Run the CPU."""
-        pass
+        ir.append(memory[pc])
+        operand_a = ram_read(pc + 1)
+        operand_b = ram_read(pc + 2)
+        
+        if op_code == HLT:
+            return
+        elif op_code == PRN:
+            print(self.memory[operand_a])
+        elif op_code == LDI:
+            self.memory[operand_a] = operand_b
