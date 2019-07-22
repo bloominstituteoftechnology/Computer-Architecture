@@ -10,15 +10,23 @@ class CPU:
         register = [0] * 8
         memory = [0] * 256
         pc = []
-        FL = 0b0000
-        L = 0
-        G = 0
-        E = 0
+        # This is a flag
+        fl = 0b0000
+        # This flag is used to indicate less-than
+        l = 0
+        # This flag is used to indicate greater-than
+        g = 0
+        # This flag is used to indicate equality between values
+        e = 0
+        # This is temporary memory
         stack = []
+        # This is the instruction register, it contains a copy of the currently executing instruction
+        ir = []
         if len(stack) > 0:
-            SP = stack[0]
+            # This is the stack pointer. It points to the top item of the stack. If there is not a top item of the stack, it points to 0xF4, which is the address in memory that stores the most recently pressed key.
+            sp = stack[0]
         else:
-            SP = memory[0xF4]
+            sp = memory[0xF4]
 
     def load(self):
         """Load a program into memory."""
