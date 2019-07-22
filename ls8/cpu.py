@@ -72,9 +72,10 @@ class CPU:
         print()
 
     def ram_read(self, address):
-    
+        return self.memory[address]
     
     def ram_write(self, address, value):
+        self.memory[address] = value
     
 
     def run(self):
