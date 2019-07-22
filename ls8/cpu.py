@@ -7,10 +7,44 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        # Add 256 bytes of memory and 
+        # 8 general-purpose registers 
+        # Also add properties for any internal registers you need, e.g. PC
+
+        # memory = [0] * ???
+        self.ram = [0] * 0xFF * 256
+        # PC: Program Counter, address of the currently executing instruction
+        self.PC = 0
+        # IR: Instruction Register, contains a copy of the currently executing instruction
+        self.IR = None
+
+        # MAR: Memory Address Register, holds the memory address we're reading or writing
+        # MDR: Memory Data Register, holds the value to write or the value just read
+        # FL: Flags, see below
+
+
+        # These registers only hold values between 0-255. After performing math on registers 
+        # in the emulator, bitwise-AND the result with 0xFF (255) to keep the register values in that range.
+        self.reg = [0] * 8
+        # self.reg[0] = 0  # 0xFF or 0b1111 1111 or 256
+        # self.reg[1] = 0
+        # self.reg[2] = 0
+        # self.reg[3] = 0
+        # self.reg[4] = 0
+        # self.reg[5] = 0 # interrupt mask (IM)
+        # self.reg[6] = 0 # interrupt status (IS)
+        self.reg[7] =  0xF4 # stack pointer (SP)
+
+        # L Less-than: during a CMP, set to 1 if registerA is less than registerB, zero otherwise.
+        # G Greater-than: during a CMP, set to 1 if registerA is greater than registerB, zero otherwise.
+        # E Equal: during a CMP, set to 1 if registerA is equal to registerB, zero otherwise.
+        # FL = 00000LGE
+        self.FL = 0
+
 
     def load(self):
         """Load a program into memory."""
+        print("loading")
 
         address = 0
 
@@ -18,12 +52,12 @@ class CPU:
 
         program = [
             # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
+            0b10000010, # LDI R0,8  #130
+            0b00000000,             #0
+            0b00001000,             #8
+            0b01000111, # PRN R0    #71
+            0b00000000,             #0
+            0b00000001, # HLT       #1
         ]
 
         for instruction in program:
@@ -47,12 +81,12 @@ class CPU:
         """
 
         print(f"TRACE: %02X | %02X %02X %02X |" % (
-            self.pc,
+            self.PC,
             #self.fl,
             #self.ie,
-            self.ram_read(self.pc),
-            self.ram_read(self.pc + 1),
-            self.ram_read(self.pc + 2)
+            self.ram_read(self.PC),
+            self.ram_read(self.PC + 1),
+            self.ram_read(self.PC + 2)
         ), end='')
 
         for i in range(8):
@@ -62,4 +96,171 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
+        # self.trace()
+        running = True
+        # running = False
+        
+
+        while running:
+            print("running")
+
+            address = self.PC
+            print("address", address)
+
+            command = self.ram[address]
+            # print("instruction", instruction)
+            self.IR = command
+            # command = self.ram[self.IR]
+            print("command", command)
+            
+
+            ## ALU ops
+            ADD = 0b10100000 # 00000aaa 00000bbb
+            SUB = 0b10100001 # 00000aaa 00000bbb
+            MUL = 0b10100010 # 00000aaa 00000bbb
+            DIV = 0b10100011 # 00000aaa 00000bbb
+            MOD = 0b10100100 # 00000aaa 00000bbb
+            INC = 0b01100101 # 00000rrr
+            DEC = 0b01100110 # 00000rrr
+            CMP = 0b10100111 # 00000aaa 00000bbb
+            AND = 0b10101000 # 00000aaa 00000bbb
+            NOT = 0b01101001 # 00000rrr
+            OR  = 0b10101010 # 00000aaa 00000bbb
+            XOR = 0b10101011 # 00000aaa 00000bbb
+            SHL = 0b10101100 # 00000aaa 00000bbb
+            SHR = 0b10101101 # 00000aaa 00000bbb
+
+            ## PC mutators
+            CALL = 0b01010000 # 00000rrr
+            RET  = 0b00010001 #
+            INT  = 0b01010010 # 00000rrr
+            IRET = 0b00010011 #
+            JMP  = 0b01010100 # 00000rrr
+            JEQ  = 0b01010101 # 00000rrr
+            JNE  = 0b01010110 # 00000rrr
+            JGT  = 0b01010111 # 00000rrr
+            JLT  = 0b01011000 # 00000rrr
+            JLE  = 0b01011001 # 00000rrr
+            JGE  = 0b01011010 # 00000rrr
+
+            ## Other
+            NOP = 0b00000000
+            HLT = 0b00000001 
+            LDI  = 0b10000010 # 00000rrr iiiiiiii
+            LD   = 0b10000011 # 00000aaa 00000bbb
+            ST   = 0b10000100 # 00000aaa 00000bbb
+            PUSH = 0b01000101 # 00000rrr
+            POP  = 0b01000110 # 00000rrr
+            PRN  = 0b01000111 # 00000rrr
+            PRA  = 0b01001000 # 00000rrr
+            ######################################
+
+            ## ALU ops
+            # ADD  10100000 00000aaa 00000bbb
+            # SUB  10100001 00000aaa 00000bbb
+            # MUL  10100010 00000aaa 00000bbb
+            # DIV  10100011 00000aaa 00000bbb
+            # MOD  10100100 00000aaa 00000bbb
+            # INC  01100101 00000rrr
+            # DEC  01100110 00000rrr
+            # CMP  10100111 00000aaa 00000bbb
+            # AND  10101000 00000aaa 00000bbb
+            # NOT  01101001 00000rrr
+            # OR   10101010 00000aaa 00000bbb
+            # XOR  10101011 00000aaa 00000bbb
+            # SHL  10101100 00000aaa 00000bbb
+            # SHR  10101101 00000aaa 00000bbb
+
+            ## PC mutators
+            # CALL 01010000 00000rrr
+            # RET  00010001
+            # INT  01010010 00000rrr
+            # IRET 00010011
+            # JMP  01010100 00000rrr
+            # JEQ  01010101 00000rrr
+            # JNE  01010110 00000rrr
+            # JGT  01010111 00000rrr
+            # JLT  01011000 00000rrr
+            # JLE  01011001 00000rrr
+            # JGE  01011010 00000rrr
+
+            ## Other
+            # NOP  00000000
+
+            # HLT
+            # Halt the CPU (and exit the emulator).
+            # HLT 0b00000001 
+            if command == HLT:
+                print("HLT")
+                running = False
+
+            # LDI register immediate
+            # Set the value of a register to an integer.
+            # LDI 0b10000010 00000rrr iiiiiiii
+            elif command == LDI:
+                print("LDI")
+                register = self.ram[self.PC+1]
+                integer = self.ram[self.PC+2]
+                print("LDI register, integer", register, integer)
+                self.reg[register] = integer
+                self.PC += 3
+            
+            # LD   10000011 00000aaa 00000bbb
+            # ST   10000100 00000aaa 00000bbb
+            # PUSH 01000101 00000rrr
+            # POP  01000110 00000rrr
+
+            # PRN
+            # PRN register pseudo-instruction
+            # Print numeric value stored in the given register.
+            # Print to the console the decimal integer value that is stored in the given register.
+            # PRN  01000111 00000rrr
+            elif command == PRN:
+                print("PRN")
+                register = self.ram[self.PC+1]
+                print(self.reg[register])
+                self.PC += 2
+
+            # PRA  01001000 00000rrr
+
+            address += 1
+            # running = False
+            # self.trace()
+    
+    def ram_read(self, address):
+        """ ram_read() should accept the address to read and return the value stored there. """
+        return self.ram[address]
+        
+    def ram_write():
+        """ raw_write() should accept a value to write, and the address to write it to."""
         pass
+
+
+
+# TRACE: 00 | 82 00 08 | 00 00 00 00 00 00 00 F4
+# address 0
+# running
+# command 130
+# LDI
+# TRACE: 01 | 00 08 47 | 00 00 00 00 00 00 00 F4
+# running
+# command 130
+# LDI
+# TRACE: 02 | 08 47 00 | 00 00 00 00 00 00 00 F4
+# running
+# command 130
+# LDI
+# TRACE: 03 | 47 00 01 | 00 00 00 00 00 00 00 F4
+# running
+# command 130
+# LDI
+# TRACE: 04 | 00 01 00 | 00 00 00 00 00 00 00 F4
+# running
+# command 130
+# LDI
+# TRACE: 05 | 01 00 00 | 00 00 00 00 00 00 00 F4
+# running
+# command 130
+# LDI
+# TRACE: 06 | 00 00 00 | 00 00 00 00 00 00 00 F4
+# running
