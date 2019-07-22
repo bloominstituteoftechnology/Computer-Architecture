@@ -129,7 +129,8 @@ The number of bytes an instruction uses can be determined from the two high bits
 
 ## Step 4: Implement the `HLT` instruction handler
 
-Add the `HLT` instruction define to `cpu.h`.
+Add the `HLT` instruction definition to `cpu.py` so that you can refer to it by
+name instead of by numeric value.
 
 In `run()` in your switch, exit the loop if a `HLT` instruction is encountered,
 regardless of whether or not there are more lines of code in the LS-8 program
