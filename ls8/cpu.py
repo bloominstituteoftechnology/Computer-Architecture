@@ -9,8 +9,14 @@ class CPU:
         """Construct a new CPU."""
         self.reg = [0] * 0x08
         self.ram = [0] * 0xff
-        self.pc = 0x00
+        #Program Counter, address of the currently executing instruction
+        self.pc = 0x00 
         
+    def ram_read(self, current):
+        return self.ram[current]
+
+    def ram_write(self, write, current):
+        self.ram[current] = write
 
     def load(self):
         """Load a program into memory."""
