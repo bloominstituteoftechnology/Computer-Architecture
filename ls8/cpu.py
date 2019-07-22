@@ -71,6 +71,12 @@ class CPU:
 
         print()
 
+    def ram_read(self, address):
+    
+    
+    def ram_write(self, address, value):
+    
+
     def run(self):
         """Run the CPU."""
         pass
