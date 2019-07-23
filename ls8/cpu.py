@@ -73,6 +73,11 @@ class CPU:
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
         #elif op == "SUB": etc
+        elif op == "MUL":
+            result = 0b00000010  
+            for _ in range(self.reg[reg_b]):
+                self.reg[result] += self.reg[reg_a]
+            self.reg[reg_a] = self.reg[result]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -100,6 +105,7 @@ class CPU:
         """Run the CPU."""
         LDI = 0b10000010
         PRN = 0b01000111
+        MUL = 0b10100010
         
         run_cpu = True
 
@@ -117,6 +123,9 @@ class CPU:
             elif self.ram[self.ir] == PRN:
                 print(self.reg[o1])
                 self.pc += 2
+            elif self.ram[self.ir] == MUL:
+                self.alu("MUL", o1, o2)
+                self.pc += 3
 
 
         # this prints out 0
