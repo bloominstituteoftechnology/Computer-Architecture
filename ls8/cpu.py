@@ -12,7 +12,7 @@ class CPU:
         # Also add properties for any internal registers you need, e.g. PC
 
         # memory = [0] * ???
-        self.ram = [0] * 0xFF * 256
+        self.ram = [0] * 256
         # PC: Program Counter, address of the currently executing instruction
         self.PC = 0
         # IR: Instruction Register, contains a copy of the currently executing instruction
@@ -42,27 +42,46 @@ class CPU:
         self.FL = 0
 
 
-    def load(self):
+    def load(self, programFile):
         """Load a program into memory."""
-        print("loading")
-
+        print("loading:", programFile)
         address = 0
+        try:
+            with open(programFile) as f:
+                for line in f:
+                    num = line.split("#", 1)[0]
 
-        # For now, we've just hardcoded a program:
+                    if num.strip() == '':  # ignore comment-only lines
+                        continue
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8  #130
-            0b00000000,             #0
-            0b00001000,             #8
-            0b01000111, # PRN R0    #71
-            0b00000000,             #0
-            0b00000001, # HLT       #1
-        ]
+                    # print(int(num, 2))
+                    self.ram[address] = int(num, 2)
+                    address += 1
+        except FileNotFoundError:
+            print(f"ERROR: {programFile} not found")
+            sys.exit(2)
+        except IsADirectoryError:
+            print(f"ERROR: {programFile} is a directory")
+            sys.exit(3)
 
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+       
+        # address = 0
+
+        # # For now, we've just hardcoded a program:
+
+        # program = [
+        #     # From print8.ls8
+        #     0b10000010, # LDI R0,8  #130
+        #     0b00000000,             #0
+        #     0b00001000,             #8
+        #     0b01000111, # PRN R0    #71
+        #     0b00000000,             #0
+        #     0b00000001, # HLT       #1
+        # ]
+
+        # for instruction in program:
+        #     self.ram[address] = instruction
+        #     address += 1
 
 
     def alu(self, op, reg_a, reg_b):
@@ -71,6 +90,8 @@ class CPU:
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
         #elif op == "SUB": etc
+        elif op == "MUL":
+            self.reg[reg_a] *= self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -157,8 +178,21 @@ class CPU:
 
             ## ALU ops
             # ADD  10100000 00000aaa 00000bbb
+                # ir = 0b10100000 AND
+                # num_operands = (ir & 0b11000000) >> 6 # Do an AND mask and bit shift 6
+                # num_operands => 2
             # SUB  10100001 00000aaa 00000bbb
+            
+            # MUL
+            # MUL registerA registerB
+            # Multiply the values in two registers together and store the result in registerA.
             # MUL  10100010 00000aaa 00000bbb
+            if command == MUL:
+                print("MUL")
+                reg_a = self.ram[self.PC+1]
+                reg_b = self.ram[self.PC+2]
+                self.alu("MUL", reg_a, reg_b)
+                self.PC += 3
             # DIV  10100011 00000aaa 00000bbb
             # MOD  10100100 00000aaa 00000bbb
             # INC  01100101 00000rrr
@@ -190,7 +224,7 @@ class CPU:
             # HLT
             # Halt the CPU (and exit the emulator).
             # HLT 0b00000001 
-            if command == HLT:
+            elif command == HLT:
                 print("HLT")
                 running = False
 
@@ -199,6 +233,7 @@ class CPU:
             # LDI 0b10000010 00000rrr iiiiiiii
             elif command == LDI:
                 print("LDI")
+
                 register = self.ram[self.PC+1]
                 integer = self.ram[self.PC+2]
                 print("LDI register, integer", register, integer)
@@ -222,6 +257,10 @@ class CPU:
                 self.PC += 2
 
             # PRA  01001000 00000rrr
+
+            else:
+                print(f"unknown instruction {command}")
+                sys.exit(1)
 
             address += 1
             # running = False
