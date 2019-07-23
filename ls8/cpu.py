@@ -7,26 +7,26 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        register = [0] * 8
-        random_access_memory = 0b00000000 * 256
-        pc = []
+        self.register = [0] * 8
+        self.random_access_memory = [0b00000000] * 256
+        self.pc = 0
         # This is a flag
-        fl = 0b0000
+        self.fl = 0b0000
         # This flag is used to indicate less-than
-        l = 0
+        self.l = 0
         # This flag is used to indicate greater-than
-        g = 0
+        self.g = 0
         # This flag is used to indicate equality between values
-        e = 0
+        self.e = 0
         # This is temporary memory
-        stack = []
+        self.stack = []
         # This is the instruction register, it contains a copy of the currently executing instruction
-        ir = []
-        if len(stack) > 0:
+        self.ir = []
+        if len(self.stack) > 0:
             # This is the stack pointer. It points to the top item of the stack. If there is not a top item of the stack, it points to 0xF4, which is the address in memory that stores the most recently pressed key.
-            sp = stack[0]
+            sp = self.stack[0]
         else:
-            sp = memory[0xF4]
+            sp = self.random_access_memory[0xF4]
 
     def load(self):
         """Load a program into memory."""
@@ -46,7 +46,7 @@ class CPU:
         ]
 
         for instruction in program:
-            self.ram[address] = instruction
+            self.random_access_memory[address] = instruction
             address += 1
 
 
@@ -87,17 +87,24 @@ class CPU:
     
 
     def run(self):
+        self.load()
         HLT = 0b00000001
         PRN = 0b01000111
         LDI = 0b10000010
         """Run the CPU."""
-        ir.append(memory[pc])
-        operand_a = ram_read(pc + 1)
-        operand_b = ram_read(pc + 2)
+        while True:
+            self.ir.append(self.random_access_memory[self.pc])
+            operand_a = self.ram_read(self.pc + 1)
+            operand_b = self.ram_read(self.pc + 2)
         
-        if op_code == HLT:
-            return
-        elif op_code == PRN:
-            print(self.memory[operand_a])
-        elif op_code == LDI:
-            self.memory[operand_a] = operand_b
+            op_code = self.random_access_memory[self.pc]
+        
+            if op_code == HLT:
+                break
+            elif op_code == PRN:
+                print(self.random_access_memory[operand_a])
+                self.pc += 2
+            elif op_code == LDI:
+                self.random_access_memory[operand_a] = operand_b
+                self.pc += 3
+CPU().run()
