@@ -15,8 +15,32 @@ class CPU:
         #Instruction Register, contains a copy of the currently executing instruction
         self.ir = 0x00
         #opcodes
+        self.cpu_run = True
         self.h = 0b00000001 
+        self.ldi = 0b10000010
+        self.prn = 0b01000111
+        self.mul = 0b10100010
+        self.op_table = {}
+        self.op_table[self.h] = self.cpu_halt
+        self.op_table[self.ldi] = self.cpu_ldi
+        self.op_table[self.prn] = self.cpu_prn
+        self.op_table[self.mul] = self.cpu_mul
+
         
+        
+    def cpu_halt(self):
+        self.cpu_run = False
+        sys.exit(1)  
+
+    def cpu_ldi(self):
+        pass
+    
+    def cpu_prn(self):
+        pass  
+
+    def cpu_mul(self):
+        pass
+
     def ram_read(self, current):
         return self.ram[current]
 
