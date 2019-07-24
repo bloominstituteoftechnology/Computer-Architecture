@@ -2,6 +2,48 @@
 
 import sys
 
+## ALU ops
+ADD = 0b10100000 # 00000aaa 00000bbb
+SUB = 0b10100001 # 00000aaa 00000bbb
+MUL = 0b10100010 # 00000aaa 00000bbb
+DIV = 0b10100011 # 00000aaa 00000bbb
+MOD = 0b10100100 # 00000aaa 00000bbb
+INC = 0b01100101 # 00000rrr
+DEC = 0b01100110 # 00000rrr
+CMP = 0b10100111 # 00000aaa 00000bbb
+AND = 0b10101000 # 00000aaa 00000bbb
+NOT = 0b01101001 # 00000rrr
+OR  = 0b10101010 # 00000aaa 00000bbb
+XOR = 0b10101011 # 00000aaa 00000bbb
+SHL = 0b10101100 # 00000aaa 00000bbb
+SHR = 0b10101101 # 00000aaa 00000bbb
+
+## PC mutators
+CALL = 0b01010000 # 00000rrr
+RET  = 0b00010001 #
+INT  = 0b01010010 # 00000rrr
+IRET = 0b00010011 #
+JMP  = 0b01010100 # 00000rrr
+JEQ  = 0b01010101 # 00000rrr
+JNE  = 0b01010110 # 00000rrr
+JGT  = 0b01010111 # 00000rrr
+JLT  = 0b01011000 # 00000rrr
+JLE  = 0b01011001 # 00000rrr
+JGE  = 0b01011010 # 00000rrr
+
+## Other
+NOP = 0b00000000
+HLT = 0b00000001 
+LDI  = 0b10000010 # 00000rrr iiiiiiii
+LD   = 0b10000011 # 00000aaa 00000bbb
+ST   = 0b10000100 # 00000aaa 00000bbb
+PUSH = 0b01000101 # 00000rrr
+POP  = 0b01000110 # 00000rrr
+PRN  = 0b01000111 # 00000rrr
+PRA  = 0b01001000 # 00000rrr
+
+SP = 7  # stack pointer (SP) is always register 7
+
 class CPU:
     """Main CPU class."""
 
@@ -34,7 +76,6 @@ class CPU:
         # self.reg[5] = 0 # interrupt mask (IM)
         # self.reg[6] = 0 # interrupt status (IS)
         self.reg[7] =  0xF4 # stack pointer (SP)
-
         # L Less-than: during a CMP, set to 1 if registerA is less than registerB, zero otherwise.
         # G Greater-than: during a CMP, set to 1 if registerA is greater than registerB, zero otherwise.
         # E Equal: during a CMP, set to 1 if registerA is equal to registerB, zero otherwise.
@@ -123,58 +164,16 @@ class CPU:
         
 
         while running:
-            print("running")
+            # print("running")
 
             address = self.PC
-            print("address", address)
+            # print("address", address)
 
             command = self.ram[address]
             # print("instruction", instruction)
             self.IR = command
             # command = self.ram[self.IR]
-            print("command", command)
-            
-
-            ## ALU ops
-            ADD = 0b10100000 # 00000aaa 00000bbb
-            SUB = 0b10100001 # 00000aaa 00000bbb
-            MUL = 0b10100010 # 00000aaa 00000bbb
-            DIV = 0b10100011 # 00000aaa 00000bbb
-            MOD = 0b10100100 # 00000aaa 00000bbb
-            INC = 0b01100101 # 00000rrr
-            DEC = 0b01100110 # 00000rrr
-            CMP = 0b10100111 # 00000aaa 00000bbb
-            AND = 0b10101000 # 00000aaa 00000bbb
-            NOT = 0b01101001 # 00000rrr
-            OR  = 0b10101010 # 00000aaa 00000bbb
-            XOR = 0b10101011 # 00000aaa 00000bbb
-            SHL = 0b10101100 # 00000aaa 00000bbb
-            SHR = 0b10101101 # 00000aaa 00000bbb
-
-            ## PC mutators
-            CALL = 0b01010000 # 00000rrr
-            RET  = 0b00010001 #
-            INT  = 0b01010010 # 00000rrr
-            IRET = 0b00010011 #
-            JMP  = 0b01010100 # 00000rrr
-            JEQ  = 0b01010101 # 00000rrr
-            JNE  = 0b01010110 # 00000rrr
-            JGT  = 0b01010111 # 00000rrr
-            JLT  = 0b01011000 # 00000rrr
-            JLE  = 0b01011001 # 00000rrr
-            JGE  = 0b01011010 # 00000rrr
-
-            ## Other
-            NOP = 0b00000000
-            HLT = 0b00000001 
-            LDI  = 0b10000010 # 00000rrr iiiiiiii
-            LD   = 0b10000011 # 00000aaa 00000bbb
-            ST   = 0b10000100 # 00000aaa 00000bbb
-            PUSH = 0b01000101 # 00000rrr
-            POP  = 0b01000110 # 00000rrr
-            PRN  = 0b01000111 # 00000rrr
-            PRA  = 0b01001000 # 00000rrr
-            ######################################
+            # print("command", command)
 
             ## ALU ops
             # ADD  10100000 00000aaa 00000bbb
@@ -182,7 +181,7 @@ class CPU:
                 # num_operands = (ir & 0b11000000) >> 6 # Do an AND mask and bit shift 6
                 # num_operands => 2
             # SUB  10100001 00000aaa 00000bbb
-            
+
             # MUL
             # MUL registerA registerB
             # Multiply the values in two registers together and store the result in registerA.
@@ -192,7 +191,7 @@ class CPU:
                 reg_a = self.ram[self.PC+1]
                 reg_b = self.ram[self.PC+2]
                 self.alu("MUL", reg_a, reg_b)
-                self.PC += 3
+                self.PC += ((0b11000000 & command) >> 6) + 1
             # DIV  10100011 00000aaa 00000bbb
             # MOD  10100100 00000aaa 00000bbb
             # INC  01100101 00000rrr
@@ -238,12 +237,52 @@ class CPU:
                 integer = self.ram[self.PC+2]
                 print("LDI register, integer", register, integer)
                 self.reg[register] = integer
-                self.PC += 3
+                # print("bit shift", ((0b11000000 & command) >> 6) + 1)
+                self.PC += ((0b11000000 & command) >> 6) + 1
             
             # LD   10000011 00000aaa 00000bbb
             # ST   10000100 00000aaa 00000bbb
+
+            # PUSH register
+            # Push the value in the given register on the stack.
             # PUSH 01000101 00000rrr
+            elif command == PUSH:
+                print("PUSH")
+                # 1. Decrement the `SP`.
+                self.reg[SP] -= 1
+                # 2. Copy the value in the given register to the address pointed to by SP.
+                regnum = self.ram[self.PC+1]
+                value = self.reg[regnum]
+                self.ram[self.reg[SP]] = value
+                # print("bit shift", ((0b11000000 & command) >> 6) + 1)
+                self.PC += ((0b11000000 & command) >> 6) + 1
+
+                # First decrement the stack pointer SP
+                # copy the value in the register(Like reg[0]) into the place the SP is pointing
+                # register[SP] -= 1            # Decrement SP
+                # regnum = memory[pc + 1]       # Get the register number operand
+                # value = register[regnum]     # get the value from taht register
+                # memory[register[sp]] = value # store that value in memory at the SP
+                # We might use ram read ram right functions
+                # We start at F4
+            # POP register
+            # Pop the value at the top of the stack into the given register.
             # POP  01000110 00000rrr
+            elif command == POP:
+                print("POP")
+                # 1. Copy the value from the address pointed to by `SP` to the given register.
+                value = self.ram[self.reg[SP]]
+                regnum = self.ram[self.PC + 1]
+                self.reg[regnum] = value
+                # 2. Increment `SP`.
+                self.reg[SP] += 1
+                # Copy the value from the stack pointer address into the given register
+                # Increment the stack pointer
+                # value = memory[register[SP]]
+                # regnum = memory[pc + 1]
+                # register[regnum] = value
+                # register[SP] += 1
+                self.PC += ((0b11000000 & command) >> 6) + 1
 
             # PRN
             # PRN register pseudo-instruction
@@ -254,7 +293,7 @@ class CPU:
                 print("PRN")
                 register = self.ram[self.PC+1]
                 print(self.reg[register])
-                self.PC += 2
+                self.PC += ((0b11000000 & command) >> 6) + 1
 
             # PRA  01001000 00000rrr
 
