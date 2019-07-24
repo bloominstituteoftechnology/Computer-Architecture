@@ -14,17 +14,23 @@ class CPU:
         self.pc = 0x00 
         #Instruction Register, contains a copy of the currently executing instruction
         self.ir = 0x00
+        self.reg[7] = 0xf4
+        self.start = self.reg[7]
         #opcodes
         self.cpu_run = True
         self.h = 0b00000001 
         self.ldi = 0b10000010
         self.prn = 0b01000111
         self.mul = 0b10100010
+        self.push = 0b01000101
+        self.pop = 0b01000110
         self.op_table = {}
         self.op_table[self.h] = self.cpu_halt
         self.op_table[self.ldi] = self.cpu_ldi
         self.op_table[self.prn] = self.cpu_prn
         self.op_table[self.mul] = self.cpu_mul
+        self.op_table[self.push] = self.cpu_push
+
 
         
         
@@ -40,6 +46,20 @@ class CPU:
 
     def cpu_mul(self):
         pass
+
+    def cpu_push(self):
+        self.start -= 1
+        reg_num = self.ram[self.pc + 1]
+        value = self.reg[reg_num]
+        self.ram[self.start] = value
+        # self.pc += 2
+    
+    def cpu_pop(self):
+        value = self.ram[self.start]
+        reg_num = self.ram[self.pc + 1]
+        self.reg[reg_num] = value
+        self.start += 1
+        # self.pc += 2
 
     def ram_read(self, current):
         return self.ram[current]
@@ -98,10 +118,11 @@ class CPU:
             self.reg[reg_a] += self.reg[reg_b]
         #elif op == "SUB": etc
         elif op == "MUL":
-            result = 0b00000010  
-            for _ in range(self.reg[reg_b]):
-                self.reg[result] += self.reg[reg_a]
-            self.reg[reg_a] = self.reg[result]
+            # result = 0b00000010  
+            # for _ in range(self.reg[reg_b]):
+            #     self.reg[result] += self.reg[reg_a]
+            # self.reg[reg_a] = self.reg[result]
+            self.reg[reg_a] *= self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -130,6 +151,8 @@ class CPU:
         LDI = 0b10000010
         PRN = 0b01000111
         MUL = 0b10100010
+        PUSH = 0b01000101
+        POP = 0b01000110
         
         run_cpu = True
 
@@ -150,6 +173,12 @@ class CPU:
             elif self.ram[self.ir] == MUL:
                 self.alu("MUL", o1, o2)
                 self.pc += 3
+            elif self.ram[self.ir] == PUSH:
+                self.cpu_push()
+                self.pc += 2
+            elif self.ram[self.ir] == POP:
+                self.cpu_pop()
+                self.pc += 2
 
 
         # this prints out 0
