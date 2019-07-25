@@ -24,6 +24,9 @@ class CPU:
         self.mul = 0b10100010
         self.push = 0b01000101
         self.pop = 0b01000110
+        self.call = 0b01010000
+        self.ret = 0b00010001
+        self.add = 0b10100000
         self.op_table = {}
         self.op_table[self.h] = self.cpu_halt
         self.op_table[self.ldi] = self.cpu_ldi
@@ -39,10 +42,14 @@ class CPU:
         sys.exit(1)  
 
     def cpu_ldi(self):
-        pass
+        o1 = self.ram_read(self.pc + 1)
+        o2 = self.ram_read(self.pc + 2)
+        self.ram[o1] = o2
+        self.pc += 3
     
     def cpu_prn(self):
-        pass  
+        print(self.reg[self.pc + 1])
+        self.pc += 2 
 
     def cpu_mul(self):
         pass
@@ -60,6 +67,20 @@ class CPU:
         self.reg[reg_num] = value
         self.start += 1
         # self.pc += 2
+    
+    def cpu_call(self):
+        return_addr = self.pc + 2
+        self.start -= 1
+        self.ram[self.start] = return_addr
+
+        reg_num = self.ram[self.pc + 1]
+        sub_add = self.reg[reg_num]
+        self.pc = sub_add
+    
+    def cpu_ret(self):
+        ret_add = self.ram[self.start]
+        self.start += 1
+        self.pc = ret_add
 
     def ram_read(self, current):
         return self.ram[current]
@@ -153,11 +174,14 @@ class CPU:
         MUL = 0b10100010
         PUSH = 0b01000101
         POP = 0b01000110
+        CALL = 0b01010000
+        RET = 0b00010001
+        ADD = 0b10100000
         
+        self.trace()
         run_cpu = True
 
         while run_cpu:
-
             self.ir = self.pc
             o1 = self.ram_read(self.pc + 1)
             o2 = self.ram_read(self.pc + 2)
@@ -170,6 +194,9 @@ class CPU:
             elif self.ram[self.ir] == PRN:
                 print(self.reg[o1])
                 self.pc += 2
+            elif self.ram[self.ir] == ADD:
+                self.alu("ADD", o1, o2)
+                self.pc += 3
             elif self.ram[self.ir] == MUL:
                 self.alu("MUL", o1, o2)
                 self.pc += 3
@@ -179,6 +206,11 @@ class CPU:
             elif self.ram[self.ir] == POP:
                 self.cpu_pop()
                 self.pc += 2
+            elif self.ram[self.ir] == CALL:
+                self.cpu_call()
+            elif self.ram[self.ir] == RET:
+                self.cpu_ret()
+                
 
 
         # this prints out 0
