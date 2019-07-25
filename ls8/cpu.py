@@ -178,7 +178,7 @@ class CPU:
         RET = 0b00010001
         ADD = 0b10100000
         
-        self.trace()
+        # self.trace()
         run_cpu = True
 
         while run_cpu:
