@@ -177,6 +177,12 @@ class CPU:
 
             ## ALU ops
             # ADD  10100000 00000aaa 00000bbb
+            if command == ADD:
+                print("ADD")
+                reg_a = self.ram[self.PC+1]
+                reg_b = self.ram[self.PC+2]
+                self.alu("ADD", reg_a, reg_b)
+                self.PC += ((0b11000000 & command) >> 6) + 1
                 # ir = 0b10100000 AND
                 # num_operands = (ir & 0b11000000) >> 6 # Do an AND mask and bit shift 6
                 # num_operands => 2
@@ -186,7 +192,7 @@ class CPU:
             # MUL registerA registerB
             # Multiply the values in two registers together and store the result in registerA.
             # MUL  10100010 00000aaa 00000bbb
-            if command == MUL:
+            elif command == MUL:
                 print("MUL")
                 reg_a = self.ram[self.PC+1]
                 reg_b = self.ram[self.PC+2]
@@ -205,8 +211,32 @@ class CPU:
             # SHR  10101101 00000aaa 00000bbb
 
             ## PC mutators
+            # CALL register
+            # Calls a subroutine (function) at the address stored in the register.
             # CALL 01010000 00000rrr
+            elif command == CALL:
+                print("CALL")
+                # 1. The address of the ***instruction*** _directly after_ `CALL` is pushed onto the stack. 
+                #       This allows us to return to where we left off when the subroutine finishes executing.
+                return_addr = self.PC + 2
+                self.reg[SP] -= 1
+                self.ram[self.reg[SP]] = return_addr
+                # 2. The PC is set to the address stored in the given register. We jump to that location in RAM and execute the 
+                #       first instruction in the subroutine. The PC can move forward or backwards from its current location.
+                regnum = self.ram[self.PC + 1]
+                subroutine_address = self.reg[regnum]
+                self.PC = subroutine_address
+            
+            # RET
+            # Return from subroutine.
+            # Pop the value from the top of the stack and store it in the `PC`.
             # RET  00010001
+            elif command == RET:
+                print("RET")
+                return_addr = self.ram[self.reg[SP]]
+                self.reg[SP] += 1
+                self.PC = return_addr
+
             # INT  01010010 00000rrr
             # IRET 00010011
             # JMP  01010100 00000rrr
