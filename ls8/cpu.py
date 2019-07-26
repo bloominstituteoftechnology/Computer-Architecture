@@ -52,18 +52,16 @@ class CPU:
         # Add 256 bytes of memory and 
         # 8 general-purpose registers 
         # Also add properties for any internal registers you need, e.g. PC
-
-        # memory = [0] * ???
         self.ram = [0] * 256
+
         # PC: Program Counter, address of the currently executing instruction
         self.PC = 0
+
         # IR: Instruction Register, contains a copy of the currently executing instruction
         self.IR = None
 
         # MAR: Memory Address Register, holds the memory address we're reading or writing
         # MDR: Memory Data Register, holds the value to write or the value just read
-        # FL: Flags, see below
-
 
         # These registers only hold values between 0-255. After performing math on registers 
         # in the emulator, bitwise-AND the result with 0xFF (255) to keep the register values in that range.
@@ -76,6 +74,7 @@ class CPU:
         # self.reg[5] = 0 # interrupt mask (IM)
         # self.reg[6] = 0 # interrupt status (IS)
         self.reg[7] =  0xF4 # stack pointer (SP)
+        
         # L Less-than: during a CMP, set to 1 if registerA is less than registerB, zero otherwise.
         # G Greater-than: during a CMP, set to 1 if registerA is greater than registerB, zero otherwise.
         # E Equal: during a CMP, set to 1 if registerA is equal to registerB, zero otherwise.
@@ -130,9 +129,40 @@ class CPU:
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
+        elif op == "AND":
+            self.reg[reg_a] = self.reg[reg_a] & self.reg[reg_b]
+        elif op == "CMP":
+            # Compare the values in two registers, registerA and registerB
+            # * If they are equal, set the Equal `E` flag to 1, otherwise set it to 0.
+            if self.reg[reg_a] == self.reg[reg_b]:
+                self.FL = 0b00000001 # 0b00000LGE
+            # * If registerA is less than registerB, set the Less-than `L` flag to 1,
+            # otherwise set it to 0.
+            elif self.reg[reg_a] < self.reg[reg_b]:
+                self.FL = 0b00000100 # 0b00000LGE
+            # * If registerA is greater than registerB, set the Greater-than `G` flag
+            # to 1, otherwise set it to 0.
+            elif self.reg[reg_a] > self.reg[reg_b]:
+                self.FL = 0b00000010 # 0b00000LGE
         #elif op == "SUB": etc
+        elif op == "MOD":
+            if self.reg[reg_b] == 0:
+                print("Divide by 0 ERROR")
+                sys.exit(5)
+            else:
+                self.reg[reg_a] = self.reg[reg_a] % self.reg[reg_b]
         elif op == "MUL":
             self.reg[reg_a] *= self.reg[reg_b]
+        elif op == "NOT":
+            self.reg[reg_a] = ~ self.reg[reg_a]
+        elif op == "OR":
+            self.reg[reg_a] = self.reg[reg_a] | self.reg[reg_b]
+        elif op == "SHL":
+            self.reg[reg_a] = self.reg[reg_a] << self.reg[reg_b]
+        elif op == "SHR":
+            self.reg[reg_a] = self.reg[reg_a] >> self.reg[reg_b]
+        elif op == "XOR":
+            self.reg[reg_a] = self.reg[reg_a] ^ self.reg[reg_b]   
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -164,16 +194,9 @@ class CPU:
         
 
         while running:
-            # print("running")
-
             address = self.PC
-            # print("address", address)
-
             command = self.ram[address]
-            # print("instruction", instruction)
             self.IR = command
-            # command = self.ram[self.IR]
-            # print("command", command)
 
             ## ALU ops
             # ADD  10100000 00000aaa 00000bbb
@@ -183,9 +206,7 @@ class CPU:
                 reg_b = self.ram[self.PC+2]
                 self.alu("ADD", reg_a, reg_b)
                 self.PC += ((0b11000000 & command) >> 6) + 1
-                # ir = 0b10100000 AND
-                # num_operands = (ir & 0b11000000) >> 6 # Do an AND mask and bit shift 6
-                # num_operands => 2
+
             # SUB  10100001 00000aaa 00000bbb
 
             # MUL
@@ -200,15 +221,77 @@ class CPU:
                 self.PC += ((0b11000000 & command) >> 6) + 1
             # DIV  10100011 00000aaa 00000bbb
             # MOD  10100100 00000aaa 00000bbb
+            elif command == MOD:
+                print("MOD")
+                reg_a = self.ram[self.PC+1]
+                reg_b = self.ram[self.PC+2]
+                self.alu("MOD", reg_a, reg_b)
+                self.PC += ((0b11000000 & command) >> 6) + 1
             # INC  01100101 00000rrr
             # DEC  01100110 00000rrr
+
+            # CMP
             # CMP  10100111 00000aaa 00000bbb
+            # Compare the values in two registers, registerA and registerB
+            # * If they are equal, set the Equal `E` flag to 1, otherwise set it to 0.
+            # * If registerA is less than registerB, set the Less-than `L` flag to 1,
+            # otherwise set it to 0.
+            # * If registerA is greater than registerB, set the Greater-than `G` flag
+            # to 1, otherwise set it to 0.
+            elif command == CMP:
+                print("CMP")
+                reg_a = self.ram[self.PC+1]
+                reg_b = self.ram[self.PC+2]
+                self.alu("CMP", reg_a, reg_b)
+                self.PC += ((0b11000000 & command) >> 6) + 1
+
             # AND  10101000 00000aaa 00000bbb
+            elif command == AND:
+                print("AND")
+                reg_a = self.ram[self.PC+1]
+                reg_b = self.ram[self.PC+2]
+                self.alu("AND", reg_a, reg_b)
+                self.PC += ((0b11000000 & command) >> 6) + 1
+
             # NOT  01101001 00000rrr
+            elif command == NOT:
+                print("NOT")
+                reg_a = self.ram[self.PC+1]
+                reg_b = self.ram[self.PC+2]
+                self.alu("NOT", reg_a, reg_b)
+                self.PC += ((0b11000000 & command) >> 6) + 1
+
             # OR   10101010 00000aaa 00000bbb
+            elif command == OR:
+                print("OR")
+                reg_a = self.ram[self.PC+1]
+                reg_b = self.ram[self.PC+2]
+                self.alu("OR", reg_a, reg_b)
+                self.PC += ((0b11000000 & command) >> 6) + 1
+
             # XOR  10101011 00000aaa 00000bbb
+            elif command == XOR:
+                print("XOR")
+                reg_a = self.ram[self.PC+1]
+                reg_b = self.ram[self.PC+2]
+                self.alu("XOR", reg_a, reg_b)
+                self.PC += ((0b11000000 & command) >> 6) + 1
+
             # SHL  10101100 00000aaa 00000bbb
+            elif command == SHL:
+                print("SHL")
+                reg_a = self.ram[self.PC+1]
+                reg_b = self.ram[self.PC+2]
+                self.alu("SHL", reg_a, reg_b)
+                self.PC += ((0b11000000 & command) >> 6) + 1
+
             # SHR  10101101 00000aaa 00000bbb
+            elif command == SHR:
+                print("SHR")
+                reg_a = self.ram[self.PC+1]
+                reg_b = self.ram[self.PC+2]
+                self.alu("SHR", reg_a, reg_b)
+                self.PC += ((0b11000000 & command) >> 6) + 1
 
             ## PC mutators
             # CALL register
@@ -239,9 +322,41 @@ class CPU:
 
             # INT  01010010 00000rrr
             # IRET 00010011
+
+            # JMP
+            # Jump to the address stored in the given register.
+            # Set the `PC` to the address stored in the given register.
             # JMP  01010100 00000rrr
+            elif command == JMP:
+                print("JMP")
+                jmp_addr = self.ram[self.PC+1]
+                self.PC = self.reg[jmp_addr]
+
+            # JEQ
+            # `JEQ register`
+            # If `equal` flag is set (true), jump to the address stored in the given register.
             # JEQ  01010101 00000rrr
+            elif command == JEQ:
+                print("JEQ")
+                if self.FL == 0b00000001:
+                    print("EQUAL")
+                    jmp_addr = self.ram[self.PC+1]
+                    self.PC = self.reg[jmp_addr]
+                else:
+                    self.PC += ((0b11000000 & command) >> 6) + 1
+            
+            # JNE 
+            # If `E` flag is clear (false, 0), jump to the address stored in the given register.
             # JNE  01010110 00000rrr
+            elif command == JNE:
+                print("JNE")
+                if self.FL != 0b00000001:
+                    print("NOT EQUAL")
+                    jmp_addr = self.ram[self.PC+1]
+                    self.PC = self.reg[jmp_addr]
+                else:
+                    self.PC += ((0b11000000 & command) >> 6) + 1
+
             # JGT  01010111 00000rrr
             # JLT  01011000 00000rrr
             # JLE  01011001 00000rrr
@@ -267,7 +382,6 @@ class CPU:
                 integer = self.ram[self.PC+2]
                 print("LDI register, integer", register, integer)
                 self.reg[register] = integer
-                # print("bit shift", ((0b11000000 & command) >> 6) + 1)
                 self.PC += ((0b11000000 & command) >> 6) + 1
             
             # LD   10000011 00000aaa 00000bbb
@@ -284,17 +398,8 @@ class CPU:
                 regnum = self.ram[self.PC+1]
                 value = self.reg[regnum]
                 self.ram[self.reg[SP]] = value
-                # print("bit shift", ((0b11000000 & command) >> 6) + 1)
                 self.PC += ((0b11000000 & command) >> 6) + 1
 
-                # First decrement the stack pointer SP
-                # copy the value in the register(Like reg[0]) into the place the SP is pointing
-                # register[SP] -= 1            # Decrement SP
-                # regnum = memory[pc + 1]       # Get the register number operand
-                # value = register[regnum]     # get the value from taht register
-                # memory[register[sp]] = value # store that value in memory at the SP
-                # We might use ram read ram right functions
-                # We start at F4
             # POP register
             # Pop the value at the top of the stack into the given register.
             # POP  01000110 00000rrr
@@ -306,12 +411,6 @@ class CPU:
                 self.reg[regnum] = value
                 # 2. Increment `SP`.
                 self.reg[SP] += 1
-                # Copy the value from the stack pointer address into the given register
-                # Increment the stack pointer
-                # value = memory[register[SP]]
-                # regnum = memory[pc + 1]
-                # register[regnum] = value
-                # register[SP] += 1
                 self.PC += ((0b11000000 & command) >> 6) + 1
 
             # PRN
@@ -332,43 +431,11 @@ class CPU:
                 sys.exit(1)
 
             address += 1
-            # running = False
-            # self.trace()
     
     def ram_read(self, address):
         """ ram_read() should accept the address to read and return the value stored there. """
         return self.ram[address]
         
-    def ram_write():
+    def ram_write(self):
         """ raw_write() should accept a value to write, and the address to write it to."""
         pass
-
-
-
-# TRACE: 00 | 82 00 08 | 00 00 00 00 00 00 00 F4
-# address 0
-# running
-# command 130
-# LDI
-# TRACE: 01 | 00 08 47 | 00 00 00 00 00 00 00 F4
-# running
-# command 130
-# LDI
-# TRACE: 02 | 08 47 00 | 00 00 00 00 00 00 00 F4
-# running
-# command 130
-# LDI
-# TRACE: 03 | 47 00 01 | 00 00 00 00 00 00 00 F4
-# running
-# command 130
-# LDI
-# TRACE: 04 | 00 01 00 | 00 00 00 00 00 00 00 F4
-# running
-# command 130
-# LDI
-# TRACE: 05 | 01 00 00 | 00 00 00 00 00 00 00 F4
-# running
-# command 130
-# LDI
-# TRACE: 06 | 00 00 00 | 00 00 00 00 00 00 00 F4
-# running
