@@ -16,7 +16,7 @@
 - [ ] Add the `LDI` instruction
 - [ ] Add the `PRN` instruction
 
-### Day 2: Add the ability to load files dynamically, get `mult.ls8` and `stack.ls8` running
+### Day 2: Add the ability to load files dynamically, get `mult.ls8` running
 
 - [ ] Un-hardcode the machine code
 - [ ] Implement the `load()` function to load an `.ls8` file given the filename
