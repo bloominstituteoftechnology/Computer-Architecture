@@ -70,7 +70,7 @@ but you'll have to implement those three above instructions first!
 Add list properties to the `CPU` class to hold 256 bytes of memory and 8
 general-purpose registers.
 
-> Hint: you can make a list of a certain numeber of zeros with this syntax:
+> Hint: you can make a list of a certain number of zeros with this syntax:
 >
 > ```python
 > x = [0] * 25  # x is a list of 25 zeroes
