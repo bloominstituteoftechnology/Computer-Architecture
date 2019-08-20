@@ -7,7 +7,10 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.alist = [None] * 256
+        list1, list2, list3, list4, list5, list6, list7, list8 = (self.alist for i in range(8))
+        print(list1, list2, list3, list4, list5, list6, list7, list8)
+        # pass
 
     def load(self):
         """Load a program into memory."""
