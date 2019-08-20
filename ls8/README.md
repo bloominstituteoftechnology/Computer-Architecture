@@ -102,7 +102,7 @@ the `CPU` object.
 `ram_read()` should accept the address to read and return the value stored
 there.
 
-`raw_write()` should accept a value to write, and the address to write it to.
+`ram_write()` should accept a value to write, and the address to write it to.
 
 > Inside the CPU, there are two internal registers used for memory operations:
 > the _Memory Address Register_ (MAR) and the _Memory Data Register_ (MDR). The
