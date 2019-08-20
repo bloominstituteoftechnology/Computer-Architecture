@@ -8,9 +8,18 @@ class CPU:
     def __init__(self):
         """Construct a new CPU."""
         self.alist = [None] * 256
-        list1, list2, list3, list4, list5, list6, list7, list8 = (self.alist for i in range(8))
-        print(list1, list2, list3, list4, list5, list6, list7, list8)
+        register1, register2, register3, register4, register5, register6, register7, register8 = (self.alist for i in range(8))
+        # print(register1, register2, register3, register4, register5, register6, register7, register8)
+        pc = 0
         # pass
+
+    def ram_read(self, address):
+        return self.alist[address]
+        # pass
+
+    def ram_write(self, address, value):
+        self.alist[address] = value
+        pass
 
     def load(self):
         """Load a program into memory."""
