@@ -7,19 +7,22 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        self.alist = [None] * 256
-        register1, register2, register3, register4, register5, register6, register7, register8 = (self.alist for i in range(8))
+        self.ram = [None] * 256
+        # register1, register2, register3, register4, register5, register6, register7, register8 = (self.ram for i in range(8))
         # print(register1, register2, register3, register4, register5, register6, register7, register8)
-        pc = 0
+        self.reg = [0] * 8
+        self.pc = 0
+        self.IR = 0
+        self.registers = {}
         # pass
 
     def ram_read(self, address):
-        return self.alist[address]
+        return self.ram[address]
         # pass
 
     def ram_write(self, address, value):
-        self.alist[address] = value
-        pass
+        self.ram[address] = value
+        # pass
 
     def load(self):
         """Load a program into memory."""
@@ -74,4 +77,23 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        self.live = True
+        # IR = self.ram[self.PC]
+
+        LDI = 0b10000010
+        PRN = 0b01000111
+        
+        while self.live:
+            operand_a = self.ram_read(self.pc + 1)
+            operand_b = self.ram_read(self.pc + 2)
+            # print(self.PC)
+            if self.ram[self.pc] == LDI:
+                self.reg[operand_a] = operand_b
+                self.pc += 3
+            elif self.ram[self.pc] == PRN:
+                print(self.reg[operand_a])
+                self.pc += 2
+            else:
+                self.live = False
+                break
+                print(f'{self.ram[self.pc]} is an invalid argument.')
