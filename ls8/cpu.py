@@ -5,8 +5,16 @@ import sys
 class CPU:
     """Main CPU class."""
 
-    def __init__(self):
+    def __init__(self, ram=[0] * 25, reg=[0] * 8, pc=0):
         """Construct a new CPU."""
+        self.ram = ram
+        self.reg = reg
+        self.pc = pc
+
+    def ram_read(self, pc_address):
+        pass
+
+    def ram_write(self, value, pc_address):
         pass
 
     def load(self):
@@ -62,4 +70,3 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
