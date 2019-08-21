@@ -10,9 +10,9 @@ class CPU:
         """Construct a new CPU."""
     #  Add list properties to the `CPU` class to hold 256 bytes of memory
     # and 8 general-purpose registers.
-        self.memory = [0] * 256  # memory is a list of 256 zeroes
-        self.register = [0] * 8
-        self.pc = 0
+        self.ram = [0] * 256  # memory is a list of 256 zeroes
+        self.register = [0] * 8  # 8 registers
+        self.pc = 0  # Program Counter, points to currently-executing instruction
 
     # In `CPU`, add method `ram_read()` and `ram_write()`
     # that access the RAM inside the `CPU` object.
@@ -20,12 +20,12 @@ class CPU:
     """`ram_read()` should accept the address to read and return the value stored there."""
 
     def ram_read(self, address):
-        return self.memory[address]
+        return self.ram[address]
 
     """`ram_write()` should accept a value to write, and the address to write it to."""
 
     def ram_write(self, value, address):
-        self.memory[address] = value
+        self.ram[address] = value
 
     def load(self):
         """Load a program into memory."""
@@ -79,11 +79,33 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        # It needs to read the memory address that's stored in register `PC`,
-        # and store that result in `IR`, the _Instruction Register_.
-        # This can just be a local variable in `run()`.
-        IR = self.memory[self.pc]
+
+        LDI = 0b10000010
+        PRN = 0b01000111
+        HLT = 0b00000001
+
+        running = True
+
         # Using `ram_read()`, read the bytes at `PC+1` and `PC+2` from RAM into variables
         # `operand_a` and `operand_b` in case the instruction needs them.
-        operand_a = ram_read(IR + 1)
-        operand_b = ram_read(IR + 2)
+        # operand_a = ram_read(IR + 1)
+        # operand_b = ram_read(IR + 2)
+
+        while running:
+            # It needs to read the memory address that's stored in register `PC`,
+            # and store that result in `IR`, the _Instruction Register_.
+            # This can just be a local variable in `run()`.
+            IR = self.ram[self.pc]
+            operand_a = self.ram_read(self.pc + 1)
+            operand_b = self.ram_read(self.pc + 2)
+            if IR == LDI:
+                self.register[operand_a] = operand_b
+                self.pc += 3
+            elif IR == PRN:
+                print(self.register[operand_a])
+                self.pc += 2
+            elif IR == HLT:
+                running = False
+            else:
+                print(f"Unknown instruction!!{self.ram[self.pc]} ")
+                sys.exit(1)

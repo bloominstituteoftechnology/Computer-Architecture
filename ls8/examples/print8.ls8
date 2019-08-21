@@ -3,9 +3,14 @@
 # This comment and blank line is here to make sure
 # they are handled correctly by the file reading code.
 
-10000010 # LDI R0,8
-00000000
-00001000
+# LDI(Load Immediate), PRN(Print) and HLT(Exits Program) are the operations that CPU can do(eg. LDI(opcode) R0,8(arguments/operands, R is a register) )
+# LDI is storing the value 8 inside the Register R0
+# LDI instruction is 3 bytes long, PRN is 2 bytes long and HLT is of 1 byte
+# Goal: Write a piece of s/w that reads this file and prints the number 8
+
+10000010 # LDI R0,8  
+00000000 # 0 in decimal
+00001000 # 8 in decimal
 01000111 # PRN R0
-00000000
+00000000 # 0 in decimal
 00000001 # HLT
