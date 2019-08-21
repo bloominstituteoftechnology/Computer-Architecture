@@ -50,10 +50,13 @@ class CPU:
 
         try:
             # sys.argv is a list in Python, which contains the command-line arguments passed to the script.
-            with open(sys.argv[1]) as f:
+            with open(sys.argv[1]) as f:  # open a file
                 for line in f:
                     if line[0].startswith('0') or line[0].startswith('1'):
-                        num = line.split('#')[0].strip()
+                        # search first part of instruction
+                        num = line.split('#')[0]
+                        num = num.strip()  # remove empty space
+                        # convert binary to int and store in a memory(RAM)
                         self.ram[address] = int(num, 2)
                         address += 1
         except FileNotFoundError:
