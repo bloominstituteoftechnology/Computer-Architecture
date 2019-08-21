@@ -13,7 +13,7 @@ class CPU:
         self.reg = [0] * 8
         self.pc = 0
         self.IR = 0
-        self.registers = {}
+        self.live = True
         # pass
 
     def ram_read(self, address):
@@ -77,11 +77,12 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        self.live = True
+        # live = True
         # IR = self.ram[self.PC]
 
         LDI = 0b10000010
         PRN = 0b01000111
+        HLT = 0b00000001
         
         while self.live:
             operand_a = self.ram_read(self.pc + 1)
@@ -93,7 +94,10 @@ class CPU:
             elif self.ram[self.pc] == PRN:
                 print(self.reg[operand_a])
                 self.pc += 2
+            elif self.ram[self.pc] == HLT:
+                self.live == False
+                break
             else:
                 self.live = False
                 break
-                print(f'{self.ram[self.pc]} is an invalid argument.')
+                # print(f'{self.ram[self.pc]} is an invalid argument.')
