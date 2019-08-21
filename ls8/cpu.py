@@ -105,18 +105,18 @@ class CPU:
 
         running = True
 
-        # Using `ram_read()`, read the bytes at `PC+1` and `PC+2` from RAM into variables
-        # `operand_a` and `operand_b` in case the instruction needs them.
-        # operand_a = ram_read(IR + 1)
-        # operand_b = ram_read(IR + 2)
-
         while running:
             # It needs to read the memory address that's stored in register `PC`,
             # and store that result in `IR`, the _Instruction Register_.
             # This can just be a local variable in `run()`.
             IR = self.ram[self.pc]
+
+            # Using `ram_read()`, read the bytes at `PC+1` and `PC+2` from RAM into variables
+            # `operand_a` and `operand_b` in case the instruction needs them.
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
+
+            # Decoding
             if IR == LDI:
                 self.register[operand_a] = operand_b
                 self.pc += 3
