@@ -13,6 +13,8 @@ class CPU:
         self.reg = [0] * 8
         self.pc = 0
         self.IR = 0
+        self.reg[7] = 0xf4
+        self.SP = 7
         self.live = True
         # pass
 
@@ -92,6 +94,8 @@ class CPU:
         PRN = 0b01000111
         HLT = 0b00000001
         MUL = 0b10100010
+        POP = 0b01000110
+        PUSH = 0b01000101
         
         while self.live:
             operand_a = self.ram_read(self.pc + 1)
@@ -108,6 +112,16 @@ class CPU:
             elif self.ram[self.pc] == MUL:
                 self.alu('MUL', operand_a, operand_b)
                 self.pc += 3
+
+            elif self.ram[self.pc] == PUSH:
+                self.reg[self.SP] -= 1
+                self.ram[self.reg[self.SP]] = self.reg[operand_a]
+                self.pc += 2
+
+            elif self.ram[self.pc] == POP:
+                self.reg[operand_a] = self.ram[self.reg[self.SP]]
+                self.pc += 2
+                
 
             elif self.ram[self.pc] == HLT:
                 self.live == False
