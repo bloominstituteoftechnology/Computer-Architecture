@@ -15,6 +15,9 @@ class CPU:
         self.IR = 0
         self.reg[7] = 0xf4
         self.SP = 7
+        self.E = 0
+        self.L = 0
+        self.G = 0
         self.live = True
         # pass
 
@@ -62,6 +65,19 @@ class CPU:
         #elif op == "SUB": etc
         elif op == 'MUL':
             self.reg[reg_a] *= self.reg[reg_b]
+        elif op == 'CMP':
+            if self.reg[reg_a] == self.reg[reg_b]:
+                self.E = 1
+                self.L = 0
+                self.G = 0
+            elif self.reg[reg_a] < self.reg[reg_b]:
+                self.E = 0
+                self.L = 1
+                self.G = 0
+            elif self.reg[reg_a] > self.reg[reg_b]:
+                self.E = 0
+                self.L = 0
+                self.G = 1
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -96,6 +112,7 @@ class CPU:
         MUL = 0b10100010
         POP = 0b01000110
         PUSH = 0b01000101
+        CMP = 0b10100111
         
         while self.live:
             operand_a = self.ram_read(self.pc + 1)
@@ -122,6 +139,10 @@ class CPU:
                 self.reg[operand_a] = self.ram[self.reg[self.SP]]
                 self.reg[self.SP] += 1
                 self.pc += 2
+
+            elif self.ram[self.pc] == CMP:
+                self.alu('CMP', operand_a, operand_b)
+                self.pc += 3
                 
 
             elif self.ram[self.pc] == HLT:
