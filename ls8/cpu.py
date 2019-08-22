@@ -120,6 +120,7 @@ class CPU:
 
             elif self.ram[self.pc] == POP:
                 self.reg[operand_a] = self.ram[self.reg[self.SP]]
+                self.reg[self.SP] += 1
                 self.pc += 2
                 
 
