@@ -7,7 +7,7 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        self.ram = [None] * 256
+        self.ram = [0] * 256
         # register1, register2, register3, register4, register5, register6, register7, register8 = (self.ram for i in range(8))
         # print(register1, register2, register3, register4, register5, register6, register7, register8)
         self.reg = [0] * 8
@@ -22,12 +22,18 @@ class CPU:
         # pass
 
     def ram_read(self, address):
-        return self.ram[address]
-        # pass
+        return self.ram[address]        
 
     def ram_write(self, address, value):
         self.ram[address] = value
-        # pass
+
+    def push(self, a):
+        self.reg[self.SP] -= 1
+        self.ram[self.reg[self.SP]] = self.reg[a]
+    
+    def pop(self, a):
+        self.reg[a] = self.ram[self.reg[self.SP]]
+        self.reg[self.SP] += 1
 
     def load(self):
         """Load a program into memory."""
@@ -113,6 +119,11 @@ class CPU:
         POP = 0b01000110
         PUSH = 0b01000101
         CMP = 0b10100111
+        CALL = 0b01010000
+        RET = 0b00010001
+        JMP = 0b01010100
+        JEQ = 0b01010101
+        JNE = 0b01010110
         
         while self.live:
             operand_a = self.ram_read(self.pc + 1)
@@ -140,10 +151,33 @@ class CPU:
                 self.reg[self.SP] += 1
                 self.pc += 2
 
+            elif self.ram[self.pc] == CALL:
+                self.reg[4] = self.pc + 2
+                self.push(4)
+                self.pc = self.reg[operand_a]
+
+            elif self.ram[self.pc] == RET:
+                self.pop(0x04)
+                self.pc = self.reg[0x04]
+
+            elif self.ram[self.pc] == JMP:
+                self.pc = self.reg[operand_a]
+
             elif self.ram[self.pc] == CMP:
                 self.alu('CMP', operand_a, operand_b)
                 self.pc += 3
                 
+            elif self.ram[self.pc] == JEQ:
+                if self.E == 1:
+                    self.pc = self.reg[operand_a]
+                else:
+                    self.pc += 2
+
+            elif self.ram[self.pc] == JNE:
+                if self.E == 0:
+                    self.pc = self.reg[operand_a]
+                else:
+                    self.pc += 2
 
             elif self.ram[self.pc] == HLT:
                 self.live == False
