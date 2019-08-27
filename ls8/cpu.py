@@ -22,21 +22,45 @@ class CPU:
 
         address = 0
 
+        #if user error with filename print error and exit
+        if len(sys.argv) != 2:
+            print("please provide filename")
+            print(sys.stderr)
+            sys.exit(1)
+        
+        #get hashes from input file
+        try:
+            with open(sys.argv[1]) as file:
+                for line in file:
+                    file_hashes = line.split("#")
+                    possible_instruction = file_hashes[0]
+                    first_bit = possible_instruction[0]
+                #skip empty lines
+                if possible_instruction != " ":
+                    #if the instruction begins with 1 or 0 add to ram
+                    if first_bit == "1" or first_bit == "0":
+                        instruction = int(possible_instruction[0:8], base=2)
+                        self.ram_write(instruction, self.ram[address])
+                        address += 1
+        except FileNotFoundError:
+            print("File not found!")
+            sys.exit(2)
+
         # For now, we've just hardcoded a program:
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+        # program = [
+        #     # From print8.ls8
+        #     0b10000010, # LDI R0,8
+        #     0b00000000,
+        #     0b00001000,
+        #     0b01000111, # PRN R0
+        #     0b00000000,
+        #     0b00000001, # HLT
+        # ]
 
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+        # for instruction in program:
+        #     self.ram[address] = instruction
+        #     address += 1
 
 
     def alu(self, op, reg_a, reg_b):
