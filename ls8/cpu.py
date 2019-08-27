@@ -42,7 +42,7 @@ class CPU:
                             instruction = int(instruction_str, base=2)
                             print(instruction)
                             self.ram_write(self.ram[address], instruction)
-                            self.ram[address] = instruction
+                            # self.ram[address] = instruction
                             address += 1
         except FileNotFoundError:
             print("File not found!")
@@ -96,7 +96,7 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        self.load()
+        # self.load()
         HTL = 0b00000001
         PRN = 0b01000111
         LDI = 0b10000010
