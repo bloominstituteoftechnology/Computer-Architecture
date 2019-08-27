@@ -5,7 +5,7 @@ import sys
 class CPU:
     """Main CPU class."""
 
-    def __init__(self, ram=[0] * 25, reg=[0] * 8, pc=0):
+    def __init__(self, ram=[0] * 256, reg=[0] * 8, pc=0):
         """Construct a new CPU."""
         self.ram = ram
         self.reg = reg
@@ -40,9 +40,7 @@ class CPU:
                         if first_bit == "1" or first_bit == "0":
                             instruction_str = possible_instruction[0:8]
                             instruction = int(instruction_str, base=2)
-                            print(instruction)
-                            self.ram_write(self.ram[address], instruction)
-                            # self.ram[address] = instruction
+                            self.ram_write(address, instruction)
                             address += 1
         except FileNotFoundError:
             print("File not found!")
@@ -67,11 +65,12 @@ class CPU:
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
+        MUL = 0b10100010
 
         if op == "ADD":
-            self.reg[reg_a] += self.reg[reg_b]
-        elif op == "MUL":
-            self.reg[reg_a] * self.reg[reg_b]
+            return self.reg[reg_a] + self.reg[reg_b]
+        elif op == MUL:
+            return self.reg[reg_a] * self.reg[reg_b]
         #elif op == "SUB": etc
         else:
             raise Exception("Unsupported ALU operation")
@@ -96,7 +95,6 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        # self.load()
         HTL = 0b00000001
         PRN = 0b01000111
         LDI = 0b10000010
@@ -122,12 +120,9 @@ class CPU:
                 #Print numeric value stored in the given register
                 print(self.reg[self.ram[self.pc + 1]])
                 self.pc += 2
-            # elif command in ALU_OP:
-            #     print("command found")
-            #     self.alu(command, self.ram_read + 1, self.ram_read + 2)
-            #     self.pc += 3
+            elif command in ALU_OP:
+                print(self.alu(command, self.ram_read(self.pc + 1), self.ram_read(self.pc + 2)))
+                self.pc += 3
             else:
-                print("Error: Command not found")
-                print(command)
+                print(f"Error: Command {command} not found")
                 exit()
-
