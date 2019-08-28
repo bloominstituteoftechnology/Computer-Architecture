@@ -61,21 +61,22 @@ class CPU:
             HLT: self.hlt,
             LDI: self.reg_add,
             PRN: self.print_num,
+            MUL: self.mul
         }
-        # self.branchtable[HLT] = self.hault
-        # self.branchtable[PRN] = self.print_num
-        # self.branchtable[LDI] = self.reg_add
     
-    def print_num(self, command):
+    def print_num(self, mar, mdr):
         #Print numeric value stored in the given register
-        print(self.reg[self.ram[self.pc + 1]])
-        self.pc += 2
+        print(self.reg[mar])
     
-    def reg_add(self):
-        pass
+    def reg_add(self, mar, mdr):
+        #set value of a register to an integer
+        self.reg[mar] = mdr
     
-    def hlt(self):
+    def hlt(self, mar, mdr):
         self.halt = not self.halt
+
+    def mul(self, mar, mdr):
+        self.alu("MUL", mar, mdr)
 
     def ram_read(self, mar):
         return self.ram[mar]
@@ -93,7 +94,7 @@ class CPU:
                     hashes = line.split("#")
                     instruction = hashes[0]
                     #skip empty lines
-                    if instruction == " ":
+                    if instruction == "":
                         continue
                     #if the instruction begins with 1 or 0 add to ram
                     first_bit = instruction[0]
@@ -127,9 +128,9 @@ class CPU:
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
         if op == "ADD":
-            return self.reg[reg_a] + self.reg[reg_b]
-        elif op == MUL:
-            return self.reg[reg_a] * self.reg[reg_b]
+            print(self.reg[reg_a] + self.reg[reg_b])
+        elif op == "MUL":
+            print(self.reg[reg_a] * self.reg[reg_b])
         #elif op == "SUB": etc
         else:
             raise Exception("Unsupported ALU operation")
@@ -171,16 +172,9 @@ class CPU:
             #value C
             inst_set = ((ir >> 4) & 0b1) == 1
 
-            if ir == HLT:
-                self.halt = not self.halt
-            elif ir == LDI:
-                #set value of a register to an integer
-                self.reg[op_a] = op_b
-            elif ir == PRN:
-                #Print numeric value stored in the given register
-                print(self.reg[op_a])
-            # elif ir in ALU_OP:
-            #     print(self.alu(ir, self.ram_read(op_a), self.ram_read(op_b)))
+            #if instruction is in the dispatch table run instruction with op a and b
+            if ir in self.ops:
+                self.ops[ir](op_a, op_b)
             else:
                 print(f"Error: Instruction {ir} not found")
                 exit()
