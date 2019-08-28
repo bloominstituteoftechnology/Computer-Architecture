@@ -5,7 +5,13 @@
 import sys
 from cpu import *
 
-cpu = CPU()
-
-cpu.load()
-cpu.run()
+#if sys arguments are incorrect print error and exit
+if len(sys.argv) != 2:
+   print("please provide filename")
+   print(sys.stderr)
+   sys.exit(1)
+#create CPU, load with instructions, and run
+else:
+   cpu = CPU()
+   cpu.load()
+   cpu.run()
