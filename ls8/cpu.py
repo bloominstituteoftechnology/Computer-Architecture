@@ -44,7 +44,9 @@ POP  = 0b01000110 # 00000rrr
 PRN  = 0b01000111 # 00000rrr
 PRA  = 0b01001000 # 00000rrr
 
-SP = 7  # stack pointer (SP) is always register 7
+F3 = 0b11110011
+
+# SP = 7  # stack pointer (SP) is always register 7
 
 class CPU:
     """Main CPU class."""
@@ -55,13 +57,17 @@ class CPU:
         self.reg = [0] * 8
         self.pc = 0
         self.halt = False
+        self.SP = None
+        #stack starts at F4
 
         #branch/dispatch table
         self.ops = {
             HLT: self.hlt,
             LDI: self.reg_add,
             PRN: self.print_num,
-            MUL: self.mul
+            MUL: self.mul,
+            PUSH: self.push,
+            POP: self.pop
         }
     
     def print_num(self, mar, mdr):
@@ -77,6 +83,21 @@ class CPU:
 
     def mul(self, mar, mdr):
         self.alu("MUL", mar, mdr)
+    
+    def push(self, mar, mdr):
+        #Decrement the SP
+        self.reg[7] -= 1
+        self.SP = self.reg[7]
+        #copy the value in the given register to the address pointed to by SP
+        self.ram[self.SP] = self.reg[mar]
+
+    def pop(self, mar, mdr):
+        #copy value from the address pointed to by SP to the given register
+        self.SP = self.reg[7]
+        mdr = self.ram[self.SP]
+        self.reg[mar] = mdr
+        #Increment SP
+        self.reg[7] += 1
 
     def ram_read(self, mar):
         return self.ram[mar]
@@ -155,6 +176,9 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
+        self.reg[7] = F3
+        self.SP = self.reg[7]
+
         while not self.halt:
             #read instruction given
             ir = self.ram_read(self.pc)
