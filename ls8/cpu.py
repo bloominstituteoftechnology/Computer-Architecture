@@ -57,8 +57,7 @@ class CPU:
         self.reg = [0] * 8
         self.pc = 0
         self.halt = False
-        self.SP = None
-        #stack starts at F4
+        self.SP = F3
 
         #branch/dispatch table
         self.ops = {
