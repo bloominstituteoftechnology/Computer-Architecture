@@ -44,9 +44,8 @@ POP  = 0b01000110 # 00000rrr
 PRN  = 0b01000111 # 00000rrr
 PRA  = 0b01001000 # 00000rrr
 
+# SP = reg[7] = F3  # stack pointer (SP) is always register 7
 F3 = 0b11110011
-
-# SP = 7  # stack pointer (SP) is always register 7
 
 class CPU:
     """Main CPU class."""
@@ -88,13 +87,13 @@ class CPU:
         self.reg[7] -= 1
         self.SP = self.reg[7]
         #copy the value in the given register to the address pointed to by SP
-        self.ram[self.SP] = self.reg[mar]
+        self.ram[self.SP] = self.reg[mar] % 255
 
     def pop(self, mar, mdr):
         #copy value from the address pointed to by SP to the given register
         self.SP = self.reg[7]
         mdr = self.ram[self.SP]
-        self.reg[mar] = mdr
+        self.reg[mar] = mdr % 255
         #Increment SP
         self.reg[7] += 1
 
