@@ -25,7 +25,7 @@
 
 ### Day 3: Stack
 
-- [ ] Implement the System Stack and be able to run the `stack.ls8` program
+- [x] Implement the System Stack and be able to run the `stack.ls8` program
 - Composition of a stack: 
     a. A place to store data (RAM)
     b. A way to keep track of where the top of the stack is (stack pointer)
@@ -33,7 +33,7 @@
     d. A pop function
 
 - The PUSH function will decrement the stack pointer and then assign a value to the new SP address
-- The POP function will write the current SP value to the next available Register (R0 to being with) and then increment the stack pointer
+- The POP function will write the current SP value to the next available Register (R0 to begin with) and then increment the stack pointer
 - Because the stack pointer moves before a value is written, we use only 255 of the 256 addresses
 
 - Uses: Temporary storage of variables, return addres from a sub routine, storage of registers and cpu state while handling an interrupt,

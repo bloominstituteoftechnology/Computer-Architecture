@@ -2,10 +2,12 @@
 
 import sys
 
-LDI = 0b10000010
-PRN = 0b01000111
-HLT = 0b00000001
-MUL = 0b10100010
+LDI =  0b10000010
+PRN =  0b01000111
+HLT =  0b00000001
+MUL =  0b10100010
+PUSH = 0b01000101
+POP =  0b01000110
 
 class CPU:
     """Main CPU class."""
@@ -14,6 +16,7 @@ class CPU:
         """Construct a new CPU."""
         self.ram = [0] * 256
         self.reg = [0] * 8
+        self.reg[7] = 255 # R7 is reserved as the stack pointer (SP)
         self.pc = 0
         self.hlt = False
 
@@ -21,14 +24,17 @@ class CPU:
             LDI: self.op_ldi,
             PRN: self.op_prn,
             HLT: self.op_hlt,
-            MUL: self.op_mul
+            MUL: self.op_mul,
+            PUSH: self.op_push,
+            POP: self.op_pop
         }
+
     # op functions
     def op_ldi(self, address, value):
         self.reg[address] = value
 
-    def op_prn(self, address, op_b): #op a/b
-        print(self.reg[address]) #op_a acts as address
+    def op_prn(self, address, op_b): # op a/b
+        print(self.reg[address]) # op_a acts as address
 
     def op_hlt(self, op_a, op_b):
         self.hlt = True
@@ -36,13 +42,25 @@ class CPU:
     def op_mul(self, operand_a, operand_b):
         self.alu('MUL', operand_a, operand_b)
 
+    def op_push (self, operand_a, operand_b):
+        self.reg[7] -= 1 # decrement stack pointer
+        sp = self.reg[7] # sp variable
+        value = self.reg[self.ram[self.pc + 1]]
+        self.ram[sp] = value
+
+    def op_pop (self, operand_a, operand_b):
+        sp = self.reg[7] # sp variable
+        value = self.ram[sp]
+        self.reg[7] += 1 # increment stack pointer
+        self.reg[self.ram[self.pc + 1]] = value
+
     # ram functions 
 
     def ram_read(self, address):
         return self.ram[address]
     
     def ram_write(self, value, address):
-        self[address] = value
+        self.ram[address] = value
 
     def load(self, filename):
         """Load a program into memory."""
