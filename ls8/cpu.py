@@ -74,7 +74,7 @@ class CPU:
     
     def print_num(self, mar, mdr):
         #Print numeric value stored in the given register
-        self.reg[mar]
+        print(self.reg[mar])
     
     def reg_add(self, mar, mdr):
         #set value of a register to an integer
