@@ -67,8 +67,8 @@ class CPU:
         self.pc = self.reg[address]
 
     def op_cmp(self, operand_a, operand_b):
-        value1 = self.ram[operand_a]
-        value2 = self.ram[operand_b]
+        value1 = self.reg[operand_a]
+        value2 = self.reg[operand_b]
         if value1 < value2:
             self.fla[5] = 1
         elif value1 > value2:
@@ -162,8 +162,8 @@ class CPU:
     def run(self):
         """Run the CPU."""
         while self.hlt == False:
-            self.trace()
-            time.sleep(1)
+            #self.trace()
+            #time.sleep(1)
             ir = self.ram[self.pc]
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
