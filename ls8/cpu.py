@@ -64,13 +64,17 @@ class CPU:
             LDI: self.reg_add,
             PRN: self.print_num,
             MUL: self.mul,
+            ADD: self.add,
             PUSH: self.push,
-            POP: self.pop
+            POP: self.pop,
+            CALL: self.call,
+            RET: self.ret,
+            JMP: self.jump,
         }
     
     def print_num(self, mar, mdr):
         #Print numeric value stored in the given register
-        print(self.reg[mar])
+        self.reg[mar]
     
     def reg_add(self, mar, mdr):
         #set value of a register to an integer
@@ -79,23 +83,44 @@ class CPU:
     def hlt(self, mar, mdr):
         self.halt = not self.halt
 
-    def mul(self, mar, mdr):
-        self.alu("MUL", mar, mdr)
+    def mul(self, op_a, op_b):
+        self.alu("MUL", op_a, op_b)
+
+    def add(self, op_a, op_b):
+        self.alu("ADD", op_a, op_b)
     
     def push(self, mar, mdr):
         #Decrement the SP
-        self.reg[7] -= 1
+        self.reg[7] = (self.reg[7] - 1) % 255
+        # pointer is the new value in reg[7]
         self.SP = self.reg[7]
         #copy the value in the given register to the address pointed to by SP
-        self.ram[self.SP] = self.reg[mar] % 255
+        # value in ram = reg[PC + 1]
+        self.ram[self.SP] = self.reg[mar]
 
     def pop(self, mar, mdr):
         #copy value from the address pointed to by SP to the given register
         self.SP = self.reg[7]
-        mdr = self.ram[self.SP]
-        self.reg[mar] = mdr % 255
+        #reg[PC + 1] = ram[pointer value]
+        self.reg[mar] = self.ram[self.SP]
         #Increment SP
-        self.reg[7] += 1
+        self.reg[7] = (self.reg[7] + 1) % 255
+    
+    def call(self, op_a, op_b):
+        #push reg_address to jump to: reg[op_a]
+        self.push(op_a, op_b)
+        # save location of next instruction to ram via SP
+        self.ram[self.SP] = self.pc + 2
+        #set PC address to jump to
+        self.pc = self.reg[op_a]
+
+    def ret(self, mar, mdr):
+        # return to skipped instruction
+        # set pc to return address
+        self.pc = self.ram[self.SP]
+    
+    def jump(self, mar, mdr):
+        pass
 
     def ram_read(self, mar):
         return self.ram[mar]
@@ -180,7 +205,7 @@ class CPU:
         while not self.halt:
             #read instruction given
             ir = self.ram_read(self.pc)
-
+         
             #save next instructions
             #values AA
             op_a = self.ram_read(self.pc + 1)
