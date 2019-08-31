@@ -18,12 +18,13 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        self.ram = [0] * 256
+        self.pc = 0
         self.reg = [0] * 8
         self.reg[7] = 255 # R7 is reserved as the stack pointer (SP)
-        self.pc = 0
+        self.ram = [0] * 256
+        self.fla = [None] * 0 # `FL` bits: `00000LGE`
         self.hlt = False
-        self.fl = {}
+
 
         self.ops = {
             LDI: self.op_ldi,
@@ -31,7 +32,11 @@ class CPU:
             HLT: self.op_hlt,
             MUL: self.op_mul,
             PUSH: self.op_push,
-            POP: self.op_pop
+            POP: self.op_pop,
+            CMP: self.op_cmp,
+            JMP: self.op_jmp,
+            JEQ: self.op_jeq,
+            JNE: self.op_jne
         }
 
     # op functions
@@ -57,13 +62,20 @@ class CPU:
         operand_b = self.ram[sp]
         self.reg[operand_a] = operand_b
 
-    def op_jmp():
+    def op_jmp(self, operand_a, operand_b):
         pass
-    def op_cmp():
-        pass:
-    def op_jeq():
+    def op_cmp(self, operand_a, operand_b):
+        if operand_a < operand_b:
+            self.fla[6] = 1
+        elif operand_a > operand_b:
+            self.fla[7] = 1
+        elif operand_a == operand_b:
+            self.fla[8] = 1
+
+    def op_jeq(self, operand_a, operand_b):
         pass
-    def op_jne():
+    def op_jne(self, operand_a, operand_b):
+        pass
 
     # ram functions 
 
