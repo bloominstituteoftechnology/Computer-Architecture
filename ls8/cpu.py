@@ -1,5 +1,5 @@
 """CPU functionality."""
-
+# py ls8.py examples/sctest.ls8
 import sys
 
 LDI =  0b10000010
@@ -22,7 +22,7 @@ class CPU:
         self.reg = [0] * 8
         self.reg[7] = 255 # R7 is reserved as the stack pointer (SP)
         self.ram = [0] * 256
-        self.fla = [None] * 0 # `FL` bits: `00000LGE`
+        self.fla = [0] * 8 # `FL` bits: `00000LGE`
         self.hlt = False
 
 
@@ -62,20 +62,26 @@ class CPU:
         operand_b = self.ram[sp]
         self.reg[operand_a] = operand_b
 
-    def op_jmp(self, operand_a, operand_b):
-        pass
+    def op_jmp(self, address, operand_b):
+        self.pc = self.reg[address]
+
     def op_cmp(self, operand_a, operand_b):
         if operand_a < operand_b:
-            self.fla[6] = 1
+            self.fla[5] = 1
         elif operand_a > operand_b:
-            self.fla[7] = 1
+            self.fla[6] = 1
         elif operand_a == operand_b:
-            self.fla[8] = 1
+            self.fla[7] = 1
+        else: print('Non-comparable values')
+        # `FL` bits: `00000LGE`
 
     def op_jeq(self, operand_a, operand_b):
-        pass
+        if self.fla[7] == 1:
+            self.op_jmp(operand_a, operand_b)
+
     def op_jne(self, operand_a, operand_b):
-        pass
+        if self.fla[7] == 0:
+            self.op_jmp(operand_a, operand_b)
 
     # ram functions 
 
