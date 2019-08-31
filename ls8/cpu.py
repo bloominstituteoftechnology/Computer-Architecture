@@ -1,6 +1,7 @@
 """CPU functionality."""
 # py ls8.py examples/sctest.ls8
 import sys
+import time
 
 LDI =  0b10000010
 PRN =  0b01000111
@@ -66,11 +67,13 @@ class CPU:
         self.pc = self.reg[address]
 
     def op_cmp(self, operand_a, operand_b):
-        if operand_a < operand_b:
+        value1 = self.ram[operand_a]
+        value2 = self.ram[operand_b]
+        if value1 < value2:
             self.fla[5] = 1
-        elif operand_a > operand_b:
+        elif value1 > value2:
             self.fla[6] = 1
-        elif operand_a == operand_b:
+        elif value1 == value2:
             self.fla[7] = 1
         else: print('Non-comparable values')
         # `FL` bits: `00000LGE`
@@ -78,10 +81,14 @@ class CPU:
     def op_jeq(self, operand_a, operand_b):
         if self.fla[7] == 1:
             self.op_jmp(operand_a, operand_b)
+        else:
+            self.pc += 2
 
     def op_jne(self, operand_a, operand_b):
         if self.fla[7] == 0:
             self.op_jmp(operand_a, operand_b)
+        else:
+            self.pc += 2
 
     # ram functions 
 
@@ -155,6 +162,8 @@ class CPU:
     def run(self):
         """Run the CPU."""
         while self.hlt == False:
+            self.trace()
+            time.sleep(1)
             ir = self.ram[self.pc]
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
