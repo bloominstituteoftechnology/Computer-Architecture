@@ -120,7 +120,7 @@ class CPU:
         self.pc = self.ram[self.SP]
     
     def jump(self, mar, mdr):
-        pass
+        self.pc = self.reg[mar]
 
     def ram_read(self, mar):
         return self.ram[mar]
