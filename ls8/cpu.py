@@ -8,6 +8,10 @@ HLT =  0b00000001
 MUL =  0b10100010
 PUSH = 0b01000101
 POP =  0b01000110
+CMP =  0b10100111
+JMP =  0b01010100
+JEQ =  0b01010101
+JNE =  0b01010110
 
 class CPU:
     """Main CPU class."""
@@ -19,6 +23,7 @@ class CPU:
         self.reg[7] = 255 # R7 is reserved as the stack pointer (SP)
         self.pc = 0
         self.hlt = False
+        self.fl = {}
 
         self.ops = {
             LDI: self.op_ldi,
@@ -45,14 +50,20 @@ class CPU:
     def op_push (self, operand_a, operand_b):
         self.reg[7] -= 1 # decrement stack pointer
         sp = self.reg[7] # sp variable
-        value = self.reg[self.ram[self.pc + 1]]
-        self.ram[sp] = value
+        self.ram[sp] = self.reg[operand_a]
 
     def op_pop (self, operand_a, operand_b):
-        sp = self.reg[7] # sp variable
-        value = self.ram[sp]
-        self.reg[7] += 1 # increment stack pointer
-        self.reg[self.ram[self.pc + 1]] = value
+        sp = self.reg[7] # sp variable        
+        operand_b = self.ram[sp]
+        self.reg[operand_a] = operand_b
+
+    def op_jmp():
+        pass
+    def op_cmp():
+        pass:
+    def op_jeq():
+        pass
+    def op_jne():
 
     # ram functions 
 
