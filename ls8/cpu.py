@@ -1,6 +1,7 @@
 """CPU functionality."""
 
 import sys
+import re
 
 
 class CPU:
@@ -24,21 +25,38 @@ class CPU:
 
         address = 0
 
-        # For now, we've just hardcoded a program:
+        # # For now, we've just hardcoded a program:
 
-        program = [
-            # From print8.ls8
-            0b10000010,  # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111,  # PRN R0
-            0b00000000,
-            0b00000001,  # HLT
-        ]
+        # program = [
+        #     # From print8.ls8
+        #     0b10000010,  # LDI R0,8
+        #     0b00000000,
+        #     0b00001000,
+        #     0b01000111,  # PRN R0
+        #     0b00000000,
+        #     0b00000001,  # HLT
+        # ]
 
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+        # for instruction in program:
+        #     self.ram[address] = instruction
+        #     address += 1
+        pattern = "[0-1]{8}"
+        if len(sys.argv) >= 2:
+            try:
+                with open(sys.argv[1], 'r') as f:
+                    lines = f.readlines()
+
+                    for line in lines:
+                        match = re.match(pattern, line)
+                        if match:
+                            self.ram[address] =int(line[0:8], base = 2)
+                            address += 1
+            except FileNotFoundError:
+                print("File not found, check the name given")
+                sys.exit(2)
+        else:
+            print("No argument provided to sys")
+            sys.exit(1)
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -92,5 +110,8 @@ class CPU:
                 print(self.reg[operand_a])
                 self.pc += 2
             elif IR == HLT:
+                running = False
+            else:
+                print("command not recoginized")
                 running = False
         self.trace()
