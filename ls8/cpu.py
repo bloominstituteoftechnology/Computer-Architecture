@@ -12,6 +12,7 @@ class CPU:
         self.ram = [0]*256
         self.reg = [0]*8
         self.pc = 0
+        self.SP = 0xF3
 
     def ram_read(self, MAR):
 
@@ -79,6 +80,8 @@ class CPU:
         PRN = 0b01000111
         HLT = 0b00000001
         MUL = 0b10100010
+        PUSH = 0b01000101
+        POP = 0b01000110
 
         running = True
 
@@ -98,9 +101,16 @@ class CPU:
             elif IR == MUL:
                 self.alu("MUL", operand_a, operand_b)
                 self.pc += 3
+            elif IR == PUSH:
+                self.SP = (self.SP % 257) - 1
+                self.ram[self.SP] = self.reg[operand_a]
+                self.pc += 2
+            elif IR == POP:
+                self.reg[operand_a] = self.ram[self.SP]
+                self.SP = (self.SP % 257) + 1
+                self.pc += 2
             elif IR == HLT:
                 running = False
             else:
                 print("command not recoginized")
                 running = False
-        self.trace()
