@@ -9,7 +9,7 @@ class CPU:
         """Construct a new CPU."""
         self.reg = reg
         self.ram = ram
-        self.pc = pc
+        self.pc = pc # memory address starting at 0 when initialized
 
     def load(self):
         """Load a program into memory."""
@@ -72,11 +72,32 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        running = True
+        print("running")
+        while running:
+            ir = self.pc
+            op = self.ram[ir]
+            if op == 0b10000010: # LDI (load into register a value)
+                print("LDI")
+                operand_a = self.ram[self.pc + 1] # targeted register
+                operand_b = self.ram[self.pc + 2] # value to load
+                self.ram[operand_a] = operand_b
+                self.pc += 3
+            
+            elif op == 0b01000111: # PRN (print value from given register)
+                print("PRN")
+                operand_a = self.ram[self.pc + 1]
+                print(self.ram[operand_a])
+                self.pc += 2
+
+            elif op == 0b00000001: # HLT (halt cpu)
+                print("HLT")
+                running = False
 
 
-cpu = CPU()
-cpu.load()
-print(cpu.ram_read(0)) # test for ram_read works (print 130)
-cpu.ram_write(0b10000001, 0) # puts binary 129 in register 0
-print(cpu.ram_read(0)) # test for ram_write works (print 129)
+
+# cpu = CPU()
+# cpu.load()
+# print(cpu.ram_read(0)) # test for ram_read works (print 130)
+# cpu.ram_write(0b10000001, 0) # puts binary 129 in register 0
+# print(cpu.ram_read(0)) # test for ram_write works (print 129)
