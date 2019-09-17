@@ -2,6 +2,12 @@
 
 import sys
 
+#check for file arg
+if len(sys.argv) != 2:
+    print("usage: ls8.py *insert a program file name as argument*")
+    sys.exit(1)
+
+
 class CPU:
     """Main CPU class."""
 
@@ -16,13 +22,13 @@ class CPU:
         program = []
 
         with open(sys.argv[1]) as f:
-            lines = list(line for line in (l.strip() for l in f) if line)
-
-            for line in lines:
-                if "#" not in line[0]:
-                    line = line.split('#', 1)[0]
-                    line = line.rstrip()
-                    program.append(int(line, 2)) # convert string to binary int
+            for line in f:
+                comment_split = line.split('#')
+                num = comment_split[0].strip()
+                try:
+                    program.append(int(num, 2))
+                except ValueError:
+                    pass
 
         address = 0
 
@@ -49,7 +55,7 @@ class CPU:
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
         elif op == "MUL":
-            self.reg[reg_a] = (self.reg[reg_a] * self.reg[reg_b])
+            self.reg[reg_a] *= self.reg[reg_b]
         #elif op == "SUB": etc
         else:
             raise Exception("Unsupported ALU operation")
