@@ -11,22 +11,38 @@ class CPU:
         self.ram = ram
         self.pc = pc # memory address starting at 0 when initialized
 
+    def nonblank_lines(self, f):
+        for l in f:
+            line = l.rstrip()
+            if line:
+                yield line
+    
     def load(self):
         """Load a program into memory."""
+        program = []
 
+        with open(sys.argv[1]) as f:
+            lines = list(line for line in (l.strip() for l in f) if line)
+
+            for line in lines:
+                if "#" not in line[0]:
+                    line = line.split('#', 1)[0]
+                    line = line.rstrip()
+                    program.append(int(line, 2)) # convert string to binary int
+                    
         address = 0
 
-        # For now, we've just hardcoded a program:
+        # # For now, we've just hardcoded a program:
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+        # program = [
+        #     # From print8.ls8
+        #     0b10000010, # LDI R0,8
+        #     0b00000000,
+        #     0b00001000,
+        #     0b01000111, # PRN R0
+        #     0b00000000,
+        #     0b00000001, # HLT
+        # ]
 
         for instruction in program:
             self.ram[address] = instruction
@@ -78,20 +94,21 @@ class CPU:
             ir = self.pc
             op = self.ram[ir]
             if op == 0b10000010: # LDI (load into register a value)
-                print("LDI")
                 operand_a = self.ram[self.pc + 1] # targeted register
                 operand_b = self.ram[self.pc + 2] # value to load
                 self.ram[operand_a] = operand_b
                 self.pc += 3
             
             elif op == 0b01000111: # PRN (print value from given register)
-                print("PRN")
                 operand_a = self.ram[self.pc + 1]
                 print(self.ram[operand_a])
                 self.pc += 2
 
             elif op == 0b00000001: # HLT (halt cpu)
-                print("HLT")
+                
+                print(sys.argv)
+                print(self.ram)
+
                 running = False
 
 
