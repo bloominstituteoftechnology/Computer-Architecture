@@ -56,9 +56,10 @@ class CPU:
             self.reg[reg_a] += self.reg[reg_b]
         elif op == "MUL":
             print("MUL")
+            print(self.reg)
             print(reg_a)
             print(reg_b)
-            self.reg[reg_a] *= self.reg[reg_b]
+            self.reg[reg_a] = (self.reg[reg_a] * self.reg[reg_b])
             print(self.reg[reg_a])
         #elif op == "SUB": etc
         else:
@@ -102,7 +103,7 @@ class CPU:
             if op == 0b10000010: # LDI (load into register a value)
                 operand_a = self.ram[self.pc + 1] # targeted register
                 operand_b = self.ram[self.pc + 2] # value to load
-                self.ram[operand_a] = operand_b
+                self.reg[operand_a] = operand_b
                 self.pc += 3
 
             if op == 0b10100010: # MUL (call alu with paramters)
@@ -115,9 +116,8 @@ class CPU:
 
             elif op == 0b01000111: # PRN (print value from given register)
                 print("PRINT")
-                print(self.ram)
-                operand_a = self.ram[self.pc + 1]
-                print(self.ram[operand_a])
+                operand_a = self.reg[self.pc + 1]
+                print(self.reg[operand_a])
                 self.pc += 2
 
             elif op == 0b00000001: # HLT (halt cpu)
