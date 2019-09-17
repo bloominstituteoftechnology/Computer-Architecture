@@ -63,12 +63,20 @@ class CPU:
         print()
 
 
-    def ram_read():
-        pass
+    def ram_read(self, memory_address_register):
+        value = self.ram[memory_address_register]
+        return value
 
-    def ram_write():
-        pass
+    def ram_write(self, memory_data_register, memory_address_register):
+        self.ram[memory_address_register] = memory_data_register
 
     def run(self):
         """Run the CPU."""
         pass
+
+
+cpu = CPU()
+cpu.load()
+print(cpu.ram_read(0)) # test for ram_read works (print 130)
+cpu.ram_write(0b10000001, 0) # puts binary 129 in register 0
+print(cpu.ram_read(0)) # test for ram_write works (print 129)
