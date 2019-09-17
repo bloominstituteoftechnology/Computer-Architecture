@@ -55,12 +55,7 @@ class CPU:
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
         elif op == "MUL":
-            print("MUL")
-            print(self.reg)
-            print(reg_a)
-            print(reg_b)
             self.reg[reg_a] = (self.reg[reg_a] * self.reg[reg_b])
-            print(self.reg[reg_a])
         #elif op == "SUB": etc
         else:
             raise Exception("Unsupported ALU operation")
@@ -107,23 +102,16 @@ class CPU:
                 self.pc += 3
 
             if op == 0b10100010: # MUL (call alu with paramters)
-                print("MULTIPLY")
-                print(self.ram)
                 operand_a = self.ram[self.pc + 1]
                 operand_b = self.ram[self.pc + 2]
                 self.alu("MUL", operand_a, operand_b)
                 self.pc += 3
 
             elif op == 0b01000111: # PRN (print value from given register)
-                print("PRINT")
                 operand_a = self.reg[self.pc + 1]
                 print(self.reg[operand_a])
                 self.pc += 2
 
             elif op == 0b00000001: # HLT (halt cpu)
-                
-                print(sys.argv)
-                print(self.ram)
-
                 running = False
 
