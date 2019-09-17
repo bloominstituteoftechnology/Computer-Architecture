@@ -10,12 +10,6 @@ class CPU:
         self.reg = reg
         self.ram = ram
         self.pc = pc # memory address starting at 0 when initialized
-
-    def nonblank_lines(self, f):
-        for l in f:
-            line = l.rstrip()
-            if line:
-                yield line
     
     def load(self):
         """Load a program into memory."""
@@ -93,25 +87,35 @@ class CPU:
         running = True
         print("running")
         while running:
+
             ir = self.pc
             op = self.ram[ir]
+            instruction_size = ((op & 11000000) >> 6) + 1
+            
             if op == 0b10000010: # LDI (load into register a value)
                 operand_a = self.ram[self.pc + 1] # targeted register
                 operand_b = self.ram[self.pc + 2] # value to load
                 self.reg[operand_a] = operand_b
-                self.pc += 3
+                # self.pc += 3
 
-            if op == 0b10100010: # MUL (call alu with paramters)
+            elif op == 0b10100010: # MUL (call alu with paramaters)
                 operand_a = self.ram[self.pc + 1]
                 operand_b = self.ram[self.pc + 2]
                 self.alu("MUL", operand_a, operand_b)
-                self.pc += 3
+                # self.pc += 3
 
             elif op == 0b01000111: # PRN (print value from given register)
                 operand_a = self.reg[self.pc + 1]
                 print(self.reg[operand_a])
-                self.pc += 2
+                # self.pc += 2
 
             elif op == 0b00000001: # HLT (halt cpu)
                 running = False
+            
+            else:
+                print("Unrecognized instruction: " + str(op))
+                running = False
+            
+            self.pc += instruction_size
+
 
