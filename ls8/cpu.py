@@ -3,7 +3,7 @@
 import sys
 
 #check for file arg
-if len(sys.argv) != 2:
+if len(sys.argv) < 2:
     print("usage: ls8.py *insert a program file name as argument*")
     sys.exit(1)
 
