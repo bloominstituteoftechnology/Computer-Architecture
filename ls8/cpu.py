@@ -2,12 +2,22 @@
 
 import sys
 
+
+
 class CPU:
     """Main CPU class."""
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        # Create a 256 byte RAM
+        self.ram = [0] * 256
+
+        # Create the Register (R0 - R8)
+        self.register = [0] * 8
+
+        # Create a PC - Program Counter
+        self.PC = self.register[0]
+        
 
     def load(self):
         """Load a program into memory."""
