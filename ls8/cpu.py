@@ -2,6 +2,15 @@
 
 import sys
 
+#List operations
+OP1 = 0b10000010 #LDI
+OP2 = 0b01000111 #PRN 0b01000111
+OP3 = 0b10100010 #MUL
+OP4 = 0b01000101 #PUSH
+OP5 = 0b01000110 #POP
+OP6 = 0b00000001 #HALT
+
+
 #check for file arg
 if len(sys.argv) < 2:
     print("usage: ls8.py *insert a program file name as argument*")
@@ -17,7 +26,48 @@ class CPU:
         self.ram = ram
         self.pc = pc # memory address starting at 0 when initialized
         self.sp = 244 # top of an empty stack is 244 in ram... grows downward
-    
+        self.running = True
+        # Setup Branch Table
+        
+        self.branchtable = {}
+        self.branchtable[OP1] = self.ldi
+        self.branchtable[OP2] = self.print
+        self.branchtable[OP3] = self.multiply
+        self.branchtable[OP4] = self.push
+        self.branchtable[OP5] = self.pop
+        self.branchtable[OP6] = self.hlt
+        
+
+    def ldi(self):
+        operand_a = self.ram[self.pc + 1] # targeted register
+        operand_b = self.ram[self.pc + 2] # value to load
+        self.reg[operand_a] = operand_b
+        # self.pc += 3
+
+    def print(self):
+        operand_a = self.ram[self.pc + 1]
+        print(self.reg[operand_a])
+
+    def hlt(self):
+        self.running = False
+
+    def multiply(self):
+        operand_a = self.ram[self.pc + 1]
+        operand_b = self.ram[self.pc + 2]
+        self.alu("MUL", operand_a, operand_b)
+
+    def push(self):
+        reg_address = self.ram[self.pc + 1]
+        self.sp -= 1
+        value = self.reg[reg_address]
+        self.ram[self.sp] = value
+
+    def pop(self):
+        pop_value = self.ram[self.sp]
+        reg_address = self.ram[self.pc + 1]
+        self.reg[reg_address] = pop_value
+        self.sp += 1
+
     def load(self):
         """Load a program into memory."""
         program = []
@@ -92,49 +142,49 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        running = True
+        # running = True
         print("running")
-        while running:
+        while self.running:
 
             ir = self.pc
             op = self.ram[ir]
             instruction_size = ((op & 11000000) >> 6) + 1
+            self.branchtable[op]()
             
-            if op == 0b10000010: # LDI (load into register a value)
-                operand_a = self.ram[self.pc + 1] # targeted register
-                operand_b = self.ram[self.pc + 2] # value to load
-                self.reg[operand_a] = operand_b
-                # self.pc += 3
+            # if op == 0b10000010: # LDI (load into register a value)
+            #     operand_a = self.ram[self.pc + 1] # targeted register
+            #     operand_b = self.ram[self.pc + 2] # value to load
+            #     self.reg[operand_a] = operand_b
+            #     # self.pc += 3
 
-            elif op == 0b10100010: # MUL (call alu with paramaters)
-                operand_a = self.ram[self.pc + 1]
-                operand_b = self.ram[self.pc + 2]
-                self.alu("MUL", operand_a, operand_b)
-                # self.pc += 3
+            # if op == 0b10100010: # MUL (call alu with paramaters)
+            #     operand_a = self.ram[self.pc + 1]
+            #     operand_b = self.ram[self.pc + 2]
+            #     self.alu("MUL", operand_a, operand_b)
+            #     # self.pc += 3
 
-            elif op == 0b01000111: # PRN (print value from given register address)
-                operand_a = self.ram[self.pc + 1]
-                print(self.reg[operand_a])
-                # self.pc += 2
+            # elif op == 0b01000111: # PRN (print value from given register address)
+            #     operand_a = self.ram[self.pc + 1]
+            #     print(self.reg[operand_a])
+            #     # self.pc += 2
 
-            elif op == 0b01000101: # PUSH (push value from register onto stack)
-                reg_address = self.ram[self.pc + 1]
-                self.sp -= 1
-                value = self.reg[reg_address]
-                self.ram[self.sp] = value
+            # if op == 0b01000101: # PUSH (push value from register onto stack)
+            #     reg_address = self.ram[self.pc + 1]
+            #     self.sp -= 1
+            #     value = self.reg[reg_address]
+            #     self.ram[self.sp] = value
 
-            elif op == 0b01000110: # POP
-                pop_value = self.ram[self.sp]
-                reg_address = self.ram[self.pc + 1]
-                self.reg[reg_address] = pop_value
-                self.sp += 1
+            # elif op == 0b01000110: # POP
+            #     pop_value = self.ram[self.sp]
+            #     reg_address = self.ram[self.pc + 1]
+            #     self.reg[reg_address] = pop_value
+            #     self.sp += 1
 
-            elif op == 0b00000001: # HLT (halt cpu)
-                running = False
+            # elif op == 0b00000001: # HLT (halt cpu)
+            #     self.running = False
             
-            else:
-                print("Unrecognized instruction: " + str(op))
-                running = False
+            # else:
+            #     pass
             
             self.pc += instruction_size
 
