@@ -27,8 +27,8 @@ class CPU:
         self.pc = pc # memory address starting at 0 when initialized
         self.sp = 244 # top of an empty stack is 244 in ram... grows downward
         self.running = True
-        # Setup Branch Table
         
+        # Setup Branch Table
         self.branchtable = {}
         self.branchtable[OP1] = self.ldi
         self.branchtable[OP2] = self.print
