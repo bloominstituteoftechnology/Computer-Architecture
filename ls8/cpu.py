@@ -11,11 +11,12 @@ if len(sys.argv) < 2:
 class CPU:
     """Main CPU class."""
 
-    def __init__(self, reg = [0] * 20, ram = [0] * 20, pc = 0):
+    def __init__(self, reg = [0] * 8, ram = [0] * 256, pc = 0):
         """Construct a new CPU."""
         self.reg = reg
         self.ram = ram
         self.pc = pc # memory address starting at 0 when initialized
+        self.sp = 244 # top of an empty stack is 244 in ram... grows downward
     
     def load(self):
         """Load a program into memory."""
@@ -88,6 +89,7 @@ class CPU:
     def ram_write(self, memory_data_register, memory_address_register):
         self.ram[memory_address_register] = memory_data_register
 
+
     def run(self):
         """Run the CPU."""
         running = True
@@ -110,10 +112,22 @@ class CPU:
                 self.alu("MUL", operand_a, operand_b)
                 # self.pc += 3
 
-            elif op == 0b01000111: # PRN (print value from given register)
-                operand_a = self.reg[self.pc + 1]
+            elif op == 0b01000111: # PRN (print value from given register address)
+                operand_a = self.ram[self.pc + 1]
                 print(self.reg[operand_a])
                 # self.pc += 2
+
+            elif op == 0b01000101: # PUSH (push value from register onto stack)
+                reg_address = self.ram[self.pc + 1]
+                self.sp -= 1
+                value = self.reg[reg_address]
+                self.ram[self.sp] = value
+
+            elif op == 0b01000110: # POP
+                pop_value = self.ram[self.sp]
+                reg_address = self.ram[self.pc + 1]
+                self.reg[reg_address] = pop_value
+                self.sp += 1
 
             elif op == 0b00000001: # HLT (halt cpu)
                 running = False
