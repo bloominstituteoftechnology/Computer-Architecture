@@ -9,6 +9,9 @@ OP3 = 0b10100010 #MUL
 OP4 = 0b01000101 #PUSH
 OP5 = 0b01000110 #POP
 OP6 = 0b00000001 #HALT
+OP7 = 0b01010000 #CALL
+OP8 = 0b00010001 #RET
+OP9 = 0b10100000 #ADD
 
 
 #check for file arg
@@ -36,7 +39,40 @@ class CPU:
         self.branchtable[OP4] = self.push
         self.branchtable[OP5] = self.pop
         self.branchtable[OP6] = self.hlt
+        self.branchtable[OP7] = self.call
+        self.branchtable[OP8] = self.ret
+        self.branchtable[OP9] = self.add
+
+    def add(self):
+        self.reg[self.ram[self.pc + 1]] += self.reg[self.ram[self.pc + 2]]
         
+    def call(self):
+
+        # custom push functionality
+        next_address = self.pc + 2
+        self.sp -= 1
+        self.ram[self.sp] = next_address
+        # set pc
+        address = self.reg[self.ram[self.pc + 1]]
+        self.pc = address
+
+    def ret(self):
+        next_address = self.ram[self.sp]
+        self.sp += 1
+
+        self.pc = next_address
+
+    def push(self):
+        reg_address = self.ram[self.pc + 1]
+        self.sp -= 1
+        value = self.reg[reg_address]
+        self.ram[self.sp] = value
+
+    def pop(self):
+        pop_value = self.ram[self.sp]
+        reg_address = self.ram[self.pc + 1]
+        self.reg[reg_address] = pop_value
+        self.sp += 1
 
     def ldi(self):
         operand_a = self.ram[self.pc + 1] # targeted register
@@ -56,17 +92,6 @@ class CPU:
         operand_b = self.ram[self.pc + 2]
         self.alu("MUL", operand_a, operand_b)
 
-    def push(self):
-        reg_address = self.ram[self.pc + 1]
-        self.sp -= 1
-        value = self.reg[reg_address]
-        self.ram[self.sp] = value
-
-    def pop(self):
-        pop_value = self.ram[self.sp]
-        reg_address = self.ram[self.pc + 1]
-        self.reg[reg_address] = pop_value
-        self.sp += 1
 
     def load(self):
         """Load a program into memory."""
@@ -104,6 +129,7 @@ class CPU:
         """ALU operations."""
 
         if op == "ADD":
+            print("ADDING NOW")
             self.reg[reg_a] += self.reg[reg_b]
         elif op == "MUL":
             self.reg[reg_a] *= self.reg[reg_b]
@@ -149,6 +175,7 @@ class CPU:
             ir = self.pc
             op = self.ram[ir]
             instruction_size = ((op & 11000000) >> 6) + 1
+            pc_set_flag = (op & 0b00010000) # applies a mask to get pc_set bit
             self.branchtable[op]()
             
             # if op == 0b10000010: # LDI (load into register a value)
@@ -185,7 +212,8 @@ class CPU:
             
             # else:
             #     pass
-            
-            self.pc += instruction_size
+            if pc_set_flag != 0b00010000:
+                self.pc += instruction_size
+                
 
 
