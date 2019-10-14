@@ -51,9 +51,14 @@ class CPU:
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
 
+        # addition
         if op == "ADD":
             self.registers[reg_a] += self.registers[reg_b]
-        #elif op == "SUB": etc
+
+        # multiplication
+        elif op == "MULT":
+            self.registers[reg_a] *= self.registers[reg_b]
+           
         else:
             raise Exception("Unsupported ALU operation")
 
