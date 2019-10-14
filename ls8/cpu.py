@@ -12,7 +12,7 @@ class CPU:
         # R5 is reserved as the interrupt mask (IM)
         # R6 is reserved as the interrupt status (IS)
         # R7 is reserved as the stack pointer (SP)
-        self.reg = [0] * 8
+        self.registers = [0] * 8
 
         # internal registers
         self.pc = 0 # PC: Program Counter, address of the currently executing instruction
@@ -23,6 +23,9 @@ class CPU:
 
         self.ram = [0] * 255
         self.pc = 0
+
+        # opcodes
+        self.OPCODES = {0b10000010: 'LDI', 0b01000111: 'PRN', 0b00000001: 'HLT'}
 
     def load(self):
         """Load a program into memory."""
@@ -50,7 +53,7 @@ class CPU:
         """ALU operations."""
 
         if op == "ADD":
-            self.reg[reg_a] += self.reg[reg_b]
+            self.registers[reg_a] += self.registers[reg_b]
         #elif op == "SUB": etc
         else:
             raise Exception("Unsupported ALU operation")
@@ -71,12 +74,31 @@ class CPU:
         ), end='')
 
         for i in range(8):
-            print(" %02X" % self.reg[i], end='')
+            print(" %02X" % self.registers[i], end='')
 
         print()
 
     def run(self):
         """Run the CPU."""
+        running = True
+        while running: 
+            command = self.ram[self.pc]
+
+            try:
+                # do LDI
+                if self.OPCODES[command] == 'LDI':
+                    reg = self.ram[self.pc+1]
+                    val = self.ram[self.pc+2]
+                    self.registers[reg] = val
+                    self.pc += 3
+                elif self.OPCODES[command] == 'PRN':
+                    reg = self.ram[self.pc+1]
+                    val = self.registeres[reg]
+                    print(val)
+                    self.pc += 2
+
+            except KeyError as e:
+                print(f"unknown command {command}")
         pass
 
     def ram_read(self):
