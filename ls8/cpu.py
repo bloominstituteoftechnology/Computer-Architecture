@@ -93,12 +93,16 @@ class CPU:
                     self.pc += 3
                 elif self.OPCODES[command] == 'PRN':
                     reg = self.ram[self.pc+1]
-                    val = self.registeres[reg]
+                    val = self.registers[reg]
                     print(val)
                     self.pc += 2
+                elif self.OPCODES[command] == 'HLT':
+                    running = False
+                    # self.pc += 1 # i don't know if it makes sense to do this.
 
             except KeyError as e:
                 print(f"unknown command {command}")
+                self.pc += 1
         pass
 
     def ram_read(self):
