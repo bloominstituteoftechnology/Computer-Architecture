@@ -12,7 +12,7 @@ class CPU:
         # R5 is reserved as the interrupt mask (IM)
         # R6 is reserved as the interrupt status (IS)
         # R7 is reserved as the stack pointer (SP)
-        self.registers = [0] * 8
+        self.registers = [0b0] * 8
 
         # internal registers
         self.pc = 0 # PC: Program Counter, address of the currently executing instruction
@@ -21,8 +21,7 @@ class CPU:
         self.mdr = 0 # MDR: Memory Data Register, holds the value to write or the value just read
         self.fl = 0 # FL: Flags, see below
 
-        self.ram = [0] * 255
-        self.pc = 0
+        self.ram = [0b0] * 255
 
         # opcodes
         self.OPCODES = {0b10000010: 'LDI', 0b01000111: 'PRN', 0b00000001: 'HLT'}
@@ -91,11 +90,15 @@ class CPU:
                     val = self.ram[self.pc+2]
                     self.registers[reg] = val
                     self.pc += 3
+
+                # do Print
                 elif self.OPCODES[command] == 'PRN':
                     reg = self.ram[self.pc+1]
                     val = self.registers[reg]
                     print(val)
                     self.pc += 2
+
+                # exit
                 elif self.OPCODES[command] == 'HLT':
                     running = False
                     # self.pc += 1 # i don't know if it makes sense to do this.
@@ -105,10 +108,17 @@ class CPU:
                 self.pc += 1
         pass
 
-    def ram_read(self):
-        """ read from ram"""
-        pass
+    def ram_read(self, location):
+        """ read from ram
 
-    def ram_write(self):
-        """ write to ram """
+            accept the address to read and return the value stored there
+        """
+        return self.ram[location]
+
+    def ram_write(self, location, value):
+        """ write to ram
+
+        accept a value to write, and the address to write it to.
+        """
+        self.ram[location] = value
         pass

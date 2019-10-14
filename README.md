@@ -8,9 +8,9 @@
 
 ### Day 1: Get `print8.ls8` running
 
-- [ ] Inventory what is here
+- [x] Inventory what is here
 - [x] Implement the `CPU` constructor
-- [ ] Add RAM functions `ram_read()` and `ram_write()`
+- [x] Add RAM functions `ram_read()` and `ram_write()`
 - [X] Implement the core of `run()`
 - [X] Implement the `HLT` instruction handler
 - [X] Add the `LDI` instruction
