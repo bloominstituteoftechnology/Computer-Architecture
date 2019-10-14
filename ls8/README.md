@@ -60,10 +60,19 @@ but you'll have to implement those three above instructions first!
 ## Step 0: IMPORTANT: inventory what is here!
 
 * Make a list of files here.
+  -cpu.py
+  -ls8.py
+  -readMe
 * Write a short 3-10-word description of what each file does.
+  - cpu.py - defines the CPU class
+  - ls8.py - this is the file we're actually running
+  - readMe - telling us what to do
 * Note what has been implemented, and what hasn't.
+  - I would think that, technically, both cpu and ls8 would be considered implemented once I run ls8 in my terminal, right? 
 * Read this whole file.
+  Okay.
 * Skim the spec.
+  I'm on it.
 
 ## Step 1: Add the constructor to `cpu.py`
 
