@@ -60,6 +60,22 @@ but you'll have to implement those three above instructions first!
 ## Step 0: IMPORTANT: inventory what is here!
 
 * Make a list of files here.
+
+cpu.py for cpu class constructor, load() for loading a program, alu(): alu for alu operations, trace() to print out the cpu state, run is not yet done
+
+ls8.py executes the emulator progream.
+
+ls8: call.ls8 is calling the program
+
+examples: are files for the emulator to write out commands 
+
+print8.ls8 is printing number 9
+printstr.ls8 is priting string 
+stack.ls8
+stackoverflow.ls8
+mult.ls8 for multiply
+
+
 * Write a short 3-10-word description of what each file does.
 * Note what has been implemented, and what hasn't.
 * Read this whole file.
