@@ -41,6 +41,7 @@ class CPU:
                 address += 1
         except FileNotFoundError as e:
             print(e)
+            sys.exit()
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
