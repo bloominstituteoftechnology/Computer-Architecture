@@ -7,6 +7,7 @@ import sys
 
 HLT = 0b00000001
 LDI = 0b10000010
+PRN = 0b01000111
 
 
 
@@ -99,7 +100,12 @@ class CPU:
                 print("LDI register, integer", register, integer)
                 self.reg[register] = integer
 
-            
+
+            ##Print numeric value stored in the given register.
+            elif command == PRN:
+                register = self.ram[self.PC + 1]
+                print(self.reg[register])
+
 
 
 
