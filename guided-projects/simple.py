@@ -9,41 +9,48 @@ SAVE = 4# save value into register
 PRINT_REGISTER = 5
 ADD = 6
 
-# 0000 0001 0000 0001 0000 0001 0000 0001 0000 0001 0000 0010
-memory0 = [
-    PRINT_BEEJ,
-    PRINT_NUM,
-    1,
-    PRINT_NUM,
-    12,
-    PRINT_BEEJ,
-    PRINT_NUM,
-    37,
-    PRINT_BEEJ,
-    HALT
-]
-
-memory = [
-    PRINT_BEEJ,
-    SAVE, # save 65 into r2
-    65,
-    2,
-    SAVE, # save 20 into R3
-    20,
-    3,
-    ADD, # add R2 + R3 = 65 + 20, store in register 2
-    2,
-    3,
-    PRINT_REGISTER,
-    2,
-    HALT
-]
-
+memory = [0] * (2**8)
 pc = 0
 running = True
 
+if len(sys.argv) != 2:
+    print("usage: fileio.py <filename>", file=sys.stderr)
+    sys.exit(1)
+
 # create 8 registers
 register = [0] * 8
+
+def load_memory(filename):
+    global memory
+    address = 0
+    try:
+        with open(filename) as f:
+            for line in f:
+                # process comments: ignore anything after a #
+                comment_split = [x for x in line.split("#") if x!='']
+                #convert numbers from strings binary to integers.
+                try:
+                    num = comment_split[0].strip()
+                    x = int(num)
+                    memory[address] = x
+                    address += 1
+                except ValueError as e:
+                    print(f"WARNING: {e}")
+                    continue
+                except IndexError as e:
+                    print(f"WARNING: {e}")
+                    continue
+
+                #print(f"{x:08b}: {x}")
+    except FileNotFoundError:
+        print(f"{sys.argv[0]}: {sys.argv[1]} not found")
+        sys.exit(2)
+
+load_memory(sys.argv[1])
+
+#for byte in memory[:30]:
+#    print(byte)
+
 
 while running:
     # do stuff
@@ -79,3 +86,35 @@ while running:
         print(f"unknown instruction: {command}")
         sys.exit(1)
 
+"""
+# 0000 0001 0000 0001 0000 0001 0000 0001 0000 0001 0000 0010
+memory0 = [
+    PRINT_BEEJ,
+    PRINT_NUM,
+    1,
+    PRINT_NUM,
+    12,
+    PRINT_BEEJ,
+    PRINT_NUM,
+    37,
+    PRINT_BEEJ,
+    HALT
+]
+
+memory = [
+    PRINT_BEEJ,
+    SAVE, # save 65 into r2
+    65,
+    2,
+    SAVE, # save 20 into R3
+    20,
+    3,
+    ADD, # add R2 + R3 = 65 + 20, store in register 2
+    2,
+    3,
+    PRINT_REGISTER,
+    2,
+    HALT
+]
+
+"""

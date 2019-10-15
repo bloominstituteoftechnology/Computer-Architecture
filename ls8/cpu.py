@@ -24,29 +24,23 @@ class CPU:
         self.ram = [0b0] * 255
 
         # opcodes
-        self.OPCODES = {0b10000010: 'LDI', 0b01000111: 'PRN', 0b00000001: 'HLT'}
+        self.OPCODES = {0b10000010: 'LDI', 0b01000111: 'PRN', 0b00000001: 'HLT', 0b10100010: 'MUL'}
 
-    def load(self):
+    def load(self, filename: str):
         """Load a program into memory."""
 
-        address = 0
+        try:
+            with open(filename, 'r') as f:
+                lines = (line for line in f.readlines() if not (line[0]=='#' or line[0]=='\n'))
+                program = [int(line.split('#')[0].strip(), 2) for line in lines]
 
-        # For now, we've just hardcoded a program:
+            address = 0
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
-
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
-
+            for instruction in program:
+                self.ram[address] = instruction
+                address += 1
+        except FileNotFoundError as e:
+            print(e)
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -56,7 +50,7 @@ class CPU:
             self.registers[reg_a] += self.registers[reg_b]
 
         # multiplication
-        elif op == "MULT":
+        elif op == "MUL":
             self.registers[reg_a] *= self.registers[reg_b]
            
         else:
@@ -85,26 +79,32 @@ class CPU:
     def run(self):
         """Run the CPU."""
         running = True
-        while running: 
+        while running:
             command = self.ram[self.pc]
-
             try:
+                op = self.OPCODES[command]
                 # do LDI
-                if self.OPCODES[command] == 'LDI':
+                if op == 'LDI':
                     reg = self.ram[self.pc+1]
                     val = self.ram[self.pc+2]
                     self.registers[reg] = val
                     self.pc += 3
 
                 # do Print
-                elif self.OPCODES[command] == 'PRN':
+                elif op == 'PRN':
                     reg = self.ram[self.pc+1]
                     val = self.registers[reg]
                     print(val)
                     self.pc += 2
 
+                # pass to alu
+                elif op == 'ADD' or op == 'MUL':
+                    reg_a = self.ram[self.pc+1]
+                    reg_b = self.ram[self.pc+2]
+                    self.alu(op, reg_a, reg_b)
+                    self.pc += 3
                 # exit
-                elif self.OPCODES[command] == 'HLT':
+                elif op == 'HLT':
                     running = False
                     # self.pc += 1 # i don't know if it makes sense to do this.
 
