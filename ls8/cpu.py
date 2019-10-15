@@ -2,12 +2,29 @@
 
 import sys
 
+
+##ADD INSTRUCTION TO REFER BY NAME COMMAND INSTEAD OF NUMERIC VALUE
+
+HLT = 0b00000001
+LDI = 0b10000010
+
+
+
 class CPU:
     """Main CPU class."""
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.ram = [0] * 25
+        self.reg = [0] * 8
+
+        ##PC: Program Counter, address of the currently executing instruction
+        self.PC = 0
+        ##IR: Instruction Register, contains a copy of the currently executing instruction
+        self.IR = None
+        ##MAR: Memory Address Register, holds the memory address we're reading or writing
+        ##MDR: Memory Data Register, holds the value to write or the value just read
+
 
     def load(self):
         """Load a program into memory."""
@@ -62,4 +79,38 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        running = True
+
+        while running:
+            address = self.PC
+            command = self.ram[address]
+            self.IR = command
+
+            ##HALT COMMAND
+            if command == HLT:
+                running = False
+
+            ##LDI register immediate
+            ##Set the value of a register to an integer.
+            ##This instruction sets a specified register to a specified value.
+            elif command == LDI:
+                register = self.ram[self.PC + 1]
+                integer = self.ram[self.PC + 2]
+                print("LDI register, integer", register, integer)
+                self.reg[register] = integer
+
+            
+
+
+
+            address += 1
+
+
+
+    def ram_read(self, address):
+        return self.ram[address]
+    
+    def ram_write(self, address, value):
+        self.ram[address] = value
+        return self.ram[address]
+    
