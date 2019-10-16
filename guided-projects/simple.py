@@ -8,6 +8,9 @@ PRINT_NUM = 3
 SAVE = 4# save value into register
 PRINT_REGISTER = 5
 ADD = 6
+PUSH = 7
+POP = 8
+
 
 memory = [0] * (2**8)
 pc = 0
@@ -19,6 +22,8 @@ if len(sys.argv) != 2:
 
 # create 8 registers
 register = [0] * 8
+
+SP = 7
 
 def load_memory(filename):
     global memory
@@ -35,7 +40,7 @@ def load_memory(filename):
                     memory[address] = x
                     address += 1
                 except ValueError as e:
-                    print(f"WARNING: {e}")
+                    # print(f"WARNING: {e}")
                     continue
                 except IndexError as e:
                     print(f"WARNING: {e}")
@@ -82,6 +87,25 @@ while running:
         register[reg_a] += register[reg_b] # should be 85
         pc += 3
 
+    elif command == PUSH:
+        reg = memory[pc + 1]
+        val = memory[reg]
+        #Decrement the SP.
+        register[SP] -= 1
+        # Copy the value in the given register to the address pointed to by SP.
+        memory[register[SP]] = val
+        pc += 2
+
+    elif command == POP:
+        reg = memory[pc + 1]
+        val = memory[register[SP]]
+        # Copy the value from the address pointed to by SP to the given register.
+        register[reg] = val
+        # Increment SP.
+        register[SP] += 1
+        pc += 2
+
+        
     else:
         print(f"unknown instruction: {command}")
         sys.exit(1)
