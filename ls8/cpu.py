@@ -33,6 +33,7 @@ class CPU:
                         0b10100010: 'MUL',
                         0b01000110: 'POP',
                         0b01000101: 'PUSH',
+                        0b10000100: 'ST',
         }
 
     def load(self, filename: str):
@@ -105,7 +106,7 @@ class CPU:
                 elif op == 'PRN':
                     reg = self.ram[self.pc+1]
                     val = self.registers[reg]
-                    print(f"{val:x}")
+                    print(f"hex val: {val:x}\tdec val: {val}")
                     self.pc += 2
 
                 # pass to alu
@@ -138,6 +139,16 @@ class CPU:
                     self.registers[self.spl] += 1
                     self.pc += 2
 
+                # ST
+                elif op == 'ST':
+                    # Store value in registerB in the address stored in registerA.
+                    # This opcode writes to memory.
+                    reg_a = self.ram[self.pc + 1]
+                    reg_b = self.ram[self.pc + 2]
+                    address_a = self.registers[reg_a]
+                    val_b = self.registers[reg_b]
+                    self.ram[addres_a] = val_b
+                    self.pc += 2
 
                 # exit
                 elif op == 'HLT':
