@@ -1,0 +1,13 @@
+1
+4 # save 65 into r2
+65
+2
+4 # save 20 into R3
+20
+3
+6 # add R2 + R3 = 65 + 20, store in register 2
+2
+3
+5
+2
+2
