@@ -10,7 +10,8 @@ PRINT_REGISTER = 5
 ADD = 6
 PUSH = 7
 POP = 8
-
+CALL = 9
+RET = 10
 
 memory = [0] * (2**8)
 pc = 0
@@ -104,6 +105,22 @@ while running:
         # Increment SP.
         register[SP] += 1
         pc += 2
+
+    elif command == CALL:
+        # push the return address on the stack
+        register[SP] -= 1
+        memory[register[SP]] = pc + 2
+        # The PC is set to the address stored in the given register.
+        reg = memory[pc + 1]
+        # We jump to that location in RAM and execute the first instruction
+        # in the subroutine.
+        pc = memory[reg]
+
+    elif command == RET:
+        # return from subroutine
+        # Pop the value from the top of the stack and store it in the PC.
+        pc = memory[register[SP]]
+        register[SP] += 1
 
         
     else:
