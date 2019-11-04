@@ -44,36 +44,53 @@ class CPU:
     }
     opCodeMap = {}
     for op, x in OPCODES.items():
-        opCodeMap[x["code"]] = op
+        opCodeMap[int("0b" + x["code"],2)] = op
 
     def getOperation(self, opcode):
         if opcode in self.opCodeMap:
             return self.opCodeMap[opcode]
+    print("OPCODE library > ", opCodeMap)
 
 
     def __init__(self):
         """Construct a new CPU."""
         self.ram = [0]*256
         self.reg =[0]*8
-        self.pc=0
+        self.PC=0
 
 
-    def load(self):
+    def load(self, program):
         """Load a program into memory."""
+        print("Loading CPU...")
 
         address = 0
 
         # For now, we've just hardcoded a program:
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+        # program = [
+        #     # From print8.ls8
+        #     0b10000010, # LDI R0,8
+        #     0b00000000,
+        #     0b00001000,
+        #     0b01000111, # PRN R0
+        #     0b00000000,
+        #     0b00000001, # HLT
+        # ]
+        # program = [
+        # 0b10000010,  # LDI R0,8
+        # 0b00000000,
+        # 0b00001000,
+        # 0b10000010, # LDI R1,9
+        # 0b00000001,
+        # 0b00001001,
+        # 0b10100010,  # MUL R0,R1
+        # 0b00000000,
+        # 0b00000001,
+        # 0b01000111,  # PRN R0
+        # 0b00000000,
+        # 0b00000001]  # HLT
+        #
+        # self.program = program
 
         for instruction in program:
             self.ram[address] = instruction
@@ -85,6 +102,8 @@ class CPU:
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
+        elif op == "MUL":
+            self.reg[reg_a] *= self.reg[reg_b]
         #elif op == "SUB": etc
         else:
             raise Exception("Unsupported ALU operation")
@@ -116,24 +135,28 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        IR = self.ram_read(self.PC)
+        print("Running CPU ...")
+        while True:
+            IR = self.ram_read(self.PC)
 
-        op = self.getOperation(IR)
-        if op == "ADD":
-            operand_a = self.ram_read(self.PC + 1)
-            operand_b = self.ram_read(self.PC + 2)
-            self.alu(op, operand_a, operand_b)
-            self.PC += 3
-        elif op == "HLT":
-            os.exit()
-        elif op == "LDI":
-            operand_a = self.ram_read(self.PC + 1) #Register where to write
-            operand_b = self.ram_read(self.PC + 2) #Value to write
-            self.reg[operand_a] = operand_b
-            self.PC += 3
+            op = self.getOperation(IR)
+            print("Read opcode >  ", IR, " > ", op)
+            if op == "MUL":
+                operand_a = self.ram_read(self.PC + 1)
+                operand_b = self.ram_read(self.PC + 2)
+                self.alu(op, operand_a, operand_b)
+                self.PC += 3
+            elif op == "HLT":
+                return
+            elif op == "LDI":
+                operand_a = self.ram_read(self.PC + 1) #Register where to write
+                operand_b = self.ram_read(self.PC + 2) #Value to write
+                self.reg[operand_a] = operand_b
+                self.PC += 3
 
-        elif op == "PRN":
-            operand_a = self.ram_read(self.PC + 1)  # Value to write
-            print(self.reg[operand_a])
-            self.PC += 2
+            elif op == "PRN":
+                operand_a = self.ram_read(self.PC + 1)  # Value to write
+                print(self.reg[operand_a])
+                self.PC += 2
+            # input("Enter any key to continue >")
 
