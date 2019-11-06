@@ -70,4 +70,37 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+         HLT = 0b00000001
+        pass	        LDI = 0b10000010
+        PRN = 0b01000111
+        MUL = 0b10100010
+
+        running = True
+
+        while running:
+            # It needs to read the memory address that's stored in register `PC`, and store
+            # that result in `IR`, the _Instruction Register_. This can just be a local
+            # variable in `run()`.
+            IR = self.ram[self.pc]
+
+            # Using `ram_read()`,read the bytes at `PC+1` and `PC+2` from RAM into variables
+            # `operand_a` and `operand_b` in case the instruction needs them.
+            operand_a = self.ram_read(self.pc + 1)
+            operand_b = self.ram_read(self.pc + 2)
+
+            # Then, depending on the value of the opcode, perform the actions needed for the
+            # instruction per the LS-8 spec. Maybe an `if-elif` cascade...? There are other
+            # options, too.
+            if IR == HLT:
+                running = False
+            elif IR == LDI:
+                self.reg[operand_a] = operand_b
+                self.pc += 3
+            elif IR == PRN:
+                print(self.reg[operand_a])
+                self.pc += 2
+            elif IR == MUL:
+                self.alu("MUL", operand_a, operand_b)
+                self.pc += 3
+            else:
+                print("Unknown instruction.")
