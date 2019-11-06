@@ -108,6 +108,8 @@ class CPU:
             # Then, depending on the value of the opcode, perform the actions needed for the
             # instruction per the LS-8 spec. Maybe an `if-elif` cascade...? There are other
             # options, too.
+            # Implment a system stack per spec - Add PUSH and POP instructions.
+            # Read the beginning of the spec to see which register is the stack pointer
             if IR == HLT:
                 running = False
             elif IR == LDI:
@@ -119,5 +121,7 @@ class CPU:
             elif IR == MUL:
                 self.alu("MUL", operand_a, operand_b)
                 self.pc += 3
+            # elif IR == PUSH:
+            # elif IR ==POP:
             else:
                 print("Unknown instruction.")
