@@ -10,9 +10,17 @@ class CPU:
         self.ram = [0] * 256
         self.reg = [0] * 8
         self.pc = 0
+        self.SP = 7
+        self.reg[7] = 255
 
     def ram_read(self, MAR):
         return self.ram[MAR]
+
+        LDI = 0b10000010
+        PRN = 0b01000111
+        MUL = 0b10100010
+        PUSH = 0b01000101
+        POP = 0b01000110
 
     def ram_write(self, MAR, MDR):
         self.ram[MAR] = MDR
@@ -121,7 +129,23 @@ class CPU:
             elif IR == MUL:
                 self.alu("MUL", operand_a, operand_b)
                 self.pc += 3
-            # elif IR == PUSH:
-            # elif IR ==POP:
+            elif IR == PUSH:
+                # 1. Decrement the 'SP'
+                # 2. copy the valu in the given register to the address pointed to by 'SP'
+                self.reg[7] = (self.reg[7] - 1) % 255
+                self.SP = self.reg[7]
+                self.SP = self.reg[7]
+                value = self.reg[register_address]
+                self.ram[self.SP] = value
+                self.PC += 2
+            elif IR ==POP:
+                # 1. copy the value from the address pointed to by 'SP' to the given register
+                # 2 Increment 'SP'
+                self.SP = self.reg[7]
+                value = self.ram[self.SP]
+                register_address = self.ram[self.PC + 1]
+                self.reg[register_address] = value
+                self.reg[7] = (self.SP + 1) % 255
+                self.pc += 2
             else:
                 print("Unknown instruction.")
