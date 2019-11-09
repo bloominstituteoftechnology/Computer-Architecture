@@ -11,6 +11,7 @@ if __name__ == "__main__":
         print("Usage : python3 ls8.py <filename>", sys.argv)
         exit(0)
 
+    #Read the program from file
     fileWithData = sys.argv[1]
     program = []
     with open(fileWithData) as f:
@@ -25,5 +26,5 @@ if __name__ == "__main__":
 
     cpu = CPU()
 
-    cpu.load(program)
-    cpu.run()
+    cpu.load(program) #Load the program in memory
+    cpu.run()  #Run the CPU to execute the program

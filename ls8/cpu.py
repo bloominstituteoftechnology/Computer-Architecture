@@ -57,6 +57,8 @@ class CPU:
         self.ram = [0]*256
         self.reg =[0]*8
         self.PC=0
+        self.SP = 0xf3
+
 
 
     def load(self, program):
@@ -92,10 +94,12 @@ class CPU:
         #
         # self.program = program
 
+        #Put the program in memory for CPU to read
         for instruction in program:
             self.ram[address] = instruction
             address += 1
 
+        self.PC = 0
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -140,13 +144,19 @@ class CPU:
             IR = self.ram_read(self.PC)
 
             op = self.getOperation(IR)
-            print("Read opcode >  ", IR, " > ", op)
+            # print("Read opcode >  ", IR, " > ", op)
             if op == "MUL":
                 operand_a = self.ram_read(self.PC + 1)
                 operand_b = self.ram_read(self.PC + 2)
                 self.alu(op, operand_a, operand_b)
                 self.PC += 3
+            elif op == "ADD":
+                operand_a = self.ram_read(self.PC + 1)
+                operand_b = self.ram_read(self.PC + 2)
+                self.alu(op, operand_a, operand_b)
+                self.PC += 3
             elif op == "HLT":
+                print("Program ended!!")
                 return
             elif op == "LDI":
                 operand_a = self.ram_read(self.PC + 1) #Register where to write
@@ -158,5 +168,42 @@ class CPU:
                 operand_a = self.ram_read(self.PC + 1)  # Value to write
                 print(self.reg[operand_a])
                 self.PC += 2
-            # input("Enter any key to continue >")
 
+            elif op == "PUSH":
+                operand_a = self.ram_read(self.PC + 1) #Register whose value is to be pushed on stack
+                self.ram_write(self.SP, self.reg[operand_a])
+                self.PC += 2
+                self.SP -= 1
+
+            elif op == "POP":
+                operand_a = self.ram_read(self.PC + 1)  # Register in which stack value is to be popped
+                self.reg[operand_a] = self.ram_read(self.SP+1)
+                self.SP += 1
+                self.PC += 2
+
+            elif op == "CALL":
+                operand_a = self.ram_read(self.PC + 1) #Register hold PC where to jump
+
+                #operand_b = self.ram_read(self.PC + 2) #Next instruction after CALL. this goes to stack
+                self.ram_write(self.SP, self.PC + 2)
+                self.SP -= 1
+
+                self.PC = self.reg[operand_a] #Jump to instruction pointed in CALL
+
+            elif op == "RET":
+                self.PC = self.ram_read(self.SP + 1) #Pop from stack the PC
+                self.SP += 1
+
+
+                # input("Enter any key to continue >")
+
+
+#f1
+# f2
+#   f3
+#     f4
+#
+#
+#
+#
+#  []
