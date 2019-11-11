@@ -8,7 +8,7 @@ HLT = 0b00000001
 class CPU:
     """Main CPU class."""
 
-    def __init__(self, reg, pc, ram):
+    def __init__(self):
         """Construct a new CPU."""
         self.reg = [0] * 8
         self.pc = 0
@@ -79,16 +79,16 @@ class CPU:
             instruction = self.ram[self.pc]
 
             if instruction == 0b10000010:  # LDI
-                reg_num = self.ram_read[self.pc + 1]
-                value = self.ram_read[self.pc + 2]
+                reg_num = self.ram_read(self.pc + 1)
+                value = self.ram_read(self.pc + 2)
 
                 self.reg[reg_num] = value
 
                 self.pc += 3
 
             elif instruction == 0b01000111:  # PRN
-                reg_num = self.ram_read[self.pc + 1]
-
+                reg_num = self.ram_read(self.pc + 1)
+                print(self.reg[reg_num])
                 self.pc += 2
 
             elif instruction == HLT:
