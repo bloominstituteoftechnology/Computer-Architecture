@@ -8,6 +8,7 @@ class CPU:
     def __init__(self):
         """Construct a new CPU."""
         self.ram = [0] * 256
+        self.memory = [0] * 8
         self.pc = 0
 
 
@@ -67,27 +68,29 @@ class CPU:
 
         ir = ''
         halted = False
-
+        pc = 0
         while not halted:
-            instruction = self.ram[self.pc]
+            instruction = self.ram_read(pc)
 
             if instruction == 0b10000010:
-                operand_a = self.ram[self.pc + 1]
-                operand_b = self.ram[[self.pc + 2]]
-                self.pc += 3
+                operand_a = self.ram_read(pc + 1)
+                operand_b = self.ram_read(pc + 2)
+                self.memory[operand_a] = operand_b
+                pc += 3
             elif instruction == 0b01000111:
-                operand_a = self.ram[self.pc + 1]
-                self.pc += 2
+                operand_a = self.ram_read(pc + 1)
+                operand_b = self.memory[operand_a]
+                print(operand_b)
+                pc += 2
             elif instruction == 0b00000001:
-                operand_a = 0b00000001
                 halted = True
+                pc += 1
 
         
 
     def ram_read(self, mar):
-        value = self.ram[self.pc] = mar
-        return value
+        return self.ram[mar]
 
-    def ram_write(self, mdr):
-        value = self.ram[self.pc] = mdr
-        return value
+    def ram_write(self, mdr, value):
+        self.ram[mdr] = value
+        
