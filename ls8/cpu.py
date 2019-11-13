@@ -20,13 +20,24 @@ class CPU:
         # For now, we've just hardcoded a program:
 
         program = sys.argv[1]
-
+        address = 0
         with open(program) as f:
             for line in f:
-                print(line)
-        # for instruction in program:
-        #     self.ram[address] = instruction
-        #     address += 1
+                # print(line[:8])
+                line = line.split('#')[0] #split at the hash mark where comments start
+                line = line.strip() #get rid of white space
+                if line == '':
+                    continue #if line is empty -- continue to top and run function again                
+                val = int(line, 2)
+                # val = '{0:08b}'.format(val) #adds 8 zeros, or makes the length of the number into binary
+                self.ram[address] = val
+                address += 1
+           
+
+        for instruction in program:
+            self.ram[address] = instruction
+            address += 1
+        
 
 
     def alu(self, op, reg_a, reg_b):
