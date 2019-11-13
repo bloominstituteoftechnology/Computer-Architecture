@@ -88,6 +88,17 @@ class CPU:
                 operand_b = self.memory[operand_a]
                 print(operand_b)
                 pc += 2
+            elif instruction == 0b10100010:
+                operand_a = self.ram_read(pc + 1)
+                num_1 = self.memory[operand_a]
+
+                operand_b = self.ram_read(pc + 2)
+                num_2 = self.memory[operand_b]
+
+                mult = num_1 * num_2
+
+                print(mult)
+                pc += 3
             elif instruction == 0b00000001:
                 halted = True
                 pc += 1
