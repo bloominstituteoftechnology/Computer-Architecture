@@ -84,21 +84,21 @@ class CPU:
 
         print()
 
-    def handle_op1(self, pc):
+    def handle_op1(self, pc): #LDI
      
         operand_a = self.ram_read(pc + 1)
         operand_b = self.ram_read(pc + 2)
         self.memory[operand_a] = operand_b
         self.pc += 3
 
-    def handle_op2(self, pc):
+    def handle_op2(self, pc): #print
    
         operand_a = self.ram_read(pc + 1)
         operand_b = self.memory[operand_a]
         print(operand_b)
         self.pc += 2
 
-    def handle_op3(self, pc):
+    def handle_op3(self, pc): #MULT
         operand_a = self.ram_read(pc + 1)
         num_1 = self.memory[operand_a]
 
@@ -106,27 +106,30 @@ class CPU:
         num_2 = self.memory[operand_b]
 
         mult = num_1 * num_2
-
-        print(mult)
+        self.memory[operand_a] = mult
+        # print(mult)
         self.pc += 3
 
-    def handle_op4(self,pc):
+    def handle_op4(self,pc): #HALT
         self.halted = True
         self.pc += 1
     
-    def handle_op5(self,pc):
-        SP = self.SP - 1
-        copy = self.ram_read(pc + 1)
-        self.ram[SP] = self.memory[copy]
-        print(self.ram[SP])
+    def handle_op5(self,pc): #PUSH
+        self.SP -= 1
+        copy = self.ram_read(pc + 1) # read the instruction at that address, register 0
+        self.ram[self.SP] = self.memory[copy] #saving value at reg 0 to SP location in stack
         self.pc += 2
+        # print(f'testing {self.memory[copy]}')
 
-    def handle_op6(self,pc):
-        SP = self.SP - 1
-        copy = self.ram_read(pc + 1)
-        self.ram[SP] = self.memory[copy]
-        print(self.ram[SP])
+    def handle_op6(self,pc): #POP
+        location = self.ram_read(pc + 1)
+        self.memory[location] = self.ram[self.SP]
+        self.SP +=1
         self.pc += 2
+        # print(f'testing {self.memory[location]}')
+
+
+        
 
 
     def run(self):
