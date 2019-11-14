@@ -6,6 +6,8 @@ OP1 = 0b10000010
 OP2 = 0b01000111
 OP3 = 0b10100010
 OP4 = 0b00000001
+OP5 = 0b01000101
+OP6 = 0b01000110
 class CPU:
     """Main CPU class."""
 
@@ -13,12 +15,16 @@ class CPU:
         """Construct a new CPU."""
         self.ram = [0] * 256
         self.memory = [0] * 8
+        self.memory[7] = 0xF4
+        self.SP = self.memory[7]
         self.pc = 0
         self.branchtable = {} #set to empty dictionary
         self.branchtable[OP1] = self.handle_op1
         self.branchtable[OP2] = self.handle_op2
         self.branchtable[OP3] = self.handle_op3
         self.branchtable[OP4] = self.handle_op4
+        self.branchtable[OP5] = self.handle_op5
+        self.branchtable[OP6] = self.handle_op6
         self.halted = False
 
     def load(self):
@@ -105,10 +111,22 @@ class CPU:
         self.pc += 3
 
     def handle_op4(self,pc):
-
         self.halted = True
-
         self.pc += 1
+    
+    def handle_op5(self,pc):
+        SP = self.SP - 1
+        copy = self.ram_read(pc + 1)
+        self.ram[SP] = self.memory[copy]
+        print(self.ram[SP])
+        self.pc += 2
+
+    def handle_op6(self,pc):
+        SP = self.SP - 1
+        copy = self.ram_read(pc + 1)
+        self.ram[SP] = self.memory[copy]
+        print(self.ram[SP])
+        self.pc += 2
 
 
     def run(self):
