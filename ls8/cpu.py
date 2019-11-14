@@ -8,6 +8,9 @@ PRN = 0b01000111
 MUL = 0b10100010
 POP = 0b01000110
 PUSH = 0b01000101
+CALL = 0b01010000
+RET = 0b00010001
+ADD = 0b10100000
 
 SP = 7  # register used for stack pointer
 
@@ -25,8 +28,11 @@ class CPU:
         self.branchtable[LDI] = self.handle_ldi
         self.branchtable[PRN] = self.handle_prn
         self.branchtable[MUL] = self.handle_mul
+        self.branchtable[ADD] = self.handle_add
         self.branchtable[POP] = self.handle_pop
         self.branchtable[PUSH] = self.handle_push
+        self.branchtable[CALL] = self.handle_call
+        self.branchtable[RET] = self.handle_ret
         self.reg[SP] = 0xf4
         self.halted = False
 
@@ -97,6 +103,7 @@ class CPU:
 
     def handle_ldi(self):
         reg_num = self.ram_read(self.pc + 1)
+        # print(f'reg_num: {reg_num}')
         value = self.ram_read(self.pc + 2)
 
         self.reg[reg_num] = value
@@ -117,11 +124,28 @@ class CPU:
         value = self.reg[reg_num]
         self.ram[self.reg[SP]] = value
 
+    def handle_call(self):
+        ret_address = self.pc + 2
+        self.reg[SP] -= 1
+        self.ram[self.reg[SP]] = ret_address
+
+        reg_num = self.ram_read(self.pc + 1)
+        self.pc = self.reg[reg_num]
+
+    def handle_ret(self):
+        self.pc = self.ram[self.reg[SP]]
+        self.reg[SP] += 1
+
+    def handle_add(self):
+        num1 = self.ram_read(self.pc + 1)
+        num2 = self.ram_read(self.pc + 2)
+        self.alu("ADD", num1, num2)
+
     def handle_mul(self):
         num1 = self.ram_read(self.pc + 1)
-        print(f"num1: {num1}")
+        # print(f"num1: {num1}")
         num2 = self.ram_read(self.pc + 2)
-        print(f"num2: {num2}")
+        # print(f"num2: {num2}")
         self.alu("MUL", num1, num2)
 
     def handle_hlt(self):
@@ -136,13 +160,15 @@ class CPU:
             val = ir
             op_count = val >> 6
             ir_length = op_count + 1
-            # print(f"ir: {ir}")
+            # print(f"*ir out: {ir}")
             # print(f"ir_length: {ir_length}")
             # print(f"halted: {self.halted}")
             self.branchtable[ir]()
 
             if ir == 0 or None:
-                print(f"Unknown instructions at index {self.pc}")
+                # print(f"Unknown instructions at index {self.pc}")
                 sys.exit(1)
 
-            self.pc += ir_length
+            if ir != 80 and ir != 17:
+                # print(f'ir in: {ir}')
+                self.pc += ir_length
