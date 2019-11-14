@@ -2,6 +2,10 @@
 
 import sys
 
+OP1 = 0b10000010
+OP2 = 0b01000111
+OP3 = 0b10100010
+OP4 = 0b00000001
 class CPU:
     """Main CPU class."""
 
@@ -10,7 +14,12 @@ class CPU:
         self.ram = [0] * 256
         self.memory = [0] * 8
         self.pc = 0
-
+        self.branchtable = {} #set to empty dictionary
+        self.branchtable[OP1] = self.handle_op1
+        self.branchtable[OP2] = self.handle_op2
+        self.branchtable[OP3] = self.handle_op3
+        self.branchtable[OP4] = self.handle_op4
+        self.halted = False
 
     def load(self):
         """Load a program into memory."""
@@ -69,39 +78,77 @@ class CPU:
 
         print()
 
+    def handle_op1(self, pc):
+     
+        operand_a = self.ram_read(pc + 1)
+        operand_b = self.ram_read(pc + 2)
+        self.memory[operand_a] = operand_b
+        self.pc += 3
+
+    def handle_op2(self, pc):
+   
+        operand_a = self.ram_read(pc + 1)
+        operand_b = self.memory[operand_a]
+        print(operand_b)
+        self.pc += 2
+
+    def handle_op3(self, pc):
+        operand_a = self.ram_read(pc + 1)
+        num_1 = self.memory[operand_a]
+
+        operand_b = self.ram_read(pc + 2)
+        num_2 = self.memory[operand_b]
+
+        mult = num_1 * num_2
+
+        print(mult)
+        self.pc += 3
+
+    def handle_op4(self,pc):
+
+        self.halted = True
+
+        self.pc += 1
+
+
     def run(self):
         """Run the CPU."""
+        while not self.halted:
+            # print(f'Halted is {self.halted}')
+            # print(f'this is the new pc {self.pc}')
+            instruction = self.ram_read(self.pc)
+            self.branchtable[instruction](self.pc)
+       
+        # ir = ''
+        # halted = False
+        # pc = 0
+        # while not halted:
+        #     instruction = self.ram_read(pc)
 
-        ir = ''
-        halted = False
-        pc = 0
-        while not halted:
-            instruction = self.ram_read(pc)
+        #     if instruction == 0b10000010:
+        #         operand_a = self.ram_read(pc + 1)
+        #         operand_b = self.ram_read(pc + 2)
+        #         self.memory[operand_a] = operand_b
+        #         pc += 3
+        #     elif instruction == 0b01000111:
+        #         operand_a = self.ram_read(pc + 1)
+        #         operand_b = self.memory[operand_a]
+        #         print(operand_b)
+        #         pc += 2
+        #     elif instruction == 0b10100010:
+        #         operand_a = self.ram_read(pc + 1)
+        #         num_1 = self.memory[operand_a]
 
-            if instruction == 0b10000010:
-                operand_a = self.ram_read(pc + 1)
-                operand_b = self.ram_read(pc + 2)
-                self.memory[operand_a] = operand_b
-                pc += 3
-            elif instruction == 0b01000111:
-                operand_a = self.ram_read(pc + 1)
-                operand_b = self.memory[operand_a]
-                print(operand_b)
-                pc += 2
-            elif instruction == 0b10100010:
-                operand_a = self.ram_read(pc + 1)
-                num_1 = self.memory[operand_a]
+        #         operand_b = self.ram_read(pc + 2)
+        #         num_2 = self.memory[operand_b]
 
-                operand_b = self.ram_read(pc + 2)
-                num_2 = self.memory[operand_b]
+        #         mult = num_1 * num_2
 
-                mult = num_1 * num_2
-
-                print(mult)
-                pc += 3
-            elif instruction == 0b00000001:
-                halted = True
-                pc += 1
+        #         print(mult)
+        #         pc += 3
+        #     elif instruction == 0b00000001:
+        #         halted = True
+        #         pc += 1
 
         
 
