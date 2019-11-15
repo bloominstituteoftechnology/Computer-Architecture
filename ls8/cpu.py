@@ -11,6 +11,11 @@ PUSH = 0b01000101
 CALL = 0b01010000
 RET = 0b00010001
 ADD = 0b10100000
+CMP = 0b10100111
+JMP = 0b01010100
+JEQ = 0b01010101
+JNE = 0b01010110
+
 
 SP = 7  # register used for stack pointer
 
@@ -22,17 +27,24 @@ class CPU:
         """Construct a new CPU."""
         self.reg = [0] * 8
         self.pc = 0
+        self.fl = 0
         self.ram = [0] * 256
-        self.branchtable = {}
-        self.branchtable[HLT] = self.handle_hlt
-        self.branchtable[LDI] = self.handle_ldi
-        self.branchtable[PRN] = self.handle_prn
-        self.branchtable[MUL] = self.handle_mul
-        self.branchtable[ADD] = self.handle_add
-        self.branchtable[POP] = self.handle_pop
-        self.branchtable[PUSH] = self.handle_push
-        self.branchtable[CALL] = self.handle_call
-        self.branchtable[RET] = self.handle_ret
+        self.branchtable = {
+            HLT: self.handle_hlt,
+            LDI: self.handle_ldi,
+            PRN: self.handle_prn,
+            MUL: self.handle_mul,
+            ADD: self.handle_add,
+            CMP: self.handle_cmp,
+            POP: self.handle_pop,
+            PUSH: self.handle_push,
+            CALL: self.handle_call,
+            RET: self.handle_ret,
+            JMP: self.handle_jmp,
+            JEQ: self.handle_jeq,
+            JNE: self.handle_jne,
+        }
+
         self.reg[SP] = 0xf4
         self.halted = False
 
@@ -70,6 +82,13 @@ class CPU:
             self.reg[reg_a] += self.reg[reg_b]
         elif op == "MUL":
             self.reg[reg_a] *= self.reg[reg_b]
+        elif op == "CMP":
+            if self.reg[reg_a] > self.reg[reg_b]:
+                self.fl = 0b00000010
+            if self.reg[reg_a] < self.reg[reg_b]:
+                self.fl = 0b00000100
+            if self.reg[reg_a] == self.reg[reg_b]:
+                self.fl = 0b00000001
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -148,6 +167,30 @@ class CPU:
         # print(f"num2: {num2}")
         self.alu("MUL", num1, num2)
 
+    def handle_cmp(self):
+        num1 = self.ram_read(self.pc + 1)
+        num2 = self.ram_read(self.pc + 2)
+        self.alu("CMP", num1, num2)
+
+    def handle_jmp(self):
+        reg_num = self.ram_read(self.pc + 1)
+        self.pc = self.reg[reg_num]
+
+    def handle_jeq(self):
+        reg_num = self.ram_read(self.pc + 1)
+        # print(f"flag: {self.fl}")
+        if self.fl == 0b00000001:
+            self.pc = self.reg[reg_num]
+        else:
+            self.pc += 2
+
+    def handle_jne(self):
+        reg_num = self.ram_read(self.pc + 1)
+        if self.fl != 0b00000001:
+            self.pc = self.reg[reg_num]
+        else:
+            self.pc += 2
+
     def handle_hlt(self):
         # print(f"halt activated")
         self.halted = True
@@ -169,6 +212,6 @@ class CPU:
                 # print(f"Unknown instructions at index {self.pc}")
                 sys.exit(1)
 
-            if ir != 80 and ir != 17:
+            if ir != 80 and ir != 17 and ir != 84 and ir != 85 and ir != 86:
                 # print(f'ir in: {ir}')
                 self.pc += ir_length
