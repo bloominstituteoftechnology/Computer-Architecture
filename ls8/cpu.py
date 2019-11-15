@@ -2,12 +2,16 @@
 
 import sys
 
-OP1 = 0b10000010
-OP2 = 0b01000111
-OP3 = 0b10100010
-OP4 = 0b00000001
-OP5 = 0b01000101
-OP6 = 0b01000110
+ldi = 0b10000010
+print_command = 0b01000111
+mult = 0b10100010
+halt = 0b00000001
+push = 0b01000101
+pop = 0b01000110
+call = 0b01010000 
+ret = 0b00010001
+add = 0b10100000
+
 class CPU:
     """Main CPU class."""
 
@@ -19,12 +23,15 @@ class CPU:
         self.SP = self.memory[7]
         self.pc = 0
         self.branchtable = {} #set to empty dictionary
-        self.branchtable[OP1] = self.handle_op1
-        self.branchtable[OP2] = self.handle_op2
-        self.branchtable[OP3] = self.handle_op3
-        self.branchtable[OP4] = self.handle_op4
-        self.branchtable[OP5] = self.handle_op5
-        self.branchtable[OP6] = self.handle_op6
+        self.branchtable[ldi] = self.handle_ldi
+        self.branchtable[print_command] = self.handle_print_command
+        self.branchtable[mult] = self.handle_mult
+        self.branchtable[halt] = self.handle_halt
+        self.branchtable[push] = self.handle_push
+        self.branchtable[pop] = self.handle_pop
+        self.branchtable[call] = self.handle_call
+        self.branchtable[ret] = self.handle_ret
+        self.branchtable[add] = self.handle_add
         self.halted = False
 
     def load(self):
@@ -84,95 +91,79 @@ class CPU:
 
         print()
 
-    def handle_op1(self, pc): #LDI
-     
-        operand_a = self.ram_read(pc + 1)
-        operand_b = self.ram_read(pc + 2)
-        self.memory[operand_a] = operand_b
-        self.pc += 3
+    def handle_ldi(self, pc): #LDI
+        operand_a = self.ram_read(pc + 1) #saving the value of arg1 (the register) to a variable
+        operand_b = self.ram_read(pc + 2) #saving the value of arg2 (the number) to a variable
+        self.memory[operand_a] = operand_b # save number to the register in memory
+        self.pc += 3 #increase to the next instruction
 
-    def handle_op2(self, pc): #print
-   
-        operand_a = self.ram_read(pc + 1)
-        operand_b = self.memory[operand_a]
-        print(operand_b)
-        self.pc += 2
+    def handle_print_command(self, pc): #print
+        operand_a = self.ram_read(pc + 1) # save arg1 (register number) to variable
+        operand_b = self.memory[operand_a] #access that register number's value in memory and save to variable
+        print(operand_b) #print that value
+        self.pc += 2 #increase to the next instruction
 
-    def handle_op3(self, pc): #MULT
-        operand_a = self.ram_read(pc + 1)
-        num_1 = self.memory[operand_a]
+    def handle_mult(self, pc): #MULT
+        operand_a = self.ram_read(pc + 1) #save arg1 (register number) to variable
+        num_1 = self.memory[operand_a] # access that register's value and save to variable
 
-        operand_b = self.ram_read(pc + 2)
-        num_2 = self.memory[operand_b]
+        operand_b = self.ram_read(pc + 2) #save arg1 (register number) to variable
+        num_2 = self.memory[operand_b] #access that rigister's value and save to variable
 
-        mult = num_1 * num_2
-        self.memory[operand_a] = mult
+        mult = num_1 * num_2 #multiply both values together
+        self.memory[operand_a] = mult #save product to the register 
         # print(mult)
-        self.pc += 3
-
-    def handle_op4(self,pc): #HALT
-        self.halted = True
-        self.pc += 1
+        self.pc += 3 #increase to next instruction
     
-    def handle_op5(self,pc): #PUSH
-        self.SP -= 1
-        copy = self.ram_read(pc + 1) # read the instruction at that address, register 0
-        self.ram[self.SP] = self.memory[copy] #saving value at reg 0 to SP location in stack
-        self.pc += 2
-        # print(f'testing {self.memory[copy]}')
+    def handle_add(self,pc): #HALT
+        operand_a = self.ram_read(pc + 1) #save arg1 (reg number) to variable
+        num_1 = self.memory[operand_a] #access that register's value
 
-    def handle_op6(self,pc): #POP
-        location = self.ram_read(pc + 1)
-        self.memory[location] = self.ram[self.SP]
-        self.SP +=1
-        self.pc += 2
-        # print(f'testing {self.memory[location]}')
+        operand_b = self.ram_read(pc + 2) #save arg1 (reg number) to variable
+        num_2 = self.memory[operand_b] #access that register's value
+
+        add = num_1 + num_2 #add both values
+        self.memory[operand_a] = add #save the answer to register
+        # print(mult)
+        self.pc += 3 #increase to next instruction
+
+    def handle_halt(self,pc): #HALT
+        self.halted = True # switch halted to true
+        self.pc += 1 #incrase to next instruction
+    
+    def handle_push(self,pc): #PUSH
+
+        self.SP -= 1 #decrement the stack pointer
+        copy = self.ram_read(pc + 1) # read the instruction at the given address, save to variable
+        self.ram[self.SP] = self.memory[copy] #saving value at the given reg to the stack
+        self.pc += 2 #incease to next instruction
 
 
+    def handle_pop(self,pc): #POP
+        location = self.ram_read(pc + 1) #grab given address and save to variable
+        self.memory[location] = self.ram[self.SP] #save the value from top of stack to that register
+        self.SP +=1 #incease stack counter
+        self.pc += 2 # increase to next instruction
+    
+    def handle_call(self,pc): #call
+        self.SP -= 1 #decrement stack counter
+        self.ram[self.SP] = self.pc + 2 #address of the instruction directly after CALL is pushed onto the stack -- used to return to 
+        address = self.ram_read(pc + 1) # save given address to variable
+        self.pc = self.memory[address] # go to that register address and run that function
+
+
+    def handle_ret(self,pc): #ret
+        self.pc = self.ram[self.SP] #set the pc to the value from top of stack (where you left off)
+        self.SP += 1 #increase stack pointer
+       
         
-
-
     def run(self):
         """Run the CPU."""
+        
         while not self.halted:
-            # print(f'Halted is {self.halted}')
-            # print(f'this is the new pc {self.pc}')
             instruction = self.ram_read(self.pc)
             self.branchtable[instruction](self.pc)
        
-        # ir = ''
-        # halted = False
-        # pc = 0
-        # while not halted:
-        #     instruction = self.ram_read(pc)
-
-        #     if instruction == 0b10000010:
-        #         operand_a = self.ram_read(pc + 1)
-        #         operand_b = self.ram_read(pc + 2)
-        #         self.memory[operand_a] = operand_b
-        #         pc += 3
-        #     elif instruction == 0b01000111:
-        #         operand_a = self.ram_read(pc + 1)
-        #         operand_b = self.memory[operand_a]
-        #         print(operand_b)
-        #         pc += 2
-        #     elif instruction == 0b10100010:
-        #         operand_a = self.ram_read(pc + 1)
-        #         num_1 = self.memory[operand_a]
-
-        #         operand_b = self.ram_read(pc + 2)
-        #         num_2 = self.memory[operand_b]
-
-        #         mult = num_1 * num_2
-
-        #         print(mult)
-        #         pc += 3
-        #     elif instruction == 0b00000001:
-        #         halted = True
-        #         pc += 1
-
-        
-
     def ram_read(self, mar):
         return self.ram[mar]
 
