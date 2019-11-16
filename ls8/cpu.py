@@ -9,6 +9,16 @@ MUL = 0b10100010
 POP = 0b01000110
 PUSH = 0b01000101
 SP = 3
+CALL = 0b01010000
+RET = 0b00010001
+ADD = 0b10100000
+CMP = 0b10100111
+JMP = 0b01010100
+JEQ = 0b01010101
+JNE = 0b01010110
+
+
+
 
 class CPU:
     """Main CPU class."""
@@ -18,16 +28,25 @@ class CPU:
         self.ram = [0] * 256
         self.register = [0] * 8
         self.pc = 0
+        self.fl = 0
 
-        self.branchtable = {}        
-        self.branchtable[HLT] = self.handle_hlt
-        self.branchtable[LDI] = self.handle_ldi
-        self.branchtable[PRN] = self.handle_prn
-        self.branchtable[MUL] = self.handle_mul
-        self.branchtable[POP] = self.handle_pop
-        self.branchtable[PUSH] = self.handle_push
+        self.branchtable = {       
+            HLT: self.handle_hlt,
+            LDI: self.handle_ldi,
+            PRN: self.handle_prn,
+            MUL: self.handle_mul,
+            POP: self.handle_pop,
+            PUSH: self.handle_push,
+            CALL: self.handle_call,
+            RET: self.handle_ret,
+            ADD: self.handle_add,
+            CMP: self.handle_cmp,
+            JMP: self.handle_jmp,
+            JEQ: self.handle_jeq,
+            JNE: self.handle_jne
+        }
+
         self.register[SP] = 0xf4
-
         self.halted = False
 
     def load(self):
@@ -78,6 +97,13 @@ class CPU:
             self.register[reg_a] += self.register[reg_b]
         elif op == "MUL":
             self.register[reg_a] *= self.register[reg_b]
+        elif op == "CMP":
+            if self.register[reg_a] > self.register[reg_b]:
+                self.fl = 0b00000010
+            if self.register[reg_a] < self.register[reg_b]:
+                self.fl = 0b00000100
+            if self.register[reg_a] = self.register[reg_b]:
+                self.fl = 0b0000001
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -138,6 +164,26 @@ class CPU:
         val = self.register[reg_num]
         self.ram[self.register[SP]] = val
 
+    def handle_call(self):
+        ret_address = self.pc + 2
+        self.register[SP] -= 1
+        self.ram[self.register[SP]] = ret_address
+        reg_num = self.ram_read(self.pc + 1)
+        self.pc = self.register[reg_num]
+
+    def handle_ret(self):
+        self.pc = self.ram[self.register[SP]]
+        self.register[SP] += 1
+
+    def handle_add(self):
+        num1 = self.ram_read(self.pc + 1)
+        num2 = self.ram_read(self.pc + 2)
+        self.alu("ADD", num1, num2)
+
+    def handle_cmp(self):
+        reg_num = self.ram_read(self.pc + 1)
+        self.pc = self.register[reg_num]
+
     def run(self):
         """Run the CPU."""
 
@@ -152,7 +198,8 @@ class CPU:
                 print(f"Unknown instructions and index {self.pc}")
                 sys.exit(1)
 
-            self.pc += ir_length
+            if ir != 80 and ir != 17:
+                self.pc += ir_length
 
 
 
