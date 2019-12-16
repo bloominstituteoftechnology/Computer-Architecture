@@ -5,7 +5,7 @@
 import sys
 from cpu import *
 
-cpu = CPU()
+cpu = CPU(8,8)
 
 cpu.load()
 cpu.run()

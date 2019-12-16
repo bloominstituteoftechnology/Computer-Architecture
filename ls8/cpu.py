@@ -83,7 +83,6 @@ class CPU:
         # Load the program
         self.load()
         # From ram, read instructions
-        print("instructions given: ")
         halted = True
         while halted is True:
             # Go thru RAM and read instructions
@@ -108,5 +107,4 @@ class CPU:
             else: 
                 print(f"Unknown command at {self.pc}", "Command give: ", self.reg[self.pc])
 
-CPU(8, 8).run()
 
