@@ -2,6 +2,11 @@
 
 import sys
 
+LDI = 0b10000010
+
+PRN = 0b01000111
+HLT = 0b00000001 
+
 class CPU:
     """Main CPU class."""
 
@@ -27,17 +32,17 @@ class CPU:
             0b00000000,
             0b00000001, # HLT
         ]
-
+        # Loads program into RAM
         for instruction in program:
             self.ram[address] = instruction
             address += 1
     
-    def ram_write(self, ramLocation, value):
-        self.ram[ramLocation] = value
+    def ram_write(self, regLocation, value):
+        self.reg[regLocation] = value
         self.pc += 3
 
-    def ram_read(self, ramLocation):
-        print(self.ram[ramLocation])
+    def ram_read(self, regLocation):
+        print(self.reg[regLocation])
         self.pc += 2
     
     def alu(self, op, reg_a, reg_b):
@@ -73,4 +78,23 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        
+        # Load the program
+        self.load()
+        # From ram, read instructions
+        print("instructions given: ")
+        halted = False
+        while not halted:
+            # Go thru RAM and read instructions
+            instructions = self.ram[self.pc]
+            if instructions == LDI:
+                self.ram_write(self.ram[self.pc + 1], self.ram[self.pc + 2])
+                self.pc += 3
+            elif instructions == PRN:
+                self.ram_read(self.ram[self.pc + 1])
+                self.pc += 2
+            elif instructions == HLT:
+                halted = True
+            else: 
+                print(f"Unknown command at {self.pc}")
+
+CPU.run(8, 8)
