@@ -40,6 +40,7 @@ class CPU:
 
     def ram_read(self, regLocation):
         print(self.reg[regLocation])
+        # Can advance self.pc here or in run, but not both!
         #self.pc += 2
     
     def alu(self, op, reg_a, reg_b):
