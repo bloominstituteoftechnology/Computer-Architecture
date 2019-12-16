@@ -1,0 +1,2 @@
+cpu.py: the CPU, defined as a class
+ls8.py: a program uses the CPU run method, theoretically to print an 8
