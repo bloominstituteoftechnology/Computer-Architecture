@@ -78,3 +78,8 @@ class CPU:
         instruction_register = self.ram_read(self.pc)
         operand_a = self.ram_read(self.pc + 1)
         operand_b = self.ram_read(self.pc + 2)
+
+        if instruction_register == 10000010:
+            self.ram_write(operand_a, operand_b)
+        else:
+            print("Nope")
