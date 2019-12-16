@@ -13,7 +13,7 @@ class CPU:
         self.pc = 0
         self.ram = [0] * ram
 
-    def load(self, program):
+    def load(self):
         """Load a program into memory."""
 
         address = 0
