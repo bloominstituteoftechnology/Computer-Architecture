@@ -13,7 +13,7 @@ class CPU:
         self.pc = 0
         self.ram = [0] * ram
 
-    def load(self):
+    def load(self, program):
         """Load a program into memory."""
 
         address = 0
@@ -39,7 +39,7 @@ class CPU:
         #self.pc += 3
 
     def ram_read(self, regLocation):
-        print(self.reg[regLocation])
+        return self.reg[regLocation]
         # Can advance self.pc here or in run, but not both!
         #self.pc += 2
     
@@ -78,6 +78,7 @@ class CPU:
         LDI = 0b10000010
         PRN = 0b01000111
         HLT = 0b00000001 
+        MUL = 0b10100010
         """Run the CPU."""
         # Load the program
         self.load()
@@ -88,11 +89,19 @@ class CPU:
             # Go thru RAM and read instructions
             instructions = self.ram[self.pc]
             if instructions == LDI:
+                # At this reg location, insert this value
                 self.ram_write(self.ram[self.pc + 1], self.ram[self.pc + 2])
                 self.pc += 3
             elif instructions == PRN:
-                self.ram_read(self.ram[self.pc + 1])
+                # At this reg location, read the value
+                print(self.ram_read(self.ram[self.pc + 1]))
                 self.pc += 2
+            elif instructions == MUL:
+                # At these 2 reg locations, read the values and multiply
+                a = self.ram_read(self.ram[self.pc + 1])
+                b = self.ram_read(self.ram[self.pc + 2])
+                c = a * b
+                self.ram_write(a, c)
             elif instructions == HLT:
                 halted = False
                 self.pc += 1
