@@ -9,7 +9,7 @@ class CPU:
         """Construct a new CPU."""
         pc = 0 
         registers = [0] * 8
-        ram = [0] * 2048 #256 bytes of ram
+        ram =[[0] * 8] * 256 #256 bytes of ram
 
     def load(self):
         """Load a program into memory."""
@@ -74,12 +74,20 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
+        running = True
+
+        LDI = 10000010
+        HALT = 00000001
         #ir
         instruction_register = self.ram_read(self.pc)
         operand_a = self.ram_read(self.pc + 1)
         operand_b = self.ram_read(self.pc + 2)
 
-        if instruction_register == 10000010:
-            self.ram_write(operand_a, operand_b)
-        else:
-            print("Nope")
+        while running:
+            if instruction_register == LDI:
+                self.ram_write(operand_a, operand_b)
+                self.pc += 3
+            elif instruction_register == HALT:
+                running = False
+            else:
+                print("Nope")
