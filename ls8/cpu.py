@@ -5,9 +5,11 @@ import sys
 class CPU:
     """Main CPU class."""
 
-    def __init__(self):
+    def __init__(self, register, ram):
         """Construct a new CPU."""
-        pass
+        self.reg = [0] * register
+        self.pc = 0
+        self.ram = [0] * ram
 
     def load(self):
         """Load a program into memory."""
@@ -29,8 +31,15 @@ class CPU:
         for instruction in program:
             self.ram[address] = instruction
             address += 1
+    
+    def ram_write(self, ramLocation, value):
+        self.ram[ramLocation] = value
+        self.pc += 3
 
-
+    def ram_read(self, ramLocation):
+        print(self.ram[ramLocation])
+        self.pc += 2
+    
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
 
@@ -59,7 +68,9 @@ class CPU:
             print(" %02X" % self.reg[i], end='')
 
         print()
+    
+
 
     def run(self):
         """Run the CPU."""
-        pass
+        
