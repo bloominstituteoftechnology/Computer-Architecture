@@ -42,11 +42,15 @@ class CPU:
         else:
             raise Exception("Unsupported ALU operation")
 
-    def ram_read():
-        pass
+    def ram_read(self, MAR):
+        value = self.ram[MAR]
 
-    def ram_write():
-        pass
+        return value
+
+    def ram_write(self, MAR, MAD):
+        # register_number = self.ram[self.pc + 1]
+        # value = self.ram[self.pc + 2]
+        self.ram[MAR] = MAD
 
     def trace(self):
         """
@@ -70,4 +74,5 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        #ir
+        instruction_register = self.ram_read()
