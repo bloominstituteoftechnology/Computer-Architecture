@@ -53,7 +53,6 @@ class CPU:
         ]
 
         for instruction in program:
-            print("address: ", address)
             self.ram[address] = instruction
             address += 1
 
@@ -109,7 +108,8 @@ class CPU:
 
             elif instruction is PRN:
                 key = self.ram[self.__pc + 1]
-                register_num = self.reg[self.__pc + 1]
+                register_num = self.reg[key]
+                print(register_num)
                 self.__pc += 2
 
             else:
