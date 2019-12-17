@@ -98,19 +98,21 @@ class CPU:
 
         while running:
             instruction_register = self.ram_read(self.pc)
+            incr = ((instruction_register & 0b11111111) >> 6) + 1
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
             if instruction_register == LDI:
                 self.registers[operand_a] = operand_b
-                self.pc += 3
+                # self.pc += 3
             elif instruction_register == PRN:
                 print(self.registers[operand_a])
-                self.pc += 2
+                # self.pc += 2
             elif instruction_register == MUL:
                 print(self.registers[operand_a] * self.registers[operand_b])
-                self.pc += 3
+                # self.pc += 3
             elif instruction_register == HALT:
                 running = False
-                self.pc += 1
+                # self.pc += 1
             else:
                 print("Nope")
+            self.pc += incr
