@@ -39,7 +39,7 @@ class CPU:
                     # Insert into RAM as an int, base 2/binary
                     self.ram[address] = int(match, 2)
                     address += 1
-        print("RMA is: ", self.ram)
+        #print("RMA is: ", self.ram)
     def ram_write(self, regLocation, value):
         self.reg[regLocation] = value
         #self.pc += 3
@@ -99,7 +99,6 @@ class CPU:
                 self.pc += 3
             elif instructions == PRN:
                 # At this reg location, read the value
-                print("Print invoked")
                 print(self.ram_read(self.ram[self.pc + 1]))
                 self.pc += 2
             elif instructions == MUL:
@@ -110,7 +109,7 @@ class CPU:
                 self.ram_write(self.ram[self.pc + 1], c)
                 # a = self.ram_read(self.ram[self.pc + 1])
                 # print("a is now: ", a)
-                self.pc += 2
+                self.pc += 3
             elif instructions == HLT:
                 halted = False
                 self.pc += 1
