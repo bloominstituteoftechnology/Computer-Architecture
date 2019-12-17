@@ -9,7 +9,7 @@ class CPU:
         """Construct a new CPU."""
         self.pc = 0 
         self.registers = [0] * 8
-        self.ram =[[0] * 8] * 10 #256 bytes of ram
+        self.ram =[[0] * 8] * 256 #256 bytes of ram
 
     def load(self):
         """Load a program into memory."""
@@ -92,6 +92,7 @@ class CPU:
         LDI = 0b10000010
         HALT = 0b00000001
         PRN = 0b01000111
+        MUL = 0b10100010
         #ir
 
 
@@ -105,6 +106,9 @@ class CPU:
             elif instruction_register == PRN:
                 print(self.registers[operand_a])
                 self.pc += 2
+            elif instruction_register == MUL:
+                print(self.registers[operand_a] * self.registers[operand_b])
+                self.pc += 3
             elif instruction_register == HALT:
                 running = False
                 self.pc += 1
