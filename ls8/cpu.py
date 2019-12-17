@@ -106,9 +106,8 @@ class CPU:
                 a = self.ram_read(self.ram[self.pc + 1])
                 b = self.ram_read(self.ram[self.pc + 2])
                 c = a * b
+                # Write the solution into a's former location
                 self.ram_write(self.ram[self.pc + 1], c)
-                # a = self.ram_read(self.ram[self.pc + 1])
-                # print("a is now: ", a)
                 self.pc += 3
             elif instructions == HLT:
                 halted = False
