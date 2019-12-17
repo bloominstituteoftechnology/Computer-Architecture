@@ -2,8 +2,9 @@
 
 """Main."""
 
-import sys
 from cpu import *
+import sys
+
 
 cpu = CPU()
 

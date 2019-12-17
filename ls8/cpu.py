@@ -1,6 +1,9 @@
 """CPU functionality."""
 
 import sys
+# sys.path.insert(1, '/home/mike/Computer-Architecture/ls8/examples')
+print(sys.argv)
+
 
 # No-op
 NOP = 0b00000000  # Takes no parameters
@@ -33,34 +36,33 @@ class CPU:
         """Construct a new CPU."""
         self.ram = {}
         self.reg = [0] * 8
-        self.__pc = 0
+        self.reg[7] = 0xf4
+        self.pc = 0
 
     def load(self):
         """Load a program into memory."""
+        filename = sys.argv[1]
 
         address = 0
 
-        # For now, we've just hardcoded a program:
+        # Read the file
+        with open(filename) as f:
+            for line in f:
+                n = line.split("#")
+                n[0] = n[0].strip()
 
-        program = [
-            # From print8.ls8
-            0b10000010,  # LDI R0,8 - 130
-            0b00000000,
-            0b00001000,
-            0b01000111,  # PRN R0 - 71
-            0b00000000,
-            0b00000001,  # HLT - 1
-        ]
+                if n[0] is "":
+                    continue
 
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+                instruction = int(n[0], 2)
+                self.ram_write(address, instruction)
+                address += 1
 
-    def ram_read(self):
-        pass
+    def ram_read(self, address):
+        return self.ram[address]
 
-    def ram_write(self):
-        pass
+    def ram_write(self, address, instruction):
+        self.ram[address] = instruction
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -96,22 +98,23 @@ class CPU:
         running = True
 
         while running:
-            instruction = self.ram[self.__pc]
+            instruction = self.ram_read(self.pc)
 
             if instruction is HLT:
                 running = False
 
             elif instruction is LDI:
-                register_num = self.reg[self.__pc + 1]
-                self.reg[register_num] = self.ram[self.__pc + 2]
-                self.__pc += 3
+                register_number = self.ram_read(self.pc + 1)
+                number_to_save = self.ram_read(self.pc + 2)
+                self.reg[register_number] = number_to_save
+                self.pc += 3
 
             elif instruction is PRN:
-                key = self.ram[self.__pc + 1]
-                register_num = self.reg[key]
-                print(register_num)
-                self.__pc += 2
+                register_number = self.ram_read(self.pc + 1)
+                number_to_print = self.reg[register_number]
+                print(number_to_print)
+                self.pc += 2
 
             else:
-                print(f"Unknown instruction at index {self.__pc}")
+                print(f"Unknown instruction at index {self.pc}")
                 sys.exit(1)
