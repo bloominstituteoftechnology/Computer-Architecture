@@ -1,39 +1,45 @@
 """CPU functionality."""
 
 import sys
+import re
+#print(sys.argv[1])
+# sys.argv[0] = file to run
+# sys.argv[1] = file to take instructions from
 
+# sys.exit()
+filename = sys.argv[1]
 
 
 class CPU:
     """Main CPU class."""
 
-    def __init__(self, register, ram):
+    def __init__(self):
         """Construct a new CPU."""
-        self.reg = [0] * register
+        self.reg = [0] * 16
         self.pc = 0
-        self.ram = [0] * ram
+        self.ram = [0] * 16
+        
 
     def load(self):
         """Load a program into memory."""
 
         address = 0
-
-        # For now, we've just hardcoded a program:
-
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
-        # Loads program into RAM
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
-    
+        # Run thru given file name, line by line
+        with open(filename) as f:
+            for line in f:
+                # Matches first 8 digits, numbers only
+                regex = re.compile('([0-9]){8}')
+                # Stores variables as class object
+                match = regex.match(line)
+                # Needed for blank lines, which Python Regex treats as NoneType
+                if match:
+                    # Converts class object to strings
+                    match = match.group()
+                    # print("Match found: ", match)
+                    # Insert into RAM as an int, base 2/binary
+                    self.ram[address] = int(match, 2)
+                    address += 1
+        print("RMA is: ", self.ram)
     def ram_write(self, regLocation, value):
         self.reg[regLocation] = value
         #self.pc += 3
@@ -93,6 +99,7 @@ class CPU:
                 self.pc += 3
             elif instructions == PRN:
                 # At this reg location, read the value
+                print("Print invoked")
                 print(self.ram_read(self.ram[self.pc + 1]))
                 self.pc += 2
             elif instructions == MUL:
@@ -100,7 +107,10 @@ class CPU:
                 a = self.ram_read(self.ram[self.pc + 1])
                 b = self.ram_read(self.ram[self.pc + 2])
                 c = a * b
-                self.ram_write(a, c)
+                self.ram_write(self.ram[self.pc + 1], c)
+                # a = self.ram_read(self.ram[self.pc + 1])
+                # print("a is now: ", a)
+                self.pc += 2
             elif instructions == HLT:
                 halted = False
                 self.pc += 1
