@@ -116,3 +116,4 @@ class CPU:
                 print(f"Unknown command at {self.pc}", "Command give: ", self.reg[self.pc])
 
 
+
