@@ -7,16 +7,31 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        self.pc = 0  # program counter
- 
+        self.pc = 0  # program counter 
         self.ram = [0] * 256
-
         self.reg = [0] * 8
+        SP = 7
+        self.reg[SP] = 0xf4
+
+
 
         def LDI(a, b): self.reg[a] = b
         def PRN(a, b): print(self.reg[a])
         def ADD(a, b): self.reg[a] += self.reg[b]
         def MUL(a, b): self.reg[a] *= self.reg[b]
+        def PUSH(a, b=None):
+            self.reg[SP] -= 1
+            self.ram[self.reg[SP]] = self.reg[a]
+        def POP(a, b=None):
+            self.reg[a] = self.ram[self.reg[SP]]
+            self.reg[SP] += 1
+        def CALL(a, b):
+            self.reg[SP] -= 1
+            self.ram[self.reg[SP]] = self.pc + 2
+            self.pc = self.reg[a]
+        def RET(a, b):
+            self.pc = self.ram[self.reg[SP]]
+            self.reg[SP] += 1
 
         self.opcodes = {
             0b00000000: 'NOP',
@@ -24,7 +39,11 @@ class CPU:
             0b10000010: LDI,
             0b01000111: PRN,
             0b10100000: ADD,
-            0b10100010: MUL
+            0b10100010: MUL,
+            0b01000101: PUSH,
+            0b01000110: POP,
+            0b01010000: CALL,
+            0b00010001: RET
         }
     
         
@@ -57,8 +76,9 @@ class CPU:
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
 
-        if op == "ADD":
-            self.reg[reg_a] += self.reg[reg_b]
+         """ALU operations."""
+        if op in self.opcodes:
+            self.opcodes[op](reg_a, reg_b)
         #elif op == "SUB": etc
         else:
             raise Exception("Unsupported ALU operation")
@@ -96,7 +116,7 @@ class CPU:
         }
 
         ir = self.ram[self.pc]
-        op_fn = opcodes[ir]
+        op_fn = self.opcodes[ir]
 
         while (op_fn) != 'HLT':
             num_operands = ir >> 6 # Grab two highest bits
