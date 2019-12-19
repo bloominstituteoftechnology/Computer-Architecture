@@ -14,6 +14,7 @@ add = 0b10100000
 cmpp = 0b10100111
 jmp = 0b01010100
 jeq = 0b01010101
+jne = 0b01010110
 class CPU:
     """Main CPU class."""
 
@@ -38,6 +39,7 @@ class CPU:
         self.branchtable[cmpp] = self.handle_cmp
         self.branchtable[jmp] = self.handle_jump
         self.branchtable[jeq] = self.handle_jeq
+        self.branchtable[jne] = self.handle_jne
         self.halted = False
 
     def load(self):
@@ -97,8 +99,7 @@ class CPU:
 
         print()
 
-    def pc(self):
-        pass
+   
     def handle_ldi(self, pc): #LDI
         operand_a = self.ram_read(pc + 1) #saving the value of arg1 (the register) to a variable
         operand_b = self.ram_read(pc + 2) #saving the value of arg2 (the number) to a variable
@@ -160,6 +161,7 @@ class CPU:
         self.pc = self.memory[address] # go to that register address and run that function
 
     def handle_cmp(self,pc):
+        self.flag = 0b00000000
         operand_a = self.ram_read(pc + 1) #save arg1 (register number) to variable
         num_1 = self.memory[operand_a] # access that register's value and save to variable
 
@@ -172,15 +174,23 @@ class CPU:
             self.flag = 0b00000100
         elif num_1 > num_2:
             self.flag = 0b0000010
+        self.pc += 3
     
     def handle_jump(self,pc):
         address = self.ram_read(pc + 1)
-        self.pc = address
+        self.pc = self.memory[address]
 
     def handle_jeq(self,pc):
         if self.flag == 0b00000001:
-            address = self.ram(pc + 1)
-            self.pc = address
+            address = self.ram_read(pc + 1)
+            self.pc = self.memory[address]
+        else:
+            self.pc += 2
+    
+    def handle_jne(self,pc):
+        if self.flag == 0b00000010 or self.flag == 0b00000100:
+            address = self.ram_read(pc + 1)
+            self.pc = self.memory[address]
         else:
             self.pc += 2
 
