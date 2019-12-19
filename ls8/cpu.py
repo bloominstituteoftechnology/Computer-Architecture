@@ -10,6 +10,7 @@ class CPU:
         self.pc = 0 
         self.registers = [0] * 8
         self.ram =[[0] * 8] * 256 #256 bytes of ram
+        # self.SP = self.registers[7]
 
     def load(self):
         """Load a program into memory."""
@@ -88,11 +89,15 @@ class CPU:
     def run(self):
         """Run the CPU."""
         running = True
+        SP = 7
 
+        
         LDI = 0b10000010
         HALT = 0b00000001
         PRN = 0b01000111
         MUL = 0b10100010
+        PUSH = 0b01000101
+        POP = 0b01000110
         #ir
 
 
@@ -102,14 +107,33 @@ class CPU:
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
             if instruction_register == LDI:
+                print("store", operand_a, operand_b)
                 self.registers[operand_a] = operand_b
                 # self.pc += 3
             elif instruction_register == PRN:
+                print("print", operand_a)
                 print(self.registers[operand_a])
                 # self.pc += 2
             elif instruction_register == MUL:
                 print(self.registers[operand_a] * self.registers[operand_b])
                 # self.pc += 3
+            elif instruction_register == PUSH:
+                # decrement the stack pointer
+                self.registers[SP] -= 1
+                # copy value from register to memory at stack pointer
+                reg_num = self.ram[self.pc + 1]
+                value = self.registers[reg_num]
+                self.ram[self.registers[SP]] = value
+
+                self.pc += 2
+            elif instruction_register == POP:
+                # copy the value from the top of the stack into a given register
+                reg_num = self.ram[self.pc + 1]
+                value = self.ram[self.registers[SP]]
+                self.registers[reg_num] = value
+                # iuncrement
+                self.registers[SP]
+                self.pc += 2
             elif instruction_register == HALT:
                 running = False
                 # self.pc += 1
