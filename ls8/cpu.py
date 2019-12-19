@@ -11,17 +11,20 @@ pop = 0b01000110
 call = 0b01010000 
 ret = 0b00010001
 add = 0b10100000
-
+cmpp = 0b10100111
+jmp = 0b01010100
+jeq = 0b01010101
 class CPU:
     """Main CPU class."""
 
     def __init__(self):
         """Construct a new CPU."""
-        self.ram = [0] * 256
-        self.memory = [0] * 8
-        self.memory[7] = 0xF4
-        self.SP = self.memory[7]
+        self.ram = [0] * 256 #256 bits
+        self.memory = [0] * 8 # 8 bit
+        self.memory[7] = 0xF4 #address 7 reserved for F4 position in ram
+        self.SP = self.memory[7] #set pc to that point in memory
         self.pc = 0
+        self.flag = 0b00000000
         self.branchtable = {} #set to empty dictionary
         self.branchtable[ldi] = self.handle_ldi
         self.branchtable[print_command] = self.handle_print_command
@@ -32,6 +35,9 @@ class CPU:
         self.branchtable[call] = self.handle_call
         self.branchtable[ret] = self.handle_ret
         self.branchtable[add] = self.handle_add
+        self.branchtable[cmpp] = self.handle_cmp
+        self.branchtable[jmp] = self.handle_jump
+        self.branchtable[jeq] = self.handle_jeq
         self.halted = False
 
     def load(self):
@@ -56,9 +62,9 @@ class CPU:
                 address += 1
            
 
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+        for instruction in program: # for every instruction in the program
+            self.ram[address] = instruction #go to that address in ram and set it as the instruction
+            address += 1 #increment counter to next address in ram
         
 
 
@@ -91,6 +97,8 @@ class CPU:
 
         print()
 
+    def pc(self):
+        pass
     def handle_ldi(self, pc): #LDI
         operand_a = self.ram_read(pc + 1) #saving the value of arg1 (the register) to a variable
         operand_b = self.ram_read(pc + 2) #saving the value of arg2 (the number) to a variable
@@ -150,6 +158,31 @@ class CPU:
         self.ram[self.SP] = self.pc + 2 #address of the instruction directly after CALL is pushed onto the stack -- used to return to 
         address = self.ram_read(pc + 1) # save given address to variable
         self.pc = self.memory[address] # go to that register address and run that function
+
+    def handle_cmp(self,pc):
+        operand_a = self.ram_read(pc + 1) #save arg1 (register number) to variable
+        num_1 = self.memory[operand_a] # access that register's value and save to variable
+
+        operand_b = self.ram_read(pc + 2) #save arg1 (register number) to variable
+        num_2 = self.memory[operand_b] #access that rigister's value and save to variable
+
+        if num_1 == num_2:
+            self.flag = 0b00000001
+        elif num_1 < num_2:
+            self.flag = 0b00000100
+        elif num_1 > num_2:
+            self.flag = 0b0000010
+    
+    def handle_jump(self,pc):
+        address = self.ram_read(pc + 1)
+        self.pc = address
+
+    def handle_jeq(self,pc):
+        if self.flag == 0b00000001:
+            address = self.ram(pc + 1)
+            self.pc = address
+        else:
+            self.pc += 2
 
 
     def handle_ret(self,pc): #ret
