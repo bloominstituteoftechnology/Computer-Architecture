@@ -151,9 +151,9 @@ class CPU:
                 self.pc += 3
             elif instruction_register == JEQ:
                 if self.FL == (self.FL & 0b00000001):
-
+                    self.jump(self.registers[operand_a])
             elif instruction_register == JMP:
-                self.pc = self.registers[operand_a]
+                self.jump(self.registers[operand_a])
             elif instruction_register == CMP:
                 print("CMP")
                 self.alu("CMP",self.registers[operand_a], self.registers[operand_b])
