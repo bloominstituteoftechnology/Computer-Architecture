@@ -12,6 +12,7 @@ class CPU:
         # self.ram =[[0] * 8] * 256 #256 bytes of ram
         self.SP = 7
         self.ram = [0] * 256
+        self.FL = 0b00000000
 
     def load(self):
         """Load a program into memory."""
@@ -52,8 +53,11 @@ class CPU:
         """ALU operations."""
 
         if op == "ADD":
-            self.reg[reg_a] += self.reg[reg_b]
+            self.registers[reg_a] += self.registers[reg_b]
+            return self.registers[reg_a]
         #elif op == "SUB": etc
+        elif op == "MUL":
+            return self.registers[reg_a] * self.registers[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -97,7 +101,7 @@ class CPU:
         HALT = 0b00000001
         PRN = 0b01000111
         MUL = 0b10100010
-        # ADD = 0b
+        ADD = 0b10100000
         PUSH = 0b01000101
         POP = 0b01000110
         CALL = 0b01010000
@@ -113,7 +117,7 @@ class CPU:
             # print("Current instruction", instruction_register)
             # print("in", instruction_register)
             if instruction_register == LDI:
-                # print("store", operand_a, operand_b)
+                print("store", operand_a, operand_b)
                 self.registers[operand_a] = operand_b
                 self.pc += 3
                 # self.pc += incr
@@ -123,19 +127,27 @@ class CPU:
                 print(self.registers[operand_a])
                 self.pc += 2
                 # self.pc += incr
+            elif instruction_register == ADD:
+                print(self.alu("ADD", operand_a, operand_b))
+                self.pc += 3
             elif instruction_register == MUL:
-                print(self.registers[operand_a] * self.registers[operand_b])
+                print(self.alu("MUL", operand_a, operand_b))
+                # print(self.registers[operand_a] * self.registers[operand_b])
                 # self.pc += 3
                 self.pc += 3
             elif instruction_register == PUSH:
                 # decrement the stack pointer
                 # SP -= 1
                 self.registers[self.SP]-=1
+                # self.SP -= 1
                 reg_num = self.ram[self.pc + 1]
-                reg_val = self.registers[reg_num]
-                self.ram[self.registers[self.SP]] =reg_val
+                value = self.registers[reg_num]
+                self.ram[self.registers[self.SP]] = value
+                # reg_num = self.ram[self.pc + 1]
+                # reg_val = self.registers[reg_num]
+                # self.ram[self.registers[self.SP]] =reg_val
                 # self.ram_write(self.registers[self.SP], self.registers[reg_val])
-                # print("PUSH", reg_val, reg_num, self.registers[self.SP])
+                print("PUSH", value, reg_num, "address", self.ram[self.registers[self.SP]], self.registers[self.SP], "pointer", self.SP)
                 self.pc+=2
                 # self.registers[self.SP] -= 1
                 # self.pc += 1
@@ -157,6 +169,7 @@ class CPU:
                 self.registers[reg_num] = reg_val
                 self.registers[self.SP] += 1
                 self.pc += 2
+
                 # self.pc += 1
                 # reg_num = self.ram[self.pc]
                 # value = self.ram[self.registers[self.SP]]
@@ -166,15 +179,16 @@ class CPU:
                 # print("POP", SP, "Value:", value, "new sp:", SP)
                 # self.registers[SP]
             elif instruction_register == CALL:
+                print("Call")
                 return_address = self.pc + 2
-                self.registers[SP] -= 1
-                self.ram[self.registers[SP]] = return_address
+                self.registers[self.SP] -= 1
+                self.ram[self.registers[self.SP]] = return_address
 
                 reg_num = self.ram[self.pc + 1]
                 sub_address = self.registers[reg_num]
-                self.pc = sub_address
+                self.pc = reg_num
             elif instruction_register == RET:
-                self.pc = self.registers[SP]
+                self.pc = self.registers[self.SP]
             elif instruction_register == HALT:
                 running = False
                 # self.pc += 1
