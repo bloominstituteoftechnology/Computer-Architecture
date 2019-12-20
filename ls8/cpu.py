@@ -12,7 +12,7 @@ class CPU:
         # self.ram =[[0] * 8] * 256 #256 bytes of ram
         self.SP = 7
         self.ram = [0] * 256
-        self.FL = 0b11111111
+        self.FL = 0
 
     def load(self):
         """Load a program into memory."""
@@ -120,6 +120,7 @@ class CPU:
         CMP = 0b10100111
         JMP = 0b01010100
         JEQ = 0b01010101
+        JNE = 0b01010110
         #ir
 
 
@@ -150,14 +151,24 @@ class CPU:
                 # self.pc += 3
                 self.pc += 3
             elif instruction_register == JEQ:
+                # print("equal")
                 if self.FL == (self.FL & 0b00000001):
                     self.jump(self.registers[operand_a])
+                # self.pc += 2
+            elif instruction_register == JNE:
+                print("JNE")
+                if self.FL == (self.FL & 0b11111111):
+                    print("True", self.FL, self.registers[operand_a])
+                    self.jump(self.registers[operand_a])
+                # self.pc += 2
             elif instruction_register == JMP:
                 self.jump(self.registers[operand_a])
+                # self.pc += 2
             elif instruction_register == CMP:
                 print("CMP")
                 self.alu("CMP",self.registers[operand_a], self.registers[operand_b])
-                print(self.FL)
+                # print(self.FL)
+                self.pc += 3
             elif instruction_register == PUSH:
                 # decrement the stack pointer
                 # SP -= 1
