@@ -2,6 +2,8 @@
 
 import sys
 
+
+
 class CPU:
     """Main CPU class."""
 
@@ -11,27 +13,7 @@ class CPU:
         self.ram = [0] * 256
         self.reg = [0] * 8
         SP = 7
-        self.reg[SP] = 0xf4
-
-
-
-        def LDI(a, b): self.reg[a] = b
-        def PRN(a, b): print(self.reg[a])
-        def ADD(a, b): self.reg[a] += self.reg[b]
-        def MUL(a, b): self.reg[a] *= self.reg[b]
-        def PUSH(a, b=None):
-            self.reg[SP] -= 1
-            self.ram[self.reg[SP]] = self.reg[a]
-        def POP(a, b=None):
-            self.reg[a] = self.ram[self.reg[SP]]
-            self.reg[SP] += 1
-        def CALL(a, b):
-            self.reg[SP] -= 1
-            self.ram[self.reg[SP]] = self.pc + 2
-            self.pc = self.reg[a]
-        def RET(a, b):
-            self.pc = self.ram[self.reg[SP]]
-            self.reg[SP] += 1
+        self.reg[SP] = 0xf4 #244 in hex
 
         self.opcodes = {
             0b00000000: 'NOP',
@@ -108,12 +90,21 @@ class CPU:
         
         def LDI(a, b): self.reg[a] = b
         def PRN(a, b): print(self.reg[a])
-        opcodes = {
-          0b00000000: 'NOP',
-          0b00000001: 'HLT',
-          0b10000010: LDI,
-          0b01000111: PRN
-        }
+        def ADD(a, b): self.reg[a] += self.reg[b]
+        def MUL(a, b): self.reg[a] *= self.reg[b]
+        def PUSH(a, b=None):
+            self.reg[SP] -= 1
+            self.ram[self.reg[SP]] = self.reg[a]
+        def POP(a, b=None):
+            self.reg[a] = self.ram[self.reg[SP]]
+            self.reg[SP] += 1
+        def CALL(a, b):
+            self.reg[SP] -= 1
+            self.ram[self.reg[SP]] = self.pc + 2
+            self.pc = self.reg[a]
+        def RET(a, b):
+            self.pc = self.ram[self.reg[SP]]
+            self.reg[SP] += 1
 
         ir = self.ram[self.pc]
         op_fn = self.opcodes[ir]
