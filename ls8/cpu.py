@@ -9,8 +9,9 @@ class CPU:
         """Construct a new CPU."""
         self.pc = 0 
         self.registers = [0] * 8
-        self.ram =[[0] * 8] * 256 #256 bytes of ram
-        # self.SP = self.registers[7]
+        # self.ram =[[0] * 8] * 256 #256 bytes of ram
+        self.SP = 7
+        self.ram = [0] * 256
 
     def load(self):
         """Load a program into memory."""
@@ -89,54 +90,95 @@ class CPU:
     def run(self):
         """Run the CPU."""
         running = True
-        SP = 7
+        # SP = 5
 
         
         LDI = 0b10000010
         HALT = 0b00000001
         PRN = 0b01000111
         MUL = 0b10100010
+        # ADD = 0b
         PUSH = 0b01000101
         POP = 0b01000110
+        CALL = 0b01010000
+        RET = 0b00010001
         #ir
 
 
         while running:
             instruction_register = self.ram_read(self.pc)
-            incr = ((instruction_register & 0b11111111) >> 6) + 1
+            # incr = ((instruction_register & 0b11111111) >> 6) + 1
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
+            # print("Current instruction", instruction_register)
+            # print("in", instruction_register)
             if instruction_register == LDI:
-                print("store", operand_a, operand_b)
+                # print("store", operand_a, operand_b)
                 self.registers[operand_a] = operand_b
-                # self.pc += 3
+                self.pc += 3
+                # self.pc += incr
+
             elif instruction_register == PRN:
-                print("print", operand_a)
+                # print("print", operand_a)
                 print(self.registers[operand_a])
-                # self.pc += 2
+                self.pc += 2
+                # self.pc += incr
             elif instruction_register == MUL:
                 print(self.registers[operand_a] * self.registers[operand_b])
                 # self.pc += 3
+                self.pc += 3
             elif instruction_register == PUSH:
                 # decrement the stack pointer
-                self.registers[SP] -= 1
-                # copy value from register to memory at stack pointer
+                # SP -= 1
+                self.registers[self.SP]-=1
                 reg_num = self.ram[self.pc + 1]
-                value = self.registers[reg_num]
-                self.ram[self.registers[SP]] = value
+                reg_val = self.registers[reg_num]
+                self.ram[self.registers[self.SP]] =reg_val
+                # self.ram_write(self.registers[self.SP], self.registers[reg_val])
+                # print("PUSH", reg_val, reg_num, self.registers[self.SP])
+                self.pc+=2
+                # self.registers[self.SP] -= 1
+                # self.pc += 1
+                # # copy value from register to memory at stack pointer
+                # reg_num = self.ram[self.pc]
+                # # print("Reg_num", reg_num)
+                # value = self.registers[reg_num]
+                # self.ram[self.registers[self.SP]] = value
 
-                self.pc += 2
+                # self.pc += 2
             elif instruction_register == POP:
                 # copy the value from the top of the stack into a given register
+                # self.pc += 1
+                # reg_val = self.ram_read(self.registers[self.SP])
+                reg_val = self.ram[self.registers[self.SP]]
+
+                # reg_num = self.ram_read(self.pc + 1)
                 reg_num = self.ram[self.pc + 1]
-                value = self.ram[self.registers[SP]]
-                self.registers[reg_num] = value
-                # iuncrement
-                self.registers[SP]
+                self.registers[reg_num] = reg_val
+                self.registers[self.SP] += 1
                 self.pc += 2
+                # self.pc += 1
+                # reg_num = self.ram[self.pc]
+                # value = self.ram[self.registers[self.SP]]
+                # self.registers[reg_num] = value
+                # # increment
+                # self.SP += 1
+                # print("POP", SP, "Value:", value, "new sp:", SP)
+                # self.registers[SP]
+            elif instruction_register == CALL:
+                return_address = self.pc + 2
+                self.registers[SP] -= 1
+                self.ram[self.registers[SP]] = return_address
+
+                reg_num = self.ram[self.pc + 1]
+                sub_address = self.registers[reg_num]
+                self.pc = sub_address
+            elif instruction_register == RET:
+                self.pc = self.registers[SP]
             elif instruction_register == HALT:
                 running = False
                 # self.pc += 1
             else:
                 print("Nope")
-            self.pc += incr
+                # self.pc += 1
+                # self.pc += incr
