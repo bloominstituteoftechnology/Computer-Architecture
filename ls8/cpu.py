@@ -99,6 +99,9 @@ class CPU:
 
         print()
 
+    def jump(self, reg):
+        self.pc = reg
+
     def run(self):
         """Run the CPU."""
         running = True
@@ -116,6 +119,7 @@ class CPU:
         RET = 0b00010001
         CMP = 0b10100111
         JMP = 0b01010100
+        JEQ = 0b01010101
         #ir
 
 
@@ -145,6 +149,11 @@ class CPU:
                 # print(self.registers[operand_a] * self.registers[operand_b])
                 # self.pc += 3
                 self.pc += 3
+            elif instruction_register == JEQ:
+                if self.FL == (self.FL & 0b00000001):
+
+            elif instruction_register == JMP:
+                self.pc = self.registers[operand_a]
             elif instruction_register == CMP:
                 print("CMP")
                 self.alu("CMP",self.registers[operand_a], self.registers[operand_b])
