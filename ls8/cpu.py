@@ -53,11 +53,15 @@ class CPU:
         """ALU operations."""
 
         if op == "ADD":
-            self.registers[reg_a] += self.registers[reg_b]
-            return self.registers[reg_a]
+            reg_a += reg_b
+            return reg_a
         #elif op == "SUB": etc
         elif op == "MUL":
-            return self.registers[reg_a] * self.registers[reg_b]
+            return reg_a * reg_b
+        elif op == "CMP":
+            if reg_a is reg_b:
+                self.FL == (self.FL & 0b00000001)
+            # elif reg_a > self.registers
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -106,6 +110,7 @@ class CPU:
         POP = 0b01000110
         CALL = 0b01010000
         RET = 0b00010001
+        CMP = 0b10100111
         #ir
 
 
@@ -128,13 +133,15 @@ class CPU:
                 self.pc += 2
                 # self.pc += incr
             elif instruction_register == ADD:
-                print(self.alu("ADD", operand_a, operand_b))
+                print(self.alu("ADD", self.registers[operand_a], self.registers[operand_b]))
                 self.pc += 3
             elif instruction_register == MUL:
-                print(self.alu("MUL", operand_a, operand_b))
+                print(self.alu("MUL", self.registers[operand_a], self.registers[operand_b]))
                 # print(self.registers[operand_a] * self.registers[operand_b])
                 # self.pc += 3
                 self.pc += 3
+            elif instruction_register == CMP:
+                pass
             elif instruction_register == PUSH:
                 # decrement the stack pointer
                 # SP -= 1
