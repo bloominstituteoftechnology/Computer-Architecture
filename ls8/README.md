@@ -171,7 +171,7 @@ directory for your convenience.)
 
 For processing the command line, checkout `sys.argv`. Try running the following
 Python program with different arguments on the command line to see how it works:
-
+ 
 ```python
 import sys
 
