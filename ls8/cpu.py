@@ -7,7 +7,8 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        self.ram = [0] * 16
+        # 256 bytes of memory
+        self.ram = [0] * 255
         self.pc = 0
 
     def load(self):
@@ -64,11 +65,16 @@ class CPU:
     def run(self):
         """Run the CPU."""
         pass
+
     def ram_read(self, address):
         """Accepts an address to read,
         and return the value stored there."""
-        pass
+        if address in ram:
+            self.ram[address]
+        else:
+            print("Address does not exist!")
+
     def ram_write(self, value, address):
         """Accepts a value to write,
-        and the address to write it to.""""
-        pass
+        and the address to write it to."""
+        self.ram[address] = value
