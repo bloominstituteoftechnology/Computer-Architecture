@@ -7,7 +7,7 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        self.ram = [0] * 256
+        self.ram = [0] * 8
         self.reg = [0] * 8
         self.pc = 0
 
@@ -65,17 +65,39 @@ class CPU:
     def ram_read(self, count):
         return self.ram[count]
 
-    def ram_write(self, value, address):
+    def ram_write(self, address, value):
         self.ram[address] = value
 
     def run(self):
         """Run the CPU."""
+        self.load()
+
         LDI = 0b10000010
         PRN = 0b01000111
         HLT = 0b00000001
+        IR = self.pc
+        operand_a = self.ram_read(IR+1)
+        operand_b = self.ram_read(IR+2)
+        running = True
 
-        IR = self.ram_read(self.pc)
-        operand_a = self.ram_read(self.pc+1)
-        operand_b = self.ram_read(self.pc+2)
+        while running:
 
-        pass
+            if self.ram[IR] == LDI:
+                #load operand_b into ram at location ram[operand_a]
+                self.ram_write(operand_a, operand_b)
+                #increment the IR by two
+                IR += 3
+                print(f"ram loaded with the value: {self.ram[operand_a]}")
+
+            elif self.ram[IR] == PRN:
+                #print the thing and increment.
+                print(f"you requested a print?  {self.ram[self.ram[IR+1]]}")
+                IR += 2
+
+            elif self.ram[IR] == HLT:
+                running = False
+                print(f"no longer running. buhbye now.")
+            else:
+                print(f"unrecognized input, moving to next cycle")
+                IR += 1 
+        
