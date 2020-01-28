@@ -8,7 +8,9 @@ class CPU:
     def __init__(self):
         """Construct a new CPU."""
         # 256 bytes of memory
+        self.register = [0] * 8
         self.ram = [0] * 255
+        # Program Counter, address of the currently executing instruction
         self.pc = 0
 
     def load(self):
@@ -64,17 +66,42 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        # Memory address that's stored in register PC
+        IR = self.pc
+        program = self.ram_read(self.pc)
+        registerA = self.ram_read(self.pc + 1)
+        registerB = self.ram_read(self.pc + 2)
+
+        running = True
+
+        while running:
+            # Execute instructions in memory
+
+            # HLT - Halts running
+            if program == 0b00000001:
+                running = False
+
+            # LDI - sets value of register to INT
+            if program == 0b10000010:
+                # registerINT = int(registerA)
+                self.register[registerA] = registerB
+                self.pc += 3
+
+            # PRN - Print numeric value stored in register
+            if program == 0b01000111:
+                print(self.register[int(registerA)], 2)
+                self.pc += 2
+
 
     def ram_read(self, address):
         """Accepts an address to read,
         and return the value stored there."""
-        if address in ram:
-            self.ram[address]
-        else:
-            print("Address does not exist!")
+        # if address in ram:
+        return self.ram[address]
+        # else:
+        #     raise Exception("Address does not exist!")
 
-    def ram_write(self, value, address):
+    def ram_write(self, address, value):
         """Accepts a value to write,
         and the address to write it to."""
         self.ram[address] = value
