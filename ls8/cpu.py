@@ -67,14 +67,14 @@ class CPU:
     def run(self):
         """Run the CPU."""
         # Memory address that's stored in register PC
-        IR = self.pc
-        program = self.ram_read(self.pc)
-        registerA = self.ram_read(self.pc + 1)
-        registerB = self.ram_read(self.pc + 2)
 
         running = True
 
         while running:
+            IR = self.pc
+            program = self.ram_read(self.pc)
+            registerA = self.ram_read(self.pc + 1)
+            registerB = self.ram_read(self.pc + 2)
             # Execute instructions in memory
 
             # HLT - Halts running
@@ -83,15 +83,15 @@ class CPU:
 
             # LDI - sets value of register to INT
             if program == 0b10000010:
-                # registerINT = int(registerA)
-                self.register[registerA] = registerB
+                # convert to int, base 2
+                registerInt = int(str(registerA), 2)
+                self.register[registerInt] = registerB
                 self.pc += 3
 
             # PRN - Print numeric value stored in register
             if program == 0b01000111:
-                print(self.register[int(registerA)], 2)
+                print(self.register[int(str(registerA))])
                 self.pc += 2
-
 
     def ram_read(self, address):
         """Accepts an address to read,
