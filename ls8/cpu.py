@@ -45,12 +45,13 @@ class CPU:
                 if line == '':
                     continue
                 val = int(line, 2)
-                print(val)
+                # print(val)
 
                 # index/store into memory(array) (address/location/pointer)
                 self.ram[address] = val
+                # self.ram[]
                 address += 1
-        sys.exit(0)
+        # sys.exit(0)
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
 
@@ -93,6 +94,37 @@ class CPU:
             registerB = self.ram_read(self.pc + 2)
             # Execute instructions in memory
 
+            # HLT - Halts running
+            if instruction == 0b00000001:
+                running = False
+                sys.exit(1)
+
+            # LDI - sets value of register to INT
+            if instruction == 0b10000010:
+                # convert to int, base 2
+                # registerInt = int(registerA, 2)
+                self.register[registerA] = registerB
+                self.pc += 3
+
+            # PRN - Print numeric value stored in register
+            if instruction == 0b01000111:
+                print(self.register[registerA])
+                self.pc += 2
+
+    def ram_read(self, address):
+        """Accepts an address to read,
+        and return the value stored there."""
+        # if address in ram:
+        return self.ram[address]
+        # else:
+        #     raise Exception("Address does not exist!")
+
+    def ram_write(self, address, value):
+        """Accepts a value to write,
+        and the address to write it to."""
+        self.ram[address] = value
+
+
 # operand_count = instruction_value >> 6
 # instruction_length = operand_count + 1 (+1 to count the opcode (instruction))
 # pc += instruction_length
@@ -108,33 +140,3 @@ class CPU:
 # 00001000 >> 4
 # 00000001
 #        ^
-
-            # HLT - Halts running
-            if instruction == 0b00000001:
-                running = False
-                sys.exit(1)
-
-            # LDI - sets value of register to INT
-            if instruction == 0b10000010:
-                # convert to int, base 2
-                registerInt = int(str(registerA), 2)
-                self.register[registerInt] = registerB
-                self.pc += 3
-
-            # PRN - Print numeric value stored in register
-            if instruction == 0b01000111:
-                print(self.register[int(str(registerA))])
-                self.pc += 2
-
-    def ram_read(self, address):
-        """Accepts an address to read,
-        and return the value stored there."""
-        # if address in ram:
-        return self.ram[address]
-        # else:
-        #     raise Exception("Address does not exist!")
-
-    def ram_write(self, address, value):
-        """Accepts a value to write,
-        and the address to write it to."""
-        self.ram[address] = value
