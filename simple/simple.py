@@ -6,6 +6,8 @@ PRINT_NUM = 3
 SAVE = 4  # Saves a value to a register
 PRINT_REGISTER = 5
 ADD = 6
+PUSH = 7
+POP = 8
 
 # memory = [
 #     PRINT_BEEJ,
@@ -27,7 +29,9 @@ ADD = 6
 # ]
 
 memory = [0] * 256
-register = [0] * 8
+registers = [0] * 8
+
+SP = 7
 
 pc = 0
 running = True
@@ -52,11 +56,18 @@ def load_memory(filename):
         print(f"{sys.argv[0]}: {filename} not found")
         sys.exit(2)
 
+    if len(sys.argv) != 2:
+        print('Usage: file.py filename', file=sys.stderr)
+        sys.exit(1)
+
 
 load_memory(sys.argv[1])
 
+
 while running:
     # Execute memory instructions
+    print(memory)
+    #  print(registers)
     command = memory[pc]
 
     if command == PRINT_BEEJ:
@@ -75,18 +86,37 @@ while running:
     elif command == SAVE:
         num = memory[pc + 1]
         reg = memory[pc + 2]
-        register[reg] = num
+        registers[reg] = num
         pc += 3
 
     elif command == ADD:
         reg_a = memory[pc + 1]
         reg_b = memory[pc + 2]
-        register[reg_a] += register[reg_b]
+        registers[reg_a] += registers[reg_b]
         pc += 3
 
     elif command == PRINT_REGISTER:
         reg = memory[pc + 1]
-        print(register[reg])
+        print(registers[reg])
+        pc += 2
+
+    elif command == PUSH:
+        reg = memory[pc + 1]
+        val = registers[reg]
+        # Decrement the SP.
+        registers[SP] -= 1
+        # Copy the value in the given register to the address pointed to by SP.
+        memory[registers[SP]] = val
+        # Increment PC by 2
+        pc += 2
+
+    elif command == POP:
+        reg = memory[pc + 1]
+        # Copy the value from the address pointed to by SP to the given register.
+        val = memory[registers[SP]]
+        registers[reg] = val
+        # Increment SP
+        registers[SP] += 1
         pc += 2
 
     else:
