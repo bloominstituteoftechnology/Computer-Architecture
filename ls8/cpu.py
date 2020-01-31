@@ -5,9 +5,12 @@ import sys
 HLT = 0b00000001
 LDI = 0b10000010
 PRN = 0b01000111
+ADD = 0b10100000
 MUL = 0b10100010
 PUSH = 0b01000101
 POP = 0b01000110
+CALL = 0b01010000
+RET = 0b00010001
 
 SP = 7
 
@@ -25,9 +28,12 @@ class CPU:
             HLT: self.HLT_op,
             LDI: self.LDI_op,
             PRN: self.PRN_op,
+            ADD: self.ADD_op,
             MUL: self.MUL_op,
             PUSH: self.PUSH_op,
-            POP: self.POP_op
+            POP: self.POP_op,
+            CALL: self.CALL_op,
+            RET: self.RET_op
         }
 
     def HLT_op(self, oper_a, oper_b):
@@ -41,6 +47,10 @@ class CPU:
         print(self.reg[oper_a])
         self.pc += 2
 
+    def ADD_op(self, oper_a, oper_b):
+        self.alu('ADD', oper_a, oper_b)
+        self.pc += 3
+
     def MUL_op(self, oper_a, oper_b):
         self.alu('MUL', oper_a, oper_b)
         self.pc += 3
@@ -52,6 +62,16 @@ class CPU:
     def POP_op(self, oper_a, oper_b):
         self.reg[oper_a] = self.pop()
         self.pc += 2
+
+    def CALL_op(self, oper_a, oper_b):
+        self.reg[SP] -= 1
+        self.ram[self.reg[SP]] = self.pc + 2
+        update_reg = self.ram[self.pc + 1]
+        self.pc = self.reg[update_reg]
+
+    def RET_op(self, oper_a, oper_b):
+        self.pc = self.ram[self.reg[SP]]
+        self.reg[SP] += 1
 
     def push(self, value):
         self.reg[SP] -= 1

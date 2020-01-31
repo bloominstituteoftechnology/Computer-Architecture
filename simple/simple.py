@@ -8,6 +8,8 @@ PRINT_REGISTER = 5
 ADD = 6
 PUSH = 7
 POP = 8
+CALL = 9
+RET = 10
 
 # memory = [
 #     PRINT_BEEJ,
@@ -118,6 +120,23 @@ while running:
         # Increment SP
         registers[SP] += 1
         pc += 2
+
+    elif command == CALL:
+
+        val = pc + 2
+        registers[SP] -= 1
+        memory[registers[SP]] = val
+
+        reg = memory[pc + 1]
+        subroutine_address = registers[reg]
+
+        pc = subroutine_address
+        print(f'Calling SR at address {subroutine_address}')
+
+    elif command == RET:
+        return_address = registers[SP]
+        pc = memory[return_address]
+        registers[SP] += 1
 
     else:
         print(f'Error: Unknown command: {command}')
