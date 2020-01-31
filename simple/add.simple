@@ -1,0 +1,13 @@
+1   # PRINT_BEEJ
+4   # SAVE 65 in R2
+65
+2
+4   # SAVE 20 in R3
+20
+3
+6    # R2 += R3
+2
+3
+5  # PRINT R2 ("85")
+2
+2  # HALT
