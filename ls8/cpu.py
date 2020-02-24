@@ -1,5 +1,6 @@
 """CPU functionality."""
 
+from ls8Instructions import *
 import sys
 
 class CPU:
@@ -7,7 +8,12 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.ram = [0] * 256
+        self.register = [0] * 8
+        self.register[7] = 0xF4
+
+        self.pc = 0
+        self.fl = 0
 
     def load(self):
         """Load a program into memory."""
@@ -30,6 +36,11 @@ class CPU:
             self.ram[address] = instruction
             address += 1
 
+    def ramRead(self, mar):
+        return self.ram[mar]
+
+    def ramWrite(self, mdr, mar):
+        self.ram[mar] = mdr
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -62,4 +73,23 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+
+        while True:
+            instructionRegister = self.ram[self.pc]
+
+            if instructionRegister == LDI:
+                operandA = self.ram[self.pc + 1]
+                operandB = self.ram[self.pc + 2]
+                self.register[operandA] = operandB
+            elif instructionRegister == PRN:
+                operandA = self.ram[self.pc + 1]
+                value = self.register[operandA]
+                print(value)
+            elif instructionRegister == HLT:
+                exit(0)
+            else:
+                print(f"Instruction not recognized: {instructionRegister}")
+                exit(1)
+
+            # offset pc by whatever the previous register said to offset by (MIGHT be problematic here, but for now is DRY)
+            self.pc += ((instructionRegister & 0xC0) >> 6) + 1
