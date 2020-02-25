@@ -65,6 +65,38 @@ class CPU:
 
         print()
 
+    def handleLDI(self):
+        operandIndex = self.ramRead(self.pc + 1)
+        operand = self.ramRead(self.pc + 2)
+        self.register[operandIndex] = operand
+
+    def handlePRN(self):
+        operandIndex = self.ramRead(self.pc + 1)
+        operand = self.register[operandIndex]
+        print(operand)
+
+    def handleHLT(self):
+        sys.exit(0)
+
+    def handleMUL(self):
+        operandAIndex = self.ram[self.pc + 1]
+        operandBIndex = self.ram[self.pc + 2]
+        self.alu(MUL, operandAIndex, operandBIndex)
+
+    def handlePUSH(self):
+        stackPointer = self.getStackIndex() - 1
+        self.setStackIndex(stackPointer)
+        operandIndex = self.ramRead(self.pc + 1)
+        operand = self.register[operandIndex]
+        self.ramWrite(operand, stackPointer)
+
+    def handlePOP(self):
+        stackPointer = self.getStackIndex()
+        operand = self.ramRead(stackPointer)
+        operandIndex = self.ramRead(self.pc + 1)
+        self.register[operandIndex] = operand
+        self.setStackIndex(stackPointer + 1)
+
     def run(self):
         """Run the CPU."""
 
@@ -72,29 +104,20 @@ class CPU:
             instructionRegister = self.ram[self.pc]
 
             if instructionRegister == LDI:
-                operandA = self.ram[self.pc + 1]
-                operandB = self.ram[self.pc + 2]
-                self.register[operandA] = operandB
+                self.handleLDI()
+
             elif instructionRegister == PRN:
-                operandA = self.ram[self.pc + 1]
-                value = self.register[operandA]
-                print(value)
+                self.handlePRN()
+                
             elif instructionRegister == MUL:
-                operandAIndex = self.ram[self.pc + 1]
-                operandBIndex = self.ram[self.pc + 2]
-                self.alu(instructionRegister, operandAIndex, operandBIndex)
+                self.handleMUL()
+
             elif instructionRegister == PUSH:
-                stackPointer = self.getStackIndex() - 1
-                self.setStackIndex(stackPointer)
-                regIndex = self.ramRead(self.pc + 1)
-                value = self.register[regIndex]
-                self.ramWrite(value, stackPointer)
+                self.handlePUSH()
+                
             elif instructionRegister == POP:
-                stackPointer = self.getStackIndex()
-                value = self.ramRead(stackPointer)
-                regIndex = self.ramRead(self.pc + 1)
-                self.register[regIndex] = value
-                self.setStackIndex(stackPointer + 1)
+                self.handlePOP()
+                
             elif instructionRegister == HLT:
                 exit(0)
             else:
