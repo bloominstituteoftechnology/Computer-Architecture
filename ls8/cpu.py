@@ -73,6 +73,10 @@ class CPU:
                 operandA = self.ram[self.pc + 1]
                 value = self.register[operandA]
                 print(value)
+            elif instructionRegister == MUL:
+                operandA = self.ram[self.pc + 1]
+                operandB = self.ram[self.pc + 2]
+                self.register[operandA] = self.register[operandA] * self.register[operandB]
             elif instructionRegister == HLT:
                 exit(0)
             else:
