@@ -12,37 +12,25 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
+        # Set up the branch table
+        self.branchtable = {}
+        self.branchtable[LDI] = self.handle_LDI
+        self.branchtable[PRN] = self.handle_PRN
+        self.branchtable[MUL] = self.handle_MUL
+        
         self.ram = [0] * 256
         self.reg = [0] * 8
         self.pc = 0
         
+    def ram_read(self, mar):
+        print(self.reg[mar])
+        return self.reg[mar]
 
-    def ram_read(self, address):
-        print(self.reg[address])
-        return self.reg[address]
-
-    def ram_write(self, address, value):
-        self.reg[address] = value
+    def ram_write(self, mar, mdr):
+        self.reg[mar] = mdr
 
     def load(self):
         """Load a program into memory."""
-
-        address = 0
-
-        # For now, we've just hardcoded a program:
-
-        # program = [
-        #     # From print8.ls8
-        #     0b10000010, # LDI R0,8
-        #     0b00000000,
-        #     0b00001000,
-        #     0b01000111, # PRN R0
-        #     0b00000000,
-        #     0b00000001, # HLT
-        # ]
-         # for instruction in program:
-        #     self.ram[address] = instruction
-        #     address += 1
         try:
             address = 0
             with open(sys.argv[1]) as f:
@@ -89,20 +77,23 @@ class CPU:
 
         print()
 
+    def handle_LDI(self):
+        self.ram_write(self.ram[self.pc + 1], self.ram[self.pc + 2])
+        self.pc += 3
+
+    def handle_PRN(self):
+        self.ram_read(self.ram[self.pc + 1])
+        self.pc += 2
+
+    def handle_MUL(self):
+        self.alu("MUL", self.ram[self.pc + 1], self.ram[self.pc + 2])
+        self.pc += 3
+
+
     def run(self):
         while True:
-            command = self.ram[self.pc]
-            if command == LDI:
-                
-                self.ram_write(self.ram[self.pc + 1], self.ram[self.pc + 2])
-                self.pc += 3
-                
-            elif command == PRN:
-                
-                self.ram_read(self.ram[self.pc + 1])
-                self.pc += 2
-            elif command == MUL:
-                self.alu("MUL", self.ram[self.pc + 1], self.ram[self.pc + 2])
-                self.pc += 3
-            elif command == HLT:
+            IR = self.ram[self.pc]
+            if IR == HLT:
                 exit(2)
+            self.branchtable[IR]()
+
