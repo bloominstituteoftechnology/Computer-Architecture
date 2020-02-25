@@ -14,6 +14,17 @@ class CPU:
 
         self.pc = 0
         self.fl = 0
+        self.setupBranchtable()
+
+    def setupBranchtable(self):
+        self.branchtable = {}
+
+        self.branchtable[LDI] = self.handleLDI
+        self.branchtable[PRN] = self.handlePRN
+        self.branchtable[HLT] = self.handleHLT
+        self.branchtable[MUL] = self.handleMUL
+        self.branchtable[PUSH] = self.handlePUSH
+        self.branchtable[POP] = self.handlePOP
 
     def load(self, program):
         """Load a program into memory."""
@@ -103,23 +114,10 @@ class CPU:
         while True:
             instructionRegister = self.ram[self.pc]
 
-            if instructionRegister == LDI:
-                self.handleLDI()
+            instructionMethod = self.branchtable.get(instructionRegister, None)
 
-            elif instructionRegister == PRN:
-                self.handlePRN()
-                
-            elif instructionRegister == MUL:
-                self.handleMUL()
-
-            elif instructionRegister == PUSH:
-                self.handlePUSH()
-                
-            elif instructionRegister == POP:
-                self.handlePOP()
-                
-            elif instructionRegister == HLT:
-                exit(0)
+            if instructionMethod is not None:
+                instructionMethod()
             else:
                 print(f"Instruction not recognized: {instructionRegister}")
                 exit(1)
