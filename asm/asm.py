@@ -152,7 +152,7 @@ def pass1(inputfile, sym, code):
 
         if m is None:
             if fatal:
-                print(r"Line {line_num}: unknown register {op}",
+                print(f"Line {line_num}: unknown register {op}",
                       file=sys.stderr)
                 sys.exit(1)
             else:
