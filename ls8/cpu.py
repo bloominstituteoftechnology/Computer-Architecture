@@ -17,6 +17,13 @@ class CPU:
         self.ram = [0] * 256   
         self.pc = 0
 
+        self.branchtable = {}
+        self.branchtable[LDI] = self.LDI
+        self.branchtable[PRN] = self.PRN
+        self.branchtable[HLT] = self.HLT
+        self.branchtable[MUL] = self.MUL
+        self.lines = 0
+
     def ram_read(self, mar):
         mdr = self.ram[mar]
         return mdr
@@ -39,6 +46,7 @@ class CPU:
                     # ignore blank lines
                     if value == "":
                         continue
+                    self.lines += 1
                     instruction = int(value, 2)
                     # populate a memory array
                     self.ram[address] = instruction
@@ -56,7 +64,7 @@ class CPU:
             self.reg[reg_a] += self.reg[reg_b]
         elif op == MUL:
             self.reg[reg_a] *= self.reg[reg_b]
-            return self.reg[reg_a]
+            self.pc += 3
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -80,25 +88,49 @@ class CPU:
 
         print()
 
+    def LDI(self):
+        operand_a = self.ram_read(self.pc + 1)
+        operand_b = self.ram_read(self.pc + 2)
+        self.reg[operand_a] = operand_b
+        self.pc += 3        
+    
+    def PRN(self):
+        operand_a = self.ram_read(self.pc + 1)
+        print(self.reg[operand_a])
+        self.pc += 2
+
+    def HLT(self):
+        sys.exit(0)
+
+    def MUL(self):
+        operand_a = self.ram_read(self.pc + 1)
+        operand_b = self.ram_read(self.pc + 2)
+        self.reg[operand_a] *= self.reg[operand_b]
+        self.pc += 3
+
     def run(self):
         """Run the CPU."""
-        IR = self.pc
-        while True:
-            opcode = self.ram_read(IR)
-            operand_a = self.ram_read(IR + 1)
-            operand_b = self.ram_read(IR + 2)
-            if opcode == LDI:
-                # print('LDI')
-                self.reg[operand_a] = operand_b
-                IR += 3
-            elif opcode == PRN:
-                print(self.reg[operand_a])
-                IR += 2
-            elif opcode == MUL:
-                self.alu(opcode, operand_a, operand_b)
-                IR += 3
-            elif opcode == HLT:
-                sys.exit(0)
-            else:
-                print("OPCODE not recognized.")
-                sys.exit(1)
+        for _ in range(self.lines):
+            ir = self.ram_read(self.pc)
+            self.branchtable[ir]()
+
+        # IR = self.pc
+        # while True:
+        #     opcode = self.ram_read(IR)
+        #     operand_a = self.ram_read(IR + 1)
+        #     operand_b = self.ram_read(IR + 2)
+        #     if opcode == LDI:
+        #         # print('LDI')
+        #         self.reg[operand_a] = operand_b
+        #         IR += 3
+        #     elif opcode == PRN:
+        #         print(self.reg[operand_a])
+        #         IR += 2
+        #     elif opcode == MUL:
+        #         self.alu(opcode, operand_a, operand_b)
+        #         IR += 3
+        #     elif opcode == HLT:
+        #         sys.exit(0)
+        #     else:
+        #         print("OPCODE not recognized.")
+        #         sys.exit(1)
