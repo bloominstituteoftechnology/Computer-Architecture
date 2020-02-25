@@ -24,6 +24,12 @@ class CPU:
             self.ram[address] = instruction
             address += 1
 
+    def getStackIndex(self):
+        return self.register[7]
+
+    def setStackIndex(self, index):
+        self.register[7] = index
+
     def ramRead(self, mar):
         return self.ram[mar]
 
@@ -49,13 +55,13 @@ class CPU:
             self.pc,
             #self.fl,
             #self.ie,
-            self.ram_read(self.pc),
-            self.ram_read(self.pc + 1),
-            self.ram_read(self.pc + 2)
+            self.ramRead(self.pc),
+            self.ramRead(self.pc + 1),
+            self.ramRead(self.pc + 2)
         ), end='')
 
         for i in range(8):
-            print(" %02X" % self.reg[i], end='')
+            print(" %02X" % self.register[i], end='')
 
         print()
 
@@ -77,6 +83,18 @@ class CPU:
                 operandA = self.ram[self.pc + 1]
                 operandB = self.ram[self.pc + 2]
                 self.register[operandA] = self.register[operandA] * self.register[operandB]
+            elif instructionRegister == PUSH:
+                stackPointer = self.getStackIndex() - 1
+                self.setStackIndex(stackPointer)
+                regIndex = self.ramRead(self.pc + 1)
+                value = self.register[regIndex]
+                self.ramWrite(value, stackPointer)
+            elif instructionRegister == POP:
+                stackPointer = self.getStackIndex()
+                value = self.ramRead(stackPointer)
+                regIndex = self.ramRead(self.pc + 1)
+                self.register[regIndex] = value
+                self.setStackIndex(stackPointer + 1)
             elif instructionRegister == HLT:
                 exit(0)
             else:
