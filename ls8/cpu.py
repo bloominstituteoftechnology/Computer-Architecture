@@ -5,6 +5,7 @@ import sys
 LDI = 0b10000010
 PRN = 0b01000111
 HLT = 0b00000001
+MUL = 0b10100010
 
 class CPU:
     """Main CPU class."""
@@ -12,16 +13,16 @@ class CPU:
     def __init__(self):
         """Construct a new CPU."""
         self.ram = [0] * 256
-        self.register = [0] * 8
+        self.reg = [0] * 8
         self.pc = 0
         
 
     def ram_read(self, address):
-        print(self.register[address])
-        return self.register[address]
+        print(self.reg[address])
+        return self.reg[address]
 
     def ram_write(self, address, value):
-        self.register[address] = value
+        self.reg[address] = value
 
     def load(self):
         """Load a program into memory."""
@@ -50,9 +51,6 @@ class CPU:
                     comment_split = line.strip().split("#")
                     # Cast the number from string to ints
                     value = comment_split[0].strip()
-                    # Ignore blank lines
-                    if value == "":
-                        continue
                     self.ram[address] = int(value,2)
                     address += 1
             print(self.ram)
@@ -65,7 +63,9 @@ class CPU:
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
-        #elif op == "SUB": etc
+        elif op == "MUL":
+            result = self.reg[reg_a] * self.reg[reg_b]
+            self.reg[reg_a] = result
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -84,8 +84,8 @@ class CPU:
             self.ram_read(self.pc + 2)
         ), end='')
 
-        # for i in range(8):
-        #     print(" %02X" % self.reg[i], end='')
+        for i in range(8):
+            print(" %02X" % self.reg[i], end='')
 
         print()
 
@@ -101,6 +101,8 @@ class CPU:
                 
                 self.ram_read(self.ram[self.pc + 1])
                 self.pc += 2
-                
+            elif command == MUL:
+                self.alu("MUL", self.ram[self.pc + 1], self.ram[self.pc + 2])
+                self.pc += 3
             elif command == HLT:
-                exit()
+                exit(2)
