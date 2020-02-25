@@ -36,11 +36,11 @@ class CPU:
     def ramWrite(self, mdr, mar):
         self.ram[mar] = mdr
 
-    def alu(self, op, reg_a, reg_b):
+    def alu(self, op, operandA, operandB):
         """ALU operations."""
 
-        if op == "ADD":
-            self.reg[reg_a] += self.reg[reg_b]
+        if op == MUL:
+            self.register[operandA] *= self.register[operandB]
         #elif op == "SUB": etc
         else:
             raise Exception("Unsupported ALU operation")
@@ -80,9 +80,9 @@ class CPU:
                 value = self.register[operandA]
                 print(value)
             elif instructionRegister == MUL:
-                operandA = self.ram[self.pc + 1]
-                operandB = self.ram[self.pc + 2]
-                self.register[operandA] = self.register[operandA] * self.register[operandB]
+                operandAIndex = self.ram[self.pc + 1]
+                operandBIndex = self.ram[self.pc + 2]
+                self.alu(instructionRegister, operandAIndex, operandBIndex)
             elif instructionRegister == PUSH:
                 stackPointer = self.getStackIndex() - 1
                 self.setStackIndex(stackPointer)
