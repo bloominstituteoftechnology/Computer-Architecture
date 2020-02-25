@@ -30,20 +30,35 @@ class CPU:
 
         # For now, we've just hardcoded a program:
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
-
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
-
+        # program = [
+        #     # From print8.ls8
+        #     0b10000010, # LDI R0,8
+        #     0b00000000,
+        #     0b00001000,
+        #     0b01000111, # PRN R0
+        #     0b00000000,
+        #     0b00000001, # HLT
+        # ]
+         # for instruction in program:
+        #     self.ram[address] = instruction
+        #     address += 1
+        try:
+            address = 0
+            with open(sys.argv[1]) as f:
+                # Read all the lines
+                for line in f:
+                    comment_split = line.strip().split("#")
+                    # Cast the number from string to ints
+                    value = comment_split[0].strip()
+                    # Ignore blank lines
+                    if value == "":
+                        continue
+                    self.ram[address] = int(value,2)
+                    address += 1
+            print(self.ram)
+        except FileNotFoundError:
+            print("File not Found")
+            sys.exit(2)
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
