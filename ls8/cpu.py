@@ -7,6 +7,12 @@ LDI = 0b10000010
 PRN = 0b01000111
 HLT = 0b00000001
 MUL = 0b10100010
+PUSH = 0b01000101
+POP = 0b01000110
+CALL = 0b01010000
+RET = 0b00010001
+
+SP = 7
 
 class CPU:
     """Main CPU class."""
@@ -22,6 +28,10 @@ class CPU:
         self.branchtable[PRN] = self.PRN
         self.branchtable[HLT] = self.HLT
         self.branchtable[MUL] = self.MUL
+        self.branchtable[PUSH] = self.PUSH
+        self.branchtable[POP] = self.POP
+        self.branchtable[CALL] = self.CALL
+        self.branchtable[RET] = self.RET
         self.lines = 0
 
     def ram_read(self, mar):
@@ -107,6 +117,42 @@ class CPU:
         operand_b = self.ram_read(self.pc + 2)
         self.reg[operand_a] *= self.reg[operand_b]
         self.pc += 3
+
+    def PUSH(self, reg=0):
+        # Grab the register argument
+        if reg == 0:
+            reg = self.ram_read(self.pc + 1)
+        val = self.reg[reg]
+        # Decrement the SP
+        self.reg[SP] -= 1
+        # Copy the value in the given register
+        self.ram_write(self.reg[SP], val)
+        self.pc += 2
+
+    def POP(self):
+        # Grab the value from the top of the stack
+        reg = self.ram_read(self.pc + 1)
+        val = self.ram_read(self.reg[SP])
+        # Copy the value from the address pointed to by SP to the given register.
+        self.reg[reg] = val
+        # increment SP
+        self.reg[SP] += 1
+        self.pc += 2
+
+    def CALL(self):
+        # The address of the instruction directly after CALL is pushed onto the stack. 
+        # This allows us to return to where we left off when the subroutine finishes executing.
+        address = self.ram_read(self.pc + 1)
+        self.branchtable[PUSH](address)
+        # The PC is set to the address stored in the given register. 
+        # We jump to that location in RAM and execute the first instruction in the subroutine. 
+        # The PC can move forward or backwards from its current location.
+
+        pass
+
+    def RET(self):
+        # Pop the value from the top of the stack and store it in the PC.
+        pass
 
     def run(self):
         """Run the CPU."""

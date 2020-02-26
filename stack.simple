@@ -1,0 +1,42 @@
+# Pushes 65, 99 on the stack
+# Pops 99, 65 off the stack (and prints it)
+
+1      # PRINT_BEEJ
+
+4      # SAVE 65 in reg 2
+
+65
+
+2
+
+7      # PUSH reg 2
+
+2
+
+4      # SAVE 99 in reg 2
+
+99
+
+2
+
+7      # PUSH reg 2
+
+2
+
+8      # POP reg 0
+
+0
+
+5      # PRINT_REGISTER reg 0
+
+0
+
+8      # POP reg 0
+
+0
+
+5      # PRINT_REGISTER reg 0
+
+0
+
+2      # HALT
