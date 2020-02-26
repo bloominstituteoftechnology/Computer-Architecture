@@ -95,18 +95,25 @@ class CPU:
         self.alu(MUL, operandAIndex, operandBIndex)
 
     def handlePUSH(self):
-        stackPointer = self.getStackIndex() - 1
-        self.setStackIndex(stackPointer)
         operandIndex = self.ramRead(self.pc + 1)
         operand = self.register[operandIndex]
+        self.pushValueOnStack(operand)
+
+    def pushValueOnStack(self, operand):
+        stackPointer = self.getStackIndex() - 1
+        self.setStackIndex(stackPointer)
         self.ramWrite(operand, stackPointer)
 
     def handlePOP(self):
-        stackPointer = self.getStackIndex()
-        operand = self.ramRead(stackPointer)
+        operand = self.popValueFromStack()
         operandIndex = self.ramRead(self.pc + 1)
         self.register[operandIndex] = operand
+
+    def popValueFromStack(self):
+        stackPointer = self.getStackIndex()
         self.setStackIndex(stackPointer + 1)
+        return self.ramRead(stackPointer)
+
 
     def run(self):
         """Run the CPU."""
