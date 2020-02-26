@@ -11,6 +11,7 @@ PUSH = 0b01000101
 POP = 0b01000110
 CALL = 0b01010000
 RET = 0b00010001
+ADD = 0b10100000
 
 SP = 7
 
@@ -28,6 +29,7 @@ class CPU:
         self.branchtable[PRN] = self.PRN
         self.branchtable[HLT] = self.HLT
         self.branchtable[MUL] = self.MUL
+        self.branchtable[ADD] = self.ADD
         self.branchtable[PUSH] = self.PUSH
         self.branchtable[POP] = self.POP
         self.branchtable[CALL] = self.CALL
@@ -67,16 +69,16 @@ class CPU:
             sys.exit(2)
 
 
-    def alu(self, op, reg_a, reg_b):
-        """ALU operations."""
+    # def alu(self, op, reg_a, reg_b):
+    #     """ALU operations."""
 
-        if op == "ADD":
-            self.reg[reg_a] += self.reg[reg_b]
-        elif op == MUL:
-            self.reg[reg_a] *= self.reg[reg_b]
-            self.pc += 3
-        else:
-            raise Exception("Unsupported ALU operation")
+    #     if op == "ADD":
+    #         self.reg[reg_a] += self.reg[reg_b]
+    #     elif op == MUL:
+    #         self.reg[reg_a] *= self.reg[reg_b]
+    #         self.pc += 3
+    #     else:
+    #         raise Exception("Unsupported ALU operation")
 
     def trace(self):
         """
@@ -118,10 +120,15 @@ class CPU:
         self.reg[operand_a] *= self.reg[operand_b]
         self.pc += 3
 
-    def PUSH(self, reg=0):
+    def ADD(self):
+        operand_a = self.ram_read(self.pc + 1)
+        operand_b = self.ram_read(self.pc + 2)
+        self.reg[operand_a] += self.reg[operand_b]
+        self.pc += 3
+
+    def PUSH(self):
         # Grab the register argument
-        if reg == 0:
-            reg = self.ram_read(self.pc + 1)
+        reg = self.ram_read(self.pc + 1)
         val = self.reg[reg]
         # Decrement the SP
         self.reg[SP] -= 1
@@ -140,19 +147,20 @@ class CPU:
         self.pc += 2
 
     def CALL(self):
-        # The address of the instruction directly after CALL is pushed onto the stack. 
-        # This allows us to return to where we left off when the subroutine finishes executing.
-        address = self.ram_read(self.pc + 1)
-        self.branchtable[PUSH](address)
-        # The PC is set to the address stored in the given register. 
-        # We jump to that location in RAM and execute the first instruction in the subroutine. 
-        # The PC can move forward or backwards from its current location.
+        # push return addr on stack
+        return_address = self.pc + 2
+        self.reg[SP] -= 1 # decrement sp
+        self.ram_write(self.reg[SP], return_address)
 
-        pass
+        # set the pc to the value in the register
+        reg_num = self.ram_read(self.pc + 1)
+        self.pc = self.reg[reg_num]
 
     def RET(self):
-        # Pop the value from the top of the stack and store it in the PC.
-        pass
+        # Pop the value from the top of the stack
+        # store it in the PC.
+        self.pc = self.ram_read(self.reg[SP])
+        self.reg[SP] += 1
 
     def run(self):
         """Run the CPU."""
@@ -160,23 +168,3 @@ class CPU:
             ir = self.ram_read(self.pc)
             self.branchtable[ir]()
 
-        # IR = self.pc
-        # while True:
-        #     opcode = self.ram_read(IR)
-        #     operand_a = self.ram_read(IR + 1)
-        #     operand_b = self.ram_read(IR + 2)
-        #     if opcode == LDI:
-        #         # print('LDI')
-        #         self.reg[operand_a] = operand_b
-        #         IR += 3
-        #     elif opcode == PRN:
-        #         print(self.reg[operand_a])
-        #         IR += 2
-        #     elif opcode == MUL:
-        #         self.alu(opcode, operand_a, operand_b)
-        #         IR += 3
-        #     elif opcode == HLT:
-        #         sys.exit(0)
-        #     else:
-        #         print("OPCODE not recognized.")
-        #         sys.exit(1)
