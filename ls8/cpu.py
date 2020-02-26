@@ -6,7 +6,8 @@ LDI = 0b10000010
 PRN = 0b01000111
 HLT = 0b00000001
 MUL = 0b10100010
-
+PUSH = 0b01000101
+POP = 0b01000110
 class CPU:
     """Main CPU class."""
 
@@ -17,10 +18,13 @@ class CPU:
         self.branchtable[LDI] = self.handle_LDI
         self.branchtable[PRN] = self.handle_PRN
         self.branchtable[MUL] = self.handle_MUL
-        
+        self.branchtable[PUSH] = self.handle_PUSH
+        self.branchtable[POP] = self.handle_POP
+
         self.ram = [0] * 256
         self.reg = [0] * 8
-        self.pc = 0
+        self.pc = 0  # program counter
+        self.sp = 7  # stack pointer
         
     def ram_read(self, mar):
         print(self.reg[mar])
@@ -89,11 +93,29 @@ class CPU:
         self.alu("MUL", self.ram[self.pc + 1], self.ram[self.pc + 2])
         self.pc += 3
 
+    def handle_PUSH(self):
+        # Grab the register argument
+        val = self.reg[self.ram[self.pc + 1]]
+        # Copy the value in the given register to the address pointed to by SP.
+        self.reg[self.sp] -= 1
+        self.ram[self.reg[self.sp]] = val
+        self.pc += 2
+        
+
+    def handle_POP(self):
+        # Graph the value from the top of the stack
+        val = self.ram[self.reg[self.sp]]
+        # Copy the value from the address pointed to by SP to the given register.
+        self.reg[self.ram[self.pc + 1]] = val
+        self.reg[self.sp] += 1
+        self.pc += 2
+        return val
 
     def run(self):
         while True:
             IR = self.ram[self.pc]
             if IR == HLT:
+                print(self.ram)
                 exit(2)
             self.branchtable[IR]()
 
