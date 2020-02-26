@@ -25,6 +25,9 @@ class CPU:
         self.branchtable[MUL] = self.handleMUL
         self.branchtable[PUSH] = self.handlePUSH
         self.branchtable[POP] = self.handlePOP
+        self.branchtable[CALL] = self.handleCALL
+        self.branchtable[RET] = self.handleRET
+        self.branchtable[ADD] = self.handleADD
 
     def load(self, program):
         """Load a program into memory."""
@@ -52,7 +55,8 @@ class CPU:
 
         if op == MUL:
             self.register[operandA] *= self.register[operandB]
-        #elif op == "SUB": etc
+        elif op == ADD:
+            self.register[operandA] += self.register[operandB]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -62,7 +66,7 @@ class CPU:
         from run() if you need help debugging.
         """
 
-        print(f"TRACE: %02X | %02X %02X %02X |" % (
+        print(f"TRACE (pc): %02X | (values at pc, pc+1, pc+2) %02X %02X %02X | REGISTERS: " % (
             self.pc,
             #self.fl,
             #self.ie,
@@ -93,6 +97,11 @@ class CPU:
         operandAIndex = self.ram[self.pc + 1]
         operandBIndex = self.ram[self.pc + 2]
         self.alu(MUL, operandAIndex, operandBIndex)
+    
+    def handleADD(self):
+        operandAIndex = self.ram[self.pc + 1]
+        operandBIndex = self.ram[self.pc + 2]
+        self.alu(ADD, operandAIndex, operandBIndex)
 
     def handlePUSH(self):
         operandIndex = self.ramRead(self.pc + 1)
@@ -114,6 +123,16 @@ class CPU:
         self.setStackIndex(stackPointer + 1)
         return self.ramRead(stackPointer)
 
+    def handleCALL(self):
+        operandIndex = self.ramRead(self.pc + 1)
+        operand = self.register[operandIndex]
+        # save address of next *INSTRUCTION* in stack
+        self.pushValueOnStack(self.pc + 2)
+        self.pc = operand
+
+    def handleRET(self):
+        operand = self.popValueFromStack()
+        self.pc = operand
 
     def run(self):
         """Run the CPU."""
@@ -123,11 +142,15 @@ class CPU:
 
             instructionMethod = self.branchtable.get(instructionRegister, None)
 
+            # self.trace()
             if instructionMethod is not None:
                 instructionMethod()
             else:
                 print(f"Instruction not recognized: {instructionRegister}")
                 exit(1)
 
-            # offset pc by whatever the previous register said to offset by (MIGHT be problematic here, but for now is DRY)
-            self.pc += ((instructionRegister & 0xC0) >> 6) + 1
+            # check to see if the PC is explicitly set by the instruction. if not, increment the PC by the number of arguments + 1
+            if ((instructionRegister >> 4) & 0b1) != 1:
+                self.pc += ((instructionRegister & 0xC0) >> 6) + 1
+            # print(f"about to execute {self.pc}")
+
