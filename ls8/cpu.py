@@ -2,11 +2,15 @@
 
 import sys
 
-
+# opcodes
 LDI = 0b10000010
 PRN = 0b01000111
 HLT = 0b00000001
 MUL = 0b10100010
+POP = 0b01000110
+PUSH = 0b01000101
+
+SP = 7
 
 
 class CPU:
@@ -95,6 +99,24 @@ class CPU:
             elif opcode == MUL:
                 self.alu(opcode, operand_a, operand_b)
                 self.pc += 3
+            elif opcode == PUSH:
+                # Grab the register argument
+                reg = self.ram[self.pc + 1]
+                val = self.reg[reg]
+                # Decrement the SP
+                self.reg[SP] -= 1
+                # Copy the value in the given register to the address pointed to by the SP.
+                self.ram[self.reg[SP]] = val
+                self.pc += 2
+            elif opcode == POP:
+                # Grab the value from the top of the stack
+                reg = self.ram[self.pc + 1]
+                val = self.ram[self.reg[SP]]
+                # Copy the value from the address pointed to by SP to the given register.
+                self.reg[reg] = val
+                # Increment SP.
+                self.reg[SP] += 1
+                self.pc += 2
             elif opcode == HLT:
                 sys.exit(0)
             else:
