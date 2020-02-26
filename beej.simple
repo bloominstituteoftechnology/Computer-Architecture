@@ -1,0 +1,17 @@
+1    # PRINT_BEEJ
+4    # SAVE 65 in register 2
+
+65
+2
+4    # SAVE 20 in register 3
+
+20
+3
+6    # ADD register 3 onto register 2
+
+2
+3
+5    # PRINT_REGISTER register 2
+
+2
+2    # HALT
