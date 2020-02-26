@@ -2,41 +2,93 @@
 
 import sys
 
+LDI = 0b10000010 # Set a specific register to a specific value
+PRN = 0b01000111 # Print a number
+HLT = 0b00000001 # Halt the program
+MUL = 0b10100010 # Multiply two registers together and store result in register A
+POP = 0b01000110 # Pop instruction off the stack
+PUSH = 0b01000101 # Push instruction onto the stack
+CALL = 0b01010000 # Jump to a subroutine's address
+RET = 0b00010001 # Go to return address after subroutine is done
+
 class CPU:
     """Main CPU class."""
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.register = [0] * 8
+        self.ram = [0] * 255
+        self.pc = 0
+        self.branchtable = {}
+        
+        self.branchtable[LDI] = self.handle_LDI
+        self.branchtable[PRN] = self.handle_PRN
+        self.branchtable[HLT] = self.handle_HLT
+        self.branchtable[MUL] = self.handle_MUL
+        self.branchtable[POP] = self.handle_POP
+        self.branchtable[PUSH] = self.handle_PUSH
+
+        self.register[7] = 0xF4 # initialized to point at key press
+
+    def handle_POP(self):
+        SP = self.register[7]
+        value = self.ram[SP]
+        reg = self.ram_read(self.pc + 1)
+        self.register[reg] = value
+        self.register[7] += 1
+        self.pc += 2
+
+    def handle_PUSH(self):
+        self.register[7] -= 1
+        SP = self.register[7]
+        reg = self.ram_read(self.pc + 1)
+        self.ram_write(self.register[reg], SP)
+        self.pc += 2
+
+
+
+    def handle_LDI(self):
+        reg = self.ram_read(self.pc + 1)
+        num = self.ram_read(self.pc + 2)
+        self.register[reg] = num
+        self.pc += 3
+
+    def handle_PRN(self):
+        reg = self.ram_read(self.pc + 1)
+        num = self.register[reg]
+        print(num)
+        self.pc += 2
+
+    def handle_HLT(self):
+        sys.exit(1)
+
+    def handle_MUL(self):
+        operand_a = self.ram_read(self.pc + 1)
+        operand_b = self.ram_read(self.pc + 2)
+        self.alu("MUL", operand_a, operand_b)
+        self.pc += 3
 
     def load(self):
         """Load a program into memory."""
+        path = sys.argv[1]
 
         address = 0
 
-        # For now, we've just hardcoded a program:
-
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
-
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
-
+        with open(path) as file:
+            for line in file:
+                if line[0] != "#" and line !='\n':
+                    self.ram[address] = int(line[:8], 2)
+                    address += 1
+        # print(self.ram)
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
 
         if op == "ADD":
-            self.reg[reg_a] += self.reg[reg_b]
-        #elif op == "SUB": etc
+            self.register[reg_a] += self.register[reg_b]
+        elif op == "MUL":
+            self.register[reg_a] *= self.register[reg_b]
+            #elif op == "SUB": etc
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -62,4 +114,13 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        
+        while True:
+            IR = self.ram[self.pc]
+            self.branchtable[IR]()
+
+    def ram_read(self, MAR):
+        return self.ram[MAR]
+
+    def ram_write(self, MDR, MAR):
+        self.ram[MAR] = MDR
