@@ -8,6 +8,9 @@ HLT = 0b00000001
 MUL = 0b10100010
 PUSH = 0b01000101
 POP = 0b01000110
+CALL = 0b01010000
+RET = 0b00010001
+ADD = 0b10100000
 class CPU:
     """Main CPU class."""
 
@@ -18,8 +21,11 @@ class CPU:
         self.branchtable[LDI] = self.handle_LDI
         self.branchtable[PRN] = self.handle_PRN
         self.branchtable[MUL] = self.handle_MUL
+        self.branchtable[ADD] = self.handle_ADD
         self.branchtable[PUSH] = self.handle_PUSH
         self.branchtable[POP] = self.handle_POP
+        self.branchtable[CALL] = self.handle_CALL
+        self.branchtable[RET] = self.handle_RET
 
         self.ram = [0] * 256
         self.reg = [0] * 8
@@ -89,6 +95,11 @@ class CPU:
         self.ram_read(self.ram[self.pc + 1])
         self.pc += 2
 
+
+    def handle_ADD(self):
+        self.alu("ADD", self.ram[self.pc + 1], self.ram[self.pc + 2])
+        self.pc += 3
+
     def handle_MUL(self):
         self.alu("MUL", self.ram[self.pc + 1], self.ram[self.pc + 2])
         self.pc += 3
@@ -110,6 +121,24 @@ class CPU:
         self.reg[self.sp] += 1
         self.pc += 2
         return val
+
+    def handle_CALL(self):
+        # The address of the instruction directly after CALL is pushed onto the stack. This allows us to return to where we left off when the subroutine finishes executing.
+        val = self.pc + 2
+        self.reg[self.sp] -= 1
+        self.ram[self.reg[self.sp]] = val
+
+        # The PC is set to the address stored in the given register. We jump to that location in RAM and execute the first instruction in the subroutine. The PC can move forward or backwards from its current location.
+        self.pc = self.reg[self.ram[self.pc+1]]
+        
+        
+
+    def handle_RET(self):
+        # Return from subroutine.
+        # Pop the value from the top of the stack and store it in the PC.
+        self.pc = self.ram[self.reg[self.sp]]
+        self.reg[self.sp] += 1
+        
 
     def run(self):
         while True:
