@@ -117,4 +117,5 @@ class CPU:
             else:
                 print(f"I did not understand that command: {instruction}")
                 sys.exit(1)
-            self.pc += (instruction >> 6) + 1
+            instruction_length = (instruction >> 6) + 1
+            self.pc += instruction_length
