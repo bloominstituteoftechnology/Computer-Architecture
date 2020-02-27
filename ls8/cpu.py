@@ -63,8 +63,10 @@ class CPU:
 
         if op == MUL:
             self.register[operandA] *= self.register[operandB]
+            self.register[operandA] = self.register[operandA] & 0xFF
         elif op == ADD:
             self.register[operandA] += self.register[operandB]
+            self.register[operandA] = self.register[operandA] & 0xFF
         else:
             raise Exception("Unsupported ALU operation")
 
