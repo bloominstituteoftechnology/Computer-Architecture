@@ -151,7 +151,6 @@ class CPU:
         return_address = self.pc + 2
         self.reg[SP] -= 1 # decrement sp
         self.ram_write(self.reg[SP], return_address)
-
         # set the pc to the value in the register
         reg_num = self.ram_read(self.pc + 1)
         self.pc = self.reg[reg_num]

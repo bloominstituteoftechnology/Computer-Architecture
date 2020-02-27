@@ -25,7 +25,7 @@
 0b00101010
 128 + 64 + 32 + 16 + 8 + 4 + 2 + 1
 '''
-
+# Binary to decimal conversion
 str = "10101010"
 def to_decimal(num_string):
     digit_list = list(num_string)
