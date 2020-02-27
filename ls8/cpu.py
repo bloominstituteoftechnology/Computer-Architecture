@@ -87,19 +87,16 @@ class CPU:
     def run(self):
         """Run the CPU."""
         while True:
-            opcode = self.ram[self.pc]
+            instruction = self.ram[self.pc]
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
-            if opcode == LDI:
+            if instruction == LDI:
                 self.reg[operand_a] = operand_b
-                self.pc += 3
-            elif opcode == PRN:
+            elif instruction == PRN:
                 print(self.reg[operand_a])
-                self.pc += 2
-            elif opcode == MUL:
-                self.alu(opcode, operand_a, operand_b)
-                self.pc += 3
-            elif opcode == PUSH:
+            elif instruction == MUL:
+                self.alu(instruction, operand_a, operand_b)
+            elif instruction == PUSH:
                 # Grab the register argument
                 reg = self.ram[self.pc + 1]
                 val = self.reg[reg]
@@ -107,8 +104,7 @@ class CPU:
                 self.reg[SP] -= 1
                 # Copy the value in the given register to the address pointed to by the SP.
                 self.ram[self.reg[SP]] = val
-                self.pc += 2
-            elif opcode == POP:
+            elif instruction == POP:
                 # Grab the value from the top of the stack
                 reg = self.ram[self.pc + 1]
                 val = self.ram[self.reg[SP]]
@@ -116,9 +112,9 @@ class CPU:
                 self.reg[reg] = val
                 # Increment SP.
                 self.reg[SP] += 1
-                self.pc += 2
-            elif opcode == HLT:
+            elif instruction == HLT:
                 sys.exit(0)
             else:
-                print(f"I did not understand that command: {opcode}")
+                print(f"I did not understand that command: {instruction}")
                 sys.exit(1)
+            self.pc += (instruction >> 6) + 1
