@@ -28,6 +28,10 @@ class CPU:
         self.branchtable[CALL] = self.handleCALL
         self.branchtable[RET] = self.handleRET
         self.branchtable[ADD] = self.handleADD
+        self.branchtable[ST] = self.handleST
+        self.branchtable[JMP] = self.handleJMP
+        self.branchtable[PRA] = self.handlePRA
+        self.branchtable[IRET] = self.handleIRET
 
     def load(self, program):
         """Load a program into memory."""
@@ -48,6 +52,10 @@ class CPU:
         return self.ram[mar]
 
     def ramWrite(self, mdr, mar):
+        """
+        mar is the address
+        mdr is the data to store at that address
+        """
         self.ram[mar] = mdr
 
     def alu(self, op, operandA, operandB):
@@ -97,7 +105,7 @@ class CPU:
         operandAIndex = self.ram[self.pc + 1]
         operandBIndex = self.ram[self.pc + 2]
         self.alu(MUL, operandAIndex, operandBIndex)
-    
+
     def handleADD(self):
         operandAIndex = self.ram[self.pc + 1]
         operandBIndex = self.ram[self.pc + 2]
@@ -133,6 +141,32 @@ class CPU:
     def handleRET(self):
         operand = self.popValueFromStack()
         self.pc = operand
+    
+    def handleST(self):
+        operandA = self.ramRead(self.pc + 1)
+        operandB = self.ramRead(self.pc + 2)
+        self.ramWrite(self.register[operandB], self.register[operandA])
+
+    def handleJMP(self):
+        operand = self.ramRead(self.pc + 1)
+        self.pc = self.register[operand]
+
+    def handlePRA(self):
+        operand = self.ramRead(self.pc + 1)
+        value = self.register[operand]
+        print(chr(value))
+
+    def handleIRET(self):
+        self.register[6] = self.popValueFromStack()
+        self.register[5] = self.popValueFromStack()
+        self.register[4] = self.popValueFromStack()
+        self.register[3] = self.popValueFromStack()
+        self.register[2] = self.popValueFromStack()
+        self.register[1] = self.popValueFromStack()
+        self.register[0] = self.popValueFromStack()
+        self.fl = self.popValueFromStack()
+        self.pc = self.popValueFromStack()
+        # FIXME: reenable interrupts
 
     def run(self):
         """Run the CPU."""
@@ -153,4 +187,3 @@ class CPU:
             if ((instructionRegister >> 4) & 0b1) != 1:
                 self.pc += ((instructionRegister & 0xC0) >> 6) + 1
             # print(f"about to execute {self.pc}")
-
