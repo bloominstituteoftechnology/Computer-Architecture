@@ -94,7 +94,7 @@ class CPU:
         self.pc += 3
 
     def handle_PUSH(self):
-        # Grab the register argument
+        # Grab the register argument.
         val = self.reg[self.ram[self.pc + 1]]
         # Copy the value in the given register to the address pointed to by SP.
         self.reg[self.sp] -= 1
