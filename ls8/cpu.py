@@ -106,7 +106,6 @@ class CPU:
                 self.pc+=3
                 # print(self.reg)
             elif Command == HLT:
-                print("HLT")
                 Running=False
                 self.pc+=1
             elif Command == PRN:
