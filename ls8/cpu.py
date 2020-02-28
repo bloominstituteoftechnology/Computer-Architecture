@@ -3,10 +3,12 @@
 from ls8Instructions import *
 import sys
 import time
+from KBHit import KBHit
 
 IM = 5
 IS = 6
 SP = 7
+KEY_PRESSED = 0xF4
 class CPU:
     """Main CPU class."""
 
@@ -21,6 +23,9 @@ class CPU:
         self.setupBranchtable()
         self.lastFire = time.time()
         self.interruptsEnabled = True
+
+        self.keyboardMonitor = KBHit()
+
 
     def setupBranchtable(self):
         self.branchtable = {}
@@ -38,6 +43,7 @@ class CPU:
         self.branchtable[JMP] = self.handleJMP
         self.branchtable[PRA] = self.handlePRA
         self.branchtable[IRET] = self.handleIRET
+        self.branchtable[LD] = self.handleLD
 
     def load(self, program):
         """Load a program into memory."""
@@ -176,17 +182,31 @@ class CPU:
         self.pc = self.popValueFromStack()
         self.interruptsEnabled = True
 
+    def handleLD(self):
+        operandA = self.ramRead(self.pc + 1)
+        operandB = self.ramRead(self.pc + 2)
+        self.register[operandA] = self.ramRead(self.register[operandB])
+
     def __interuptTimer(self):
         currentTime = time.time()
         if currentTime > self.lastFire + 1:
             self.lastFire = currentTime
-            self.register[6] = self.register[6] | 0b1
+            self.register[IS] |= 0b1
+
+    def __checkKeyboardInterrupts(self):
+        if self.keyboardMonitor.kbhit():
+            keyPress = self.keyboardMonitor.getch()
+            value = ord(keyPress)
+            self.ramWrite(value, KEY_PRESSED)
+            self.register[IS] |= 0b10
 
     def run(self):
         """Run the CPU."""
 
         while True:
+            # poll interrupts
             self.__interuptTimer()
+            self.__checkKeyboardInterrupts()
 
             # check for interrupts
             if self.interruptsEnabled:
