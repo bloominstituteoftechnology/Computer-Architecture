@@ -6,9 +6,12 @@ import sys
 LDI = 0b10000010
 PRN = 0b01000111
 HLT = 0b00000001
+ADD = 0b10100000
 MUL = 0b10100010
 POP = 0b01000110
 PUSH = 0b01000101
+CALL = 0b01010000
+RET = 0b00010001
 
 SP = 7
 
@@ -21,6 +24,45 @@ class CPU:
         self.pc = 0
         self.reg = [0] * 8
         self.ram = [0] * 256
+        self.bt = {
+            LDI: self.op_ldi,
+            PRN: self.op_prn,
+            HLT: self.op_hlt,
+            ADD: self.op_add,
+            MUL: self.op_mul,
+            POP: self.op_pop,
+            PUSH: self.op_push,
+            CALL: self.op_call,
+            RET: self.op_ret
+        }
+
+    def op_ldi(self, operand_a, operand_b):
+        self.reg[operand_a] = operand_b
+
+    def op_prn(self, operand_a, operand_b):
+        print(self.reg[operand_a])
+
+    def op_hlt(self, operand_a, operand_b):
+        sys.exit(0)
+
+    def op_add(self, operand_a, operand_b):
+        self.alu("ADD", operand_a, operand_b)
+
+    def op_mul(self, operand_a, operand_b):
+        self.alu("MUL", operand_a, operand_b)
+
+    def op_pop(self, operand_a, operand_b):
+        self.reg[operand_a] = self.pop_val()
+
+    def op_push(self, operand_a, operand_b):
+        self.push_val(self.reg[operand_a])
+
+    def op_call(self, operand_a, operand_b):
+        self.push_val(self.pc + 2)
+        self.pc = self.reg[operand_a]
+
+    def op_ret(self, operand_a, operand_b):
+        self.pc = self.pop_val()
 
     def load(self, filename):
         """Load a program into memory."""
@@ -53,12 +95,21 @@ class CPU:
     def ram_write(self, mdr, mar):
         self.ram[mar] = mdr
 
+    def push_val(self, val):
+        self.reg[SP] -= 1
+        self.ram_write(val, self.reg[SP])
+
+    def pop_val(self):
+        val = self.ram_read(self.reg[SP])
+        self.reg[SP] += 1
+        return val
+
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
-        elif op == MUL:
+        elif op == "MUL":
             self.reg[reg_a] *= self.reg[reg_b]
         # elif op == "SUB": etc
         else:
@@ -90,32 +141,11 @@ class CPU:
             instruction = self.ram[self.pc]
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
-            if instruction == LDI:
-                self.reg[operand_a] = operand_b
-            elif instruction == PRN:
-                print(self.reg[operand_a])
-            elif instruction == MUL:
-                self.alu(instruction, operand_a, operand_b)
-            elif instruction == PUSH:
-                # Grab the register argument
-                reg = self.ram[self.pc + 1]
-                val = self.reg[reg]
-                # Decrement the SP
-                self.reg[SP] -= 1
-                # Copy the value in the given register to the address pointed to by the SP.
-                self.ram[self.reg[SP]] = val
-            elif instruction == POP:
-                # Grab the value from the top of the stack
-                reg = self.ram[self.pc + 1]
-                val = self.ram[self.reg[SP]]
-                # Copy the value from the address pointed to by SP to the given register.
-                self.reg[reg] = val
-                # Increment SP.
-                self.reg[SP] += 1
-            elif instruction == HLT:
-                sys.exit(0)
-            else:
-                print(f"I did not understand that command: {instruction}")
-                sys.exit(1)
             instruction_length = (instruction >> 6) + 1
-            self.pc += instruction_length
+            instruction_set_pc = (instruction >> 4) == 1
+            if instruction in self.bt:
+                self.bt[instruction](operand_a, operand_b)
+            # Check if opcode sets the pc
+            # If not, increment pc by instruction_length
+            if instruction_set_pc != 1:
+                self.pc += instruction_length
