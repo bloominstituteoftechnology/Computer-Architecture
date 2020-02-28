@@ -2,7 +2,11 @@
 
 from ls8Instructions import *
 import sys
+import time
 
+IM = 5
+IS = 6
+SP = 7
 class CPU:
     """Main CPU class."""
 
@@ -15,6 +19,8 @@ class CPU:
         self.pc = 0
         self.fl = 0
         self.setupBranchtable()
+        self.lastFire = time.time()
+        self.interruptsEnabled = True
 
     def setupBranchtable(self):
         self.branchtable = {}
@@ -168,16 +174,44 @@ class CPU:
         self.register[0] = self.popValueFromStack()
         self.fl = self.popValueFromStack()
         self.pc = self.popValueFromStack()
-        # FIXME: reenable interrupts
+        self.interruptsEnabled = True
+
+    def __interuptTimer(self):
+        currentTime = time.time()
+        if currentTime > self.lastFire + 1:
+            self.lastFire = currentTime
+            self.register[6] = self.register[6] | 0b1
 
     def run(self):
         """Run the CPU."""
 
         while True:
+            self.__interuptTimer()
+
+            # check for interrupts
+            if self.interruptsEnabled:
+                maskedInterrupts = self.register[IM] & self.register[IS]
+                for i in range(8):
+                    interrupt = ((maskedInterrupts >> i) & 1) == 1
+                    if interrupt:
+                        self.interruptsEnabled = False
+                        # clear only the bit of the current interrupt
+                        self.register[IS] &= 0xFF ^ (1 << i)
+                        self.pushValueOnStack(self.pc)
+                        self.pushValueOnStack(self.fl)
+                        self.pushValueOnStack(self.register[0])
+                        self.pushValueOnStack(self.register[1])
+                        self.pushValueOnStack(self.register[2])
+                        self.pushValueOnStack(self.register[3])
+                        self.pushValueOnStack(self.register[4])
+                        self.pushValueOnStack(self.register[5])
+                        self.pushValueOnStack(self.register[6])
+                        newAddress = self.ramRead(0xF8 + i)
+                        self.pc = newAddress
+                        break
+
             instructionRegister = self.ram[self.pc]
-
             instructionMethod = self.branchtable.get(instructionRegister, None)
-
             # self.trace()
             if instructionMethod is not None:
                 instructionMethod()
