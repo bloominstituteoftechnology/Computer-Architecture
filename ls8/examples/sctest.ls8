@@ -1,3 +1,10 @@
+# Code to test the Sprint Challenge
+#
+# Expected output:
+# 1
+# 4
+# 5
+
 10000010 # LDI R0,10
 00000000
 00001010

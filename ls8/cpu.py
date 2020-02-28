@@ -2,7 +2,7 @@
 
 import sys
 
-
+# Operation codes
 LDI = 0b10000010
 PRN = 0b01000111
 HLT = 0b00000001
@@ -12,7 +12,24 @@ POP = 0b01000110
 CALL = 0b01010000
 RET = 0b00010001
 ADD = 0b10100000
+CMP = 0b10100111
+JMP = 0b01010100
+JEQ = 0b01010101
+JNE = 0b01010110
+AND = 0b10101000
+OR = 0b10101010
+XOR = 0b10101011
+NOT = 0b01101001
+SHR = 0b10101101
+SHL = 0b10101100
+MOD = 0b10100100
 
+# Flags
+E = 0
+L = 0
+G = 0
+
+# Pointer
 SP = 7
 
 class CPU:
@@ -28,12 +45,23 @@ class CPU:
         self.branchtable[LDI] = self.LDI
         self.branchtable[PRN] = self.PRN
         self.branchtable[HLT] = self.HLT
-        self.branchtable[MUL] = self.MUL
-        self.branchtable[ADD] = self.ADD
+        self.branchtable[MUL] = self.alu
+        self.branchtable[ADD] = self.alu
         self.branchtable[PUSH] = self.PUSH
         self.branchtable[POP] = self.POP
         self.branchtable[CALL] = self.CALL
         self.branchtable[RET] = self.RET
+        self.branchtable[CMP] = self.CMP
+        self.branchtable[JMP] = self.JMP
+        self.branchtable[JEQ] = self.JEQ
+        self.branchtable[JNE] = self.JNE
+        self.branchtable[AND] = self.alu
+        self.branchtable[OR] = self.alu
+        self.branchtable[XOR] = self.alu
+        self.branchtable[NOT] = self.alu
+        self.branchtable[SHL] = self.alu
+        self.branchtable[SHR] = self.alu
+        self.branchtable[MOD] = self.alu
         self.lines = 0
 
     def ram_read(self, mar):
@@ -67,18 +95,6 @@ class CPU:
         except FileNotFoundError:
             print("File not found")
             sys.exit(2)
-
-
-    # def alu(self, op, reg_a, reg_b):
-    #     """ALU operations."""
-
-    #     if op == "ADD":
-    #         self.reg[reg_a] += self.reg[reg_b]
-    #     elif op == MUL:
-    #         self.reg[reg_a] *= self.reg[reg_b]
-    #         self.pc += 3
-    #     else:
-    #         raise Exception("Unsupported ALU operation")
 
     def trace(self):
         """
@@ -114,17 +130,41 @@ class CPU:
     def HLT(self):
         sys.exit(0)
 
-    def MUL(self):
-        operand_a = self.ram_read(self.pc + 1)
-        operand_b = self.ram_read(self.pc + 2)
-        self.reg[operand_a] *= self.reg[operand_b]
-        self.pc += 3
+    def alu(self, op):
+        op_a = self.ram_read(self.pc + 1)
+        op_b = self.ram_read(self.pc + 2)
 
-    def ADD(self):
-        operand_a = self.ram_read(self.pc + 1)
-        operand_b = self.ram_read(self.pc + 2)
-        self.reg[operand_a] += self.reg[operand_b]
-        self.pc += 3
+        if op == ADD:
+            self.reg[op_a] += self.reg[op_b]
+            self.pc += 3
+        elif op == MUL:
+            self.reg[op_a] *= self.reg[op_b]
+            self.pc += 3
+        elif op == AND:
+            self.reg[op_a] &= self.reg[op_b]
+            self.pc += 3
+        elif op == OR:
+            self.reg[op_a] |= self.reg[op_b]
+            self.pc += 3
+        elif op == XOR:
+            self.reg[op_a] ^= self.reg[op_b]
+            self.pc += 3
+        elif op == NOT:
+            self.reg[op_a] = ~(self.reg[op_a])
+            self.pc += 2
+        elif op == SHL:
+            self.reg[op_a] << self.reg[op_b]
+            self.pc += 3
+        elif op == SHR:
+            self.reg[op_a] >> self.reg[op_b]
+            self.pc += 3
+        elif op == MOD:
+            if (self.reg[op_b] == 0):
+                print("Error! Can't divide by 0.")
+                sys.exit(0)
+            self.reg[op_a] %= self.reg[op_b]
+        else:
+            raise Exception("Unsupported ALU operation.")
 
     def PUSH(self):
         # Grab the register argument
@@ -161,9 +201,55 @@ class CPU:
         self.pc = self.ram_read(self.reg[SP])
         self.reg[SP] += 1
 
+    def CMP(self):
+        E = 0
+        L = 0
+        G = 0
+        op_a = self.ram_read(self.pc + 1)
+        op_b = self.ram_read(self.pc + 2)
+        reg_a = self.reg[op_a]
+        reg_b = self.reg[op_b]
+        if (reg_a == reg_b):
+            E = 1
+        if (reg_a < reg_b):
+            L = 1
+        if (reg_a > reg_b):
+            G = 1
+        print("E, L, and G", (E, L, G))
+        self.pc += 3    
+
+    def JMP(self):
+        # Jump to the address stored in the given register.
+        # Set the PC to the address stored in the given register.
+        # print("JMP")
+        op = self.ram_read(self.pc + 1)
+        self.pc = self.reg[op]
+
+    def JEQ(self):
+        # If equal flag is set (true), jump to the address stored in the given register.
+        # print("JEQ")
+        if E == 1:
+            op = self.ram_read(self.pc + 1)
+            self.pc = self.reg[op]
+        else:
+            self.pc += 2
+
+    def JNE(self):
+        # print("JNE")
+        if E == 0:
+            op = self.ram_read(self.pc + 1)
+            self.pc = self.reg[op]
+        else:
+            self.pc += 2
+
     def run(self):
         """Run the CPU."""
+        alu = [0b10100010, 0b10100000, 0b10101000, 0b10101010, 0b10101011, 0b01101001, 0b10101101, 0b10101100, 0b10100100]
+        print(len(alu))
         for _ in range(self.lines):
             ir = self.ram_read(self.pc)
-            self.branchtable[ir]()
+            if (ir in alu):
+                self.branchtable[ir](ir)
+            else:
+                self.branchtable[ir]()
 
