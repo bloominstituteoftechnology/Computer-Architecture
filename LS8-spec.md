@@ -503,7 +503,7 @@ Machine code:
 
 `NOT register`
 
-Perform a bitwise-NOT on the value in a register.
+Perform a bitwise-NOT on the value in a register, storing the result in the register.
 
 Machine code:
 ```
