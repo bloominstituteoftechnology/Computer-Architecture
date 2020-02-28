@@ -155,18 +155,20 @@ class CPU:
             self.reg[op_a] = ~(self.reg[op_a])
             self.pc += 2
         elif op == SHL:
-            self.reg[op_a] << self.reg[op_b]
+            self.reg[op_a] <<= self.reg[op_b]
             self.pc += 3
         elif op == SHR:
-            self.reg[op_a] >> self.reg[op_b]
+            self.reg[op_a] >>= self.reg[op_b]
             self.pc += 3
         elif op == MOD:
             if (self.reg[op_b] == 0):
                 print("Error! Can't divide by 0.")
                 sys.exit(0)
             self.reg[op_a] %= self.reg[op_b]
+            self.pc += 3
         else:
             raise Exception("Unsupported ALU operation.")
+        self.reg[op_a] = self.reg[op_a] & 255
 
     def PUSH(self):
         # Grab the register argument
