@@ -23,6 +23,7 @@ NOT = 0b01101001
 SHR = 0b10101101
 SHL = 0b10101100
 MOD = 0b10100100
+ADDI = 0b11111111
 
 # Flags
 E = 0
@@ -62,6 +63,7 @@ class CPU:
         self.branchtable[SHL] = self.alu
         self.branchtable[SHR] = self.alu
         self.branchtable[MOD] = self.alu
+        self.branchtable[ADDI] = self.ADDI
         self.lines = 0
 
     def ram_read(self, mar):
@@ -241,6 +243,12 @@ class CPU:
             self.pc = self.reg[op]
         else:
             self.pc += 2
+
+    def ADDI(self):
+        op_a = self.ram_read(self.pc + 1)
+        op_b = self.ram_read(self.pc + 2)
+        self.reg[op_a] += op_b
+        self.pc += 3
 
     def run(self):
         """Run the CPU."""
