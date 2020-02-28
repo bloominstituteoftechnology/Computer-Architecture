@@ -223,13 +223,11 @@ class CPU:
     def JMP(self):
         # Jump to the address stored in the given register.
         # Set the PC to the address stored in the given register.
-        # print("JMP")
         op = self.ram_read(self.pc + 1)
         self.pc = self.reg[op]
 
     def JEQ(self):
         # If equal flag is set (true), jump to the address stored in the given register.
-        # print("JEQ")
         if E == 1:
             op = self.ram_read(self.pc + 1)
             self.pc = self.reg[op]
@@ -237,7 +235,6 @@ class CPU:
             self.pc += 2
 
     def JNE(self):
-        # print("JNE")
         if E == 0:
             op = self.ram_read(self.pc + 1)
             self.pc = self.reg[op]
@@ -253,7 +250,6 @@ class CPU:
     def run(self):
         """Run the CPU."""
         alu = [0b10100010, 0b10100000, 0b10101000, 0b10101010, 0b10101011, 0b01101001, 0b10101101, 0b10101100, 0b10100100]
-        print(len(alu))
         for _ in range(self.lines):
             ir = self.ram_read(self.pc)
             if (ir in alu):
