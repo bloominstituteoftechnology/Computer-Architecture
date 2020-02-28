@@ -155,7 +155,7 @@ class CPU:
     def handleRET(self):
         operand = self.popValueFromStack()
         self.pc = operand
-    
+
     def handleST(self):
         operandA = self.ramRead(self.pc + 1)
         operandB = self.ramRead(self.pc + 2)
