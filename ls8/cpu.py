@@ -69,7 +69,7 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        # Read instruction stored in PC and store it in IR
+        # Read instruction from memory address in PC and store it in IR
         ir = self.ram_read(self.pc)
         # Read the next two byte values and store them in operand_a and operand_b
         operand_a = self.ram_read(self.pc + 1)
@@ -87,6 +87,8 @@ class CPU:
         elif ir == 0b01000111:
             print(self.ram_read(operand_a))
             increment += 1
+        else:
+            raise Exception("Unsupported CPU instruction")
         # Update the PC to point to the next instruction
         self.pc += increment
         # Loop
