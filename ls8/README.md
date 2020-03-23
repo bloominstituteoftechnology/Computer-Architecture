@@ -60,8 +60,12 @@ but you'll have to implement those three above instructions first!
 ## Step 0: IMPORTANT: inventory what is here!
 
 * Make a list of files here.
+  - `cpu.py` : defines the CPU with architecture, instructions.
+  - `ls8.py` : loads and runs the CPU
 * Write a short 3-10-word description of what each file does.
 * Note what has been implemented, and what hasn't.
+  - The CPU can run a hardcoded program, add, and print things.
+  - The CPU has no registers, memory, or instructions beyond "add".
 * Read this whole file.
 * Skim the spec.
 
