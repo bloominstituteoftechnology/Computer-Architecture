@@ -69,4 +69,25 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        # Read instruction stored in PC and store it in IR
+        ir = self.ram_read(self.pc)
+        # Read the next two byte values and store them in operand_a and operand_b
+        operand_a = self.ram_read(self.pc + 1)
+        operand_b = self.ram_read(self.pc + 2)
+        # Set the default increment value to 1
+        increment = 1
+        # HLT
+        if ir == 0b00000001:
+            sys.exit()
+        # LDI
+        elif ir == 0b10000010:
+            self.ram_write(operand_a, operand_b)
+            increment += 2
+        # PRN
+        elif ir == 0b01000111:
+            print(self.ram_read(operand_a))
+            increment += 1
+        # Update the PC to point to the next instruction
+        self.pc += increment
+        # Loop
+        self.run()
