@@ -7,7 +7,9 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.ram = [0] * 256
+        self.reg = [0] * 8
+        self.pc = 0
 
     def load(self):
         """Load a program into memory."""
@@ -40,6 +42,23 @@ class CPU:
         else:
             raise Exception("Unsupported ALU operation")
 
+    # these below seem to have to do with the register values?
+    #self.ir = None
+    #self.mar = None
+    #self.mdr = None
+    #self.fl = None
+    # I beleive all of the are PC, MAR, MDR, SP, IR, FL and should be 2 more?
+
+    # FUTURE IMPLEMENTATION:
+    # MAR contains the address that is being read or written to.
+    # MDR contains the data that was read or the data to write.
+    # Two of the registers hold those above values in a CPU also need SP stack pointer
+    def ram_read(self, address):
+        print(self.ram[address])
+
+    def ram_write(self, value, address):
+        self.ram[address] = value
+
     def trace(self):
         """
         Handy function to print out the CPU state. You might want to call this
@@ -62,4 +81,22 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        ir = None # Insturction Reister (instruction)
+        
+        while True:
+            #print(self.ram[self.pc])
+            #self.pc += 1
+
+            ir = self.ram[self.pc]
+            if ir == 130:#LDI(a constant value):
+                address = self.ram[self.pc +1]
+                value = self.ram[self.pc +2]
+                self.reg[address] = value
+                self.pc += 3
+            elif ir == 71:#register number:
+                reg_value = self.reg[self.pc +1]
+                print(reg_value)
+                self.pc += 2
+            elif ir == 1:
+                break
+            
