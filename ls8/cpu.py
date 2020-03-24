@@ -68,11 +68,13 @@ class CPU:
     def ram_write(self, val, addr):
         self.ram[addr] = val
 
-    def run(self):
+    def run(self, debug=False):
         """Run the CPU."""
         running = True
 
         while running == True:
+            if debug:
+                self.trace()
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
             self.ir = self.pc
@@ -87,9 +89,9 @@ class CPU:
                 pass   #DEC
             elif instruction == 0b10100011: 
                 pass   #DIV
-            elif instruction == 0b00000001: 
+            elif instruction == 0b00000001:         #HLT
                 print("quit")
-                running = False                         #HLT
+                running = False                                 
             elif instruction == 0b01100101: 
                 pass   #INC
             elif instruction == 0b01010010: 
@@ -112,13 +114,14 @@ class CPU:
                 pass   #JNE
             elif instruction == 0b10000011: 
                 pass   #LD
-            elif instruction == 0b10000010: 
-                self.reg[operand_a] = operand_b         #LDI
+            elif instruction == 0b10000010:         #LDI
+                self.reg[operand_a] = operand_b                 
                 self.pc += 3
             elif instruction == 0b10100100: 
                 pass   #MOD
-            elif instruction == 0b10100010: 
-                pass   #MUL
+            elif instruction == 0b10100010:         #MUL
+                self.reg[operand_a] = self.reg[operand_a] * self.reg[operand_b]     
+                self.pc += 3
             elif instruction == 0b00000000: 
                 pass   #NOP
             elif instruction == 0b01101001: 
@@ -129,8 +132,8 @@ class CPU:
                 pass   #POP
             elif instruction == 0b01001000: 
                 pass   #PRA
-            elif instruction == 0b01000111: 
-                print(self.reg[operand_a])              #PRN
+            elif instruction == 0b01000111:         #PRN
+                print(self.reg[operand_a])                      
                 self.pc += 2
             elif instruction == 0b01000101: 
                 pass   #PUSH
@@ -146,6 +149,8 @@ class CPU:
                 pass   #SUB
             elif instruction == 0b10101011: 
                 pass   #XOR
+            else:
+                print("hm ", instruction)
         exit()
 
 
