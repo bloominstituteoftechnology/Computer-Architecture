@@ -16,28 +16,16 @@ class CPU:
         self.ram = [0] * 256
         self.reg = [0] * 8
         self.pc = 0
+        self.branchtable = {}
+        self.branchtable[0b00000001] = self.operand_HLT
+        self.branchtable[0b01000111] = self.operand_PRN
+        self.branchtable[0b10000010] = self.operand_LDI
+        self.branchtable[0b10100010] = self.operand_MUL
+
 
     def load(self):
         """Load a program into memory."""
         self.read_params()
-
-        # address = 0
-
-        # # For now, we've just hardcoded a program:
-
-        # program = [
-        #     # From print8.ls8
-        #     0b10000010, # LDI R0,8
-        #     0b00000000,
-        #     0b00001000,
-        #     0b01000111, # PRN R0
-        #     0b00000000,
-        #     0b00000001, # HLT
-        # ]
-
-        # for instruction in program:
-            # self.ram[address] = instruction
-            # address += 1
 
 
     def alu(self, op, reg_a, reg_b):
@@ -102,12 +90,20 @@ class CPU:
                 print("File not found")
                 sys.exit(2)
         
-
-
+    def operand_LDI(self,):
+        self.reg[self.ram_read(self.pc+1)] = self.ram_read(self.pc+2)
+        self.pc += 3
+    def operand_PRN(self,):
+        print(self.reg[self.ram_read(self.pc+1)])
+        self.pc += 2
+    def operand_HLT(self,):
+        return  False
+    def operand_MUL(self,):
+        self.reg[self.ram_read(self.pc+1)]=(self.reg[self.ram_read(self.pc+1)] * self.reg[self.ram_read(self.pc+2)])
+        self.pc +=3
 
     def run(self):
-        """Run the CPU."""
-        pc = 0 
+        """Run the CPU.""" 
         IR = None
         HLT = 0b00000001
         PRN = 0b01000111
@@ -117,21 +113,9 @@ class CPU:
         running = True
         self.load()
         while running:
-            if self.ram_read(pc) == LDI: #LDI
-                # print(self.ram_read(pc+1))
-                # print(self.ram_read(pc+2))
-                self.reg[self.ram_read(pc+1)] = self.ram_read(pc+2)
-                pc += 3
-            elif self.ram_read(pc) == PRN:#PRN
-                print(self.reg[self.ram_read(pc+1)])
-                pc += 2
-            elif self.ram_read(pc) == MUL:
-                self.reg[self.ram_read(pc+1)]=(self.reg[self.ram_read(pc+1)] * self.reg[self.ram_read(pc+2)])
-                pc +=3
-            elif self.ram_read(pc) == HLT:#HLT            
+            if self.ram_read(self.pc) == HLT:
                 running = False
-            
-            # command = memory[pc]
+            self.branchtable[self.ram_read(self.pc)]()
 
 # pc = CPU()
 # pc.run()
