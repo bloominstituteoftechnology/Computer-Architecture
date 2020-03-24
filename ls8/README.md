@@ -62,7 +62,7 @@ but you'll have to implement those three above instructions first!
 * Make a list of files here.
 * Write a short 3-10-word description of what each file does.
 * Note what has been implemented, and what hasn't.
-* Read this whole file.
+* Read this whole file.j
 * Skim the spec.
 
 ## Step 1: Add the constructor to `cpu.py`
