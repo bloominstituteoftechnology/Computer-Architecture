@@ -54,7 +54,7 @@ class CPU:
     # MDR contains the data that was read or the data to write.
     # Two of the registers hold those above values in a CPU also need SP stack pointer
     def ram_read(self, address):
-        print(self.ram[address])
+        return self.ram[address]
 
     def ram_write(self, value, address):
         self.ram[address] = value
@@ -81,35 +81,35 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        LDI = 2
-        PRN = 7
-        HLT = 1
+        # Register address, Memory Address, Value
 
         ir = None # Instruction Register (instruction)
-        min_val_two_instructions = 128
-        max_val_one_instruction = 127
-        min_val_one_instruction = 64
-
-        instruction = 0
         
         while True:
-            #print(self.ram[self.pc])
+            #print(bin(self.ram[self.pc]))
             #self.pc += 1
 
             ir = self.ram[self.pc]
-            if ir >= min_val_two_instructions: # get correct op code
-                instruction = ir - min_val_two_instructions #remove op-code value
-                if instruction == LDI: #LDI
-                    address = self.ram[self.pc +1]
-                    value = self.ram[self.pc +2]
-                    self.reg[address] = value
-                    self.pc += 3  
-            elif max_val_one_instruction >= ir >= min_val_one_instruction: # get correct op code
-                instruction = ir - min_val_one_instruction #remove op-code value
-                if instruction == PRN:
-                    reg_value = self.reg[self.pc +1]
-                    print(reg_value)
-                    self.pc += 2
-            elif ir == 1:
-                break
+
+            if ir >= 64: # operand 1
+                operand_a = self.ram_read(self.pc +1)
+            if ir >= 128: # operand 2
+                operand_b = self.ram_read(self.pc +2)
+                
+            self.do_logic(ir, operand_a, operand_b)
             
+    
+    def do_logic(self, ir, operand_a, operand_b= None):
+        LDI = 130
+        PRN = 71
+        HLT = 1
+
+        if ir == LDI:
+            self.reg[operand_a] = operand_b
+            self.pc += 3  
+        elif ir == PRN:
+            reg_value = self.reg[operand_a]
+            print(reg_value)
+            self.pc += 2
+        elif ir == HLT:
+            sys.exit()
