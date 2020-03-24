@@ -105,11 +105,18 @@ class CPU:
             #self.pc += 1
 
             ir = self.ram[self.pc]
+            op_code = ir >> 6
+            #if op_code == 2:
+            #    pass
+            #elif op_code == 1:
+            #    pass 
+            #else:
+            #    pass #error value is not instruction
 
-            if ir >= 64: # operand 1
-                operand_a = self.ram_read(self.pc +1)
-            if ir >= 128: # operand 2
-                operand_b = self.ram_read(self.pc +2)
+            if op_code >= 1: # operand 1
+                operand_a = self.ram_read(self.pc +1) #increment by 2
+            if op_code == 2: # operand 2
+                operand_b = self.ram_read(self.pc +2) #increment by an additional 1
 
             if ir == LDI:
                 self.reg[operand_a] = operand_b
