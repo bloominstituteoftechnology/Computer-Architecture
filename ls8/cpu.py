@@ -81,22 +81,35 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        ir = None # Insturction Reister (instruction)
+        LDI = 2
+        PRN = 7
+        HLT = 1
+
+        ir = None # Instruction Register (instruction)
+        min_val_two_instructions = 128
+        max_val_one_instruction = 127
+        min_val_one_instruction = 64
+
+        instruction = 0
         
         while True:
             #print(self.ram[self.pc])
             #self.pc += 1
 
             ir = self.ram[self.pc]
-            if ir == 130:#LDI(a constant value):
-                address = self.ram[self.pc +1]
-                value = self.ram[self.pc +2]
-                self.reg[address] = value
-                self.pc += 3
-            elif ir == 71:#register number:
-                reg_value = self.reg[self.pc +1]
-                print(reg_value)
-                self.pc += 2
+            if ir >= min_val_two_instructions: # get correct op code
+                instruction = ir - min_val_two_instructions #remove op-code value
+                if instruction == LDI: #LDI
+                    address = self.ram[self.pc +1]
+                    value = self.ram[self.pc +2]
+                    self.reg[address] = value
+                    self.pc += 3  
+            elif max_val_one_instruction >= ir >= min_val_one_instruction: # get correct op code
+                instruction = ir - min_val_one_instruction #remove op-code value
+                if instruction == PRN:
+                    reg_value = self.reg[self.pc +1]
+                    print(reg_value)
+                    self.pc += 2
             elif ir == 1:
                 break
             
