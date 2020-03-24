@@ -7,6 +7,7 @@
 
 import sys
 
+
 class CPU:
     """Main CPU class."""
 
@@ -18,24 +19,25 @@ class CPU:
 
     def load(self):
         """Load a program into memory."""
+        self.read_params()
 
-        address = 0
+        # address = 0
 
-        # For now, we've just hardcoded a program:
+        # # For now, we've just hardcoded a program:
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+        # program = [
+        #     # From print8.ls8
+        #     0b10000010, # LDI R0,8
+        #     0b00000000,
+        #     0b00001000,
+        #     0b01000111, # PRN R0
+        #     0b00000000,
+        #     0b00000001, # HLT
+        # ]
 
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+        # for instruction in program:
+            # self.ram[address] = instruction
+            # address += 1
 
 
     def alu(self, op, reg_a, reg_b):
@@ -76,26 +78,61 @@ class CPU:
     def ram_write(self, mar, mdr):
         self.ram[mar] = mdr
 
+    def read_params(self,):
+        params = sys.argv
+        if len(params) != 2: # a file is being passed through
+            print("usage: file.py filename")
+            sys.exit(1)
+        if len(params)==2:   
+            try:
+                with open(params[1]) as f:
+                    address = 0
+                    for line in f:
+                        # print(line)
+                        comment_split = line.split("#")
+                        # Strip out whitespace
+                        num = comment_split[0].strip()
+                        # Ignore blank lines
+                        if num == '':
+                            continue
+                        val = int("0b"+num,2)
+                        self.ram_write(address, val)
+                        address += 1    
+            except FileNotFoundError:
+                print("File not found")
+                sys.exit(2)
+        
+
 
 
     def run(self):
         """Run the CPU."""
         pc = 0 
         IR = None
+        HLT = 0b00000001
+        PRN = 0b01000111
+        LDI = 0b10000010
+        MUL = 0b10100010
 
         running = True
         self.load()
         while running:
-            if self.ram[pc] == 130:
-                self.reg[self.ram[pc+1]] = self.ram[pc+2]
+            if self.ram_read(pc) == LDI: #LDI
+                # print(self.ram_read(pc+1))
+                # print(self.ram_read(pc+2))
+                self.reg[self.ram_read(pc+1)] = self.ram_read(pc+2)
                 pc += 3
-            elif self.ram[pc] == 71:
-                print(self.reg[self.ram[pc+1]])
+            elif self.ram_read(pc) == PRN:#PRN
+                print(self.reg[self.ram_read(pc+1)])
                 pc += 2
-            elif self.ram[pc] == 1:
+            elif self.ram_read(pc) == MUL:
+                self.reg[self.ram_read(pc+1)]=(self.reg[self.ram_read(pc+1)] * self.reg[self.ram_read(pc+2)])
+                pc +=3
+            elif self.ram_read(pc) == HLT:#HLT            
                 running = False
             
             # command = memory[pc]
 
-pc = CPU()
-pc.run()
+# pc = CPU()
+# pc.run()
+# pc.read_params()
