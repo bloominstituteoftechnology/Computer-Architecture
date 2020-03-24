@@ -7,7 +7,8 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.reg = [0] * 256
+        self.ram = [0] * 8
 
     def load(self):
         """Load a program into memory."""
@@ -62,4 +63,19 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
+
+        address = 0
+        while address < len(self.ram) - 1:
+            instruction = self.ram[address]
+            if instruction == 0b10000010:
+                register = self.ram[address + 1]
+                integer = self.ram[address + 2]
+                address += 3
+                self.reg[register] = integer
+            elif instruction == 0b01000111:
+                register = self.ram[address + 1]
+                address += 2
+                print(self.reg[register])
+            elif instruction == 0b00000001:
+                break
         pass
