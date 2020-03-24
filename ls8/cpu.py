@@ -7,7 +7,21 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+     
+        self.ram = [0] * 256
+        self.registers = [0] * 8
+        self.pc = 0
+
+    
+    def ram_read(self, MAR):
+        # MAR = memory address register
+        return self.ram[MAR]
+
+    
+    def ram_write(self, MAR, MDR):
+        # MAR = memory address register
+        # MDR = memory data register
+        self.ram[MAR] = MDR
 
     def load(self):
         """Load a program into memory."""
@@ -27,7 +41,8 @@ class CPU:
         ]
 
         for instruction in program:
-            self.ram[address] = instruction
+            self.ram_write(address, instruction)
+            # self.ram[address] = instruction
             address += 1
 
 
@@ -62,4 +77,31 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        
+        running = True
+
+        while running:
+
+            command = self.ram[self.pc]
+
+            if command == 0b10000010: # LDI R0,8
+                register_idx = self.ram[self.pc + 1]
+                register_val = self.ram[self.pc + 2]
+                self.registers[register_idx] = register_val
+                self.pc += 3
+            
+            elif command == 0b01000111: # PRN R0
+                register_idx = self.ram[self.pc + 1] 
+                print(self.registers[register_idx])
+                self.pc += 2
+
+            elif command == 0b00000001: # HLT
+                self.pc += 1
+                running = False
+            
+            else:
+                print(f"Unknown instruction: {command}")
+                sys.exit(1)
+
+
+        
