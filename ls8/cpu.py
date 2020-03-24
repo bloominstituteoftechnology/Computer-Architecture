@@ -14,6 +14,8 @@ class CPU:
         self.mar = 0                # Memory Address Register
         self.mdr = 0                # Memory Data Register
         self.fl = [0] * 8           # 8-bit Flags Register
+        
+        self.reg[7] = 0xF4          # set stack pointer
 
 
     def load(self, filepath, *args):
@@ -128,15 +130,19 @@ class CPU:
                 pass   #NOT
             elif instruction == 0b10101010: 
                 pass   #OR
-            elif instruction == 0b01000110: 
-                pass   #POP
+            elif instruction == 0b01000110:         #POP
+                self.reg[operand_a] = self.ram[self.reg[7]]
+                self.reg[7] += 1
+                self.pc += 2   
             elif instruction == 0b01001000: 
                 pass   #PRA
             elif instruction == 0b01000111:         #PRN
                 print(self.reg[operand_a])                      
                 self.pc += 2
-            elif instruction == 0b01000101: 
-                pass   #PUSH
+            elif instruction == 0b01000101:         #PUSH 
+                self.reg[7] -= 1
+                self.ram[self.reg[7]] = self.reg[operand_a]
+                self.pc += 2   
             elif instruction == 0b00010001: 
                 pass   #RET
             elif instruction == 0b10101100: 
@@ -150,7 +156,8 @@ class CPU:
             elif instruction == 0b10101011: 
                 pass   #XOR
             else:
-                print("hm ", instruction)
+                print("hmmmm ", instruction)
+                exit()
         exit()
 
 
