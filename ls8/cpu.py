@@ -50,6 +50,19 @@ class CPU:
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
+        elif op == "LDI":
+            self.reg[reg_a] = reg_b
+            self.pc += 3
+        elif op == "MUL":
+            mult = self.reg[reg_a] * self.reg[reg_b]
+            self.reg[reg_a] = mult
+            self.pc += 3
+        elif op == "PRN":
+            reg_value = self.reg[reg_a]
+            print(reg_value)
+            self.pc += 2
+        elif op == "HLT":
+            sys.exit()
         #elif op == "SUB": etc
         else:
             raise Exception("Unsupported ALU operation")
@@ -94,6 +107,7 @@ class CPU:
     def run(self):
         """Run the CPU."""
         LDI = 130
+        MUL = 162
         PRN = 71
         HLT = 1
         # Register address, Memory Address, Value
@@ -106,30 +120,17 @@ class CPU:
 
             ir = self.ram[self.pc]
             op_code = ir >> 6
-            #if op_code == 2:
-            #    pass
-            #elif op_code == 1:
-            #    pass 
-            #else:
-            #    pass #error value is not instruction
 
             if op_code >= 1: # operand 1
                 operand_a = self.ram_read(self.pc +1) #increment by 2
             if op_code == 2: # operand 2
                 operand_b = self.ram_read(self.pc +2) #increment by an additional 1
 
-            if ir == LDI:
-                self.reg[operand_a] = operand_b
-                self.pc += 3  
-            elif ir == PRN:
-                reg_value = self.reg[operand_a]
-                print(reg_value)
-                self.pc += 2
-            elif ir == HLT:
-                sys.exit()
-                
-            #self.do_logic(ir, operand_a, operand_b)
-            
-    
-    #def do_logic(self, ir, operand_a, operand_b= None):
+            op = ""
+            if ir == LDI: op = "LDI"
+            elif ir == MUL: op = "MUL"
+            elif ir == PRN: op = "PRN"
+            elif ir == HLT: op = "HLT"
+  
+            self.alu(op, operand_a, operand_b)
 
