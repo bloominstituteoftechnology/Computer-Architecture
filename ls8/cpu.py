@@ -9,11 +9,11 @@ class CPU:
         """Construct a new CPU."""
         self.ram = [0] * 256        # Memory
         self.reg = [0] * 8          # General-purpose numeric registers R0-R7
-        self.PC = 0                 # Program Counter
-        self.IR = 0                 # Instruction Register
-        self.MAR = 0                # Memory Address Register
-        self.MDR = 0                # Memory Data Register
-        self.FL = [0] * 8           # 8-bit Flags Register
+        self.pc = 0                 # Program Counter
+        self.ir = 0                 # Instruction Register
+        self.mar = 0                # Memory Address Register
+        self.mdr = 0                # Memory Data Register
+        self.fl = [0] * 8           # 8-bit Flags Register
 
 
     def load(self):
@@ -75,4 +75,61 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        
+        for i in range(256):
+            to_bin = lambda x: format(x, 'b').zfill(8)
+            operand_a = self.ram_read(self.pc + 1)
+            operand_b = self.ram_read(self.pc + 2)
+            self.ir = to_bin(self.pc)
+            instruction = {
+                "10100000" : ["pass"],   #ADD
+                "10101000" : ["pass"],   #AND
+                "01010000" : ["pass"],   #CALL register
+                "01100110" : ["pass"],   #DEC
+                "10100011" : ["pass"],   #DIV
+                "00000001" : ["exit()"],   #HLT
+                "01100101" : ["pass"],   #INC
+                "01010010" : ["pass"],   #INT
+                "00010011" : ["pass"],   #IRET
+                "01010101" : ["pass"],   #JEQ
+                "01011010" : ["pass"],   #JGE
+                "01010111" : ["pass"],   #JGT
+                "01011001" : ["pass"],   #JLE
+                "01011000" : ["pass"],   #JLT
+                "01010100" : ["pass"],   #JMP
+                "01010110" : ["pass"],   #JNE
+                "10000011" : ["pass"],   #LD
+                "10000010" : ["self.reg[{0}] = {1}"],   #LDI
+                "10100100" : ["pass"],   #MOD
+                "10100010" : ["pass"],   #MUL
+                "00000000" : ["pass"],   #NOP
+                "01101001" : ["pass"],   #NOT
+                "10101010" : ["pass"],   #OR
+                "01000110" : ["pass"],   #POP
+                "01001000" : ["pass"],   #PRA
+                "01000111" : ["print(self.reg[{0}])"],   #PRN
+                "01000101" : ["pass"],   #PUSH
+                "00010001" : ["pass"],   #RET
+                "10101100" : ["pass"],   #SHL
+                "10101101" : ["pass"],   #SHR
+                "10000100" : ["pass"],   #ST
+                "10100001" : ["pass"],   #SUB
+                "10101011" : ["pass"],   #XOR
+            }
+            byte = to_bin(self.ram[int(self.ir, 2)])
+            if byte[:2] == "00":
+                # execute all operations in an instruction
+                for op in instruction[byte]:
+                    exec(op)
+                self.pc += 1
+            elif byte[:2] == "01":
+                for op in instruction[byte]:
+                    exec(op.format(operand_a))
+                self.pc += 2
+            elif byte[:2] == "10":
+                for op in instruction[byte]:
+                    exec(op.format(operand_a, operand_b))
+                self.pc += 3
+
+
+
+
