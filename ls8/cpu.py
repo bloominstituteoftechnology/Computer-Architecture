@@ -1,3 +1,11 @@
+ # Inventory what is here ^
+ # Implement the CPU constructor ^
+ # Add RAM functions ram_read() and ram_write()
+ # Implement the core of run()
+ # Implement the HLT instruction handler
+ # Add the LDI instruction
+ # Add the PRN instruction
+ #
 """CPU functionality."""
 
 import sys
@@ -7,7 +15,10 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.ram = [0]*256
+        self.reg = [0]*8
+        self.pc = 0
+
 
     def load(self):
         """Load a program into memory."""
@@ -60,6 +71,43 @@ class CPU:
 
         print()
 
+    def ram_read(self, MAR):
+        """Accepts the address to read and return the value stored there"""
+        return self.ram[MAR]
+        # MAR contains the address that is being read or written to.
+        # MDR contains the data that was read
+
+    def raw_write(self, MAR, MDR):
+        """Should accept a value to write and the address to write it to"""
+        self.ram[MAR]=MDR
+        # so we will move the stuff from MAR TO MDR
+
     def run(self):
         """Run the CPU."""
-        pass
+
+        Running=True
+
+        LDI=0b10000010
+        HLT=0b00000001
+        PRN=0b01000111
+
+        while Running:
+            # read the memory address sotred in pc and store it in Instruction Register
+            Command=self.ram_read(self.pc)
+            if Command == LDI:
+                operand_a = self.ram_read(self.pc+1)
+                operand_b = self.ram_read(self.pc+2)
+                # registers
+                # sets a specific register to a specified value
+                self.reg[operand_a]=operand_b
+                self.pc+=3
+
+            elif Command==HLT:
+                Running=False
+                self.pc+=1
+
+            elif Command==PRN:
+                # PRN: adding
+                reg = self.ram[self.pc+1]
+                print(self.reg[reg])  # prints 8 to the console.
+                self.pc+=2
