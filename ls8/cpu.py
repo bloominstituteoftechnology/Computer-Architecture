@@ -16,25 +16,20 @@ class CPU:
         self.fl = [0] * 8           # 8-bit Flags Register
 
 
-    def load(self):
+    def load(self, filepath, *args):
         """Load a program into memory."""
 
         address = 0
 
-        # For now, we've just hardcoded a program:
+        with open(filepath, 'r') as f:
+            program = f.read().splitlines()
+            f.close()
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+        program = ['0b'+line[:8] for line in program if line and line[0] in ['0', '1']]
+        print(program)
 
         for instruction in program:
-            self.ram[address] = instruction
+            self.ram[address] = eval(instruction)
             address += 1
 
 
