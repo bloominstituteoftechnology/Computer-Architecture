@@ -17,7 +17,8 @@ class CPU:
         """Construct a new CPU."""
         self.ram = [0]*256
         self.reg = [0]*8
-        self.pc = 0
+        self.pc = 0    # program counter: address of the currently executing instruction
+        self.fl = 0     # flags
 
 
     def load(self):
@@ -77,7 +78,7 @@ class CPU:
         # MAR contains the address that is being read or written to.
         # MDR contains the data that was read
 
-    def raw_write(self, MAR, MDR):
+    def ram_write(self, MAR, MDR):
         """Should accept a value to write and the address to write it to"""
         self.ram[MAR]=MDR
         # so we will move the stuff from MAR TO MDR
