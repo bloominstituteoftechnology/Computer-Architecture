@@ -75,6 +75,7 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
+        running = True
         for i in range(256):
             to_bin = lambda x: format(x, 'b').zfill(8)
             operand_a = self.ram_read(self.pc + 1)
