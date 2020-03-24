@@ -76,60 +76,82 @@ class CPU:
     def run(self):
         """Run the CPU."""
         running = True
-        for i in range(256):
-            to_bin = lambda x: format(x, 'b').zfill(8)
+
+        while running == True:
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
-            self.ir = to_bin(self.pc)
-            instruction = {
-                "10100000" : ["pass"],   #ADD
-                "10101000" : ["pass"],   #AND
-                "01010000" : ["pass"],   #CALL register
-                "01100110" : ["pass"],   #DEC
-                "10100011" : ["pass"],   #DIV
-                "00000001" : ["exit()"],   #HLT
-                "01100101" : ["pass"],   #INC
-                "01010010" : ["pass"],   #INT
-                "00010011" : ["pass"],   #IRET
-                "01010101" : ["pass"],   #JEQ
-                "01011010" : ["pass"],   #JGE
-                "01010111" : ["pass"],   #JGT
-                "01011001" : ["pass"],   #JLE
-                "01011000" : ["pass"],   #JLT
-                "01010100" : ["pass"],   #JMP
-                "01010110" : ["pass"],   #JNE
-                "10000011" : ["pass"],   #LD
-                "10000010" : ["self.reg[{0}] = {1}"],   #LDI
-                "10100100" : ["pass"],   #MOD
-                "10100010" : ["pass"],   #MUL
-                "00000000" : ["pass"],   #NOP
-                "01101001" : ["pass"],   #NOT
-                "10101010" : ["pass"],   #OR
-                "01000110" : ["pass"],   #POP
-                "01001000" : ["pass"],   #PRA
-                "01000111" : ["print(self.reg[{0}])"],   #PRN
-                "01000101" : ["pass"],   #PUSH
-                "00010001" : ["pass"],   #RET
-                "10101100" : ["pass"],   #SHL
-                "10101101" : ["pass"],   #SHR
-                "10000100" : ["pass"],   #ST
-                "10100001" : ["pass"],   #SUB
-                "10101011" : ["pass"],   #XOR
-            }
-            byte = to_bin(self.ram[int(self.ir, 2)])
-            if byte[:2] == "00":
-                # execute all operations in an instruction
-                for op in instruction[byte]:
-                    exec(op)
-                self.pc += 1
-            elif byte[:2] == "01":
-                for op in instruction[byte]:
-                    exec(op.format(operand_a))
-                self.pc += 2
-            elif byte[:2] == "10":
-                for op in instruction[byte]:
-                    exec(op.format(operand_a, operand_b))
+            self.ir = self.pc
+            instruction = self.ram[self.ir]
+            if instruction == 0b10100000: 
+                pass   #ADD
+            elif instruction == 0b10101000: 
+                pass   #AND
+            elif instruction == 0b01010000: 
+                pass   #CALL register
+            elif instruction == 0b01100110: 
+                pass   #DEC
+            elif instruction == 0b10100011: 
+                pass   #DIV
+            elif instruction == 0b00000001: 
+                print("quit")
+                running = False                         #HLT
+            elif instruction == 0b01100101: 
+                pass   #INC
+            elif instruction == 0b01010010: 
+                pass   #INT
+            elif instruction == 0b00010011: 
+                pass   #IRET
+            elif instruction == 0b01010101: 
+                pass   #JEQ
+            elif instruction == 0b01011010: 
+                pass   #JGE
+            elif instruction == 0b01010111: 
+                pass   #JGT
+            elif instruction == 0b01011001: 
+                pass   #JLE
+            elif instruction == 0b01011000: 
+                pass   #JLT
+            elif instruction == 0b01010100: 
+                pass   #JMP
+            elif instruction == 0b01010110: 
+                pass   #JNE
+            elif instruction == 0b10000011: 
+                pass   #LD
+            elif instruction == 0b10000010: 
+                self.reg[operand_a] = operand_b         #LDI
                 self.pc += 3
+            elif instruction == 0b10100100: 
+                pass   #MOD
+            elif instruction == 0b10100010: 
+                pass   #MUL
+            elif instruction == 0b00000000: 
+                pass   #NOP
+            elif instruction == 0b01101001: 
+                pass   #NOT
+            elif instruction == 0b10101010: 
+                pass   #OR
+            elif instruction == 0b01000110: 
+                pass   #POP
+            elif instruction == 0b01001000: 
+                pass   #PRA
+            elif instruction == 0b01000111: 
+                print(self.reg[operand_a])              #PRN
+                self.pc += 2
+            elif instruction == 0b01000101: 
+                pass   #PUSH
+            elif instruction == 0b00010001: 
+                pass   #RET
+            elif instruction == 0b10101100: 
+                pass   #SHL
+            elif instruction == 0b10101101: 
+                pass   #SHR
+            elif instruction == 0b10000100: 
+                pass   #ST
+            elif instruction == 0b10100001: 
+                pass   #SUB
+            elif instruction == 0b10101011: 
+                pass   #XOR
+        exit()
 
 
 
