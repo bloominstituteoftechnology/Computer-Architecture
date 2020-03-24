@@ -7,7 +7,21 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.ie = 1 # Interrupts
+        self.pc = 0 # Program Counter
+        self.fl = 0  # Flags
+
+        self.halted = False
+
+        self.ram = [0] * 256
+        self.reg = [0] * 8
+
+        self.branch_table = {
+            # HLT LDI PRN
+            0b00000001: self.opp_HLT,
+            0b10000010: self.opp_LDI,
+            0b01000111: self.opp_PRN,
+        }
 
     def load(self):
         """Load a program into memory."""
@@ -30,6 +44,11 @@ class CPU:
             self.ram[address] = instruction
             address += 1
 
+    def ram_read(self, memaddr):
+        return self.ram[memaddr]
+
+    def ram_write(self, memaddr, memdata):
+        self.ram[memaddr] = memdata
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -62,4 +81,29 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        while not self.halted:
+
+            #self.trace()
+            ir = self.ram[self.pc]
+            opp_a = self.ram_read(self.pc + 1)
+            opp_b = self.ram_read(self.pc + 2)
+
+            instruction_size = ((ir >> 6) & 0b11) + 1
+
+            if ir in self.branch_table:
+                #print(ir)
+                self.branch_table[ir](opp_a, opp_b)
+            else:
+                print('Exception Occurred')
+
+            self.pc += instruction_size
+
+    def opp_HLT(self, a, b):
+        self.halted = True
+
+    def opp_LDI(self, a, b):
+        self.reg[a] = b
+
+    def opp_PRN(self, a, b):
+        print(self.reg[a])
+        
