@@ -1,6 +1,7 @@
 """CPU functionality."""
 
 import sys
+import csv
 
 class CPU:
     """Main CPU class."""
@@ -11,7 +12,7 @@ class CPU:
         self.reg = [0] * 8
         self.pc = 0
 
-    def load(self):
+    def load(self, file=None):
         """Load a program into memory."""
 
         address = 0
@@ -27,6 +28,17 @@ class CPU:
             0b00000000,
             0b00000001, # HLT
         ]
+
+        if file:
+            f = open(file, "r")
+            stuff = []
+            for line in f:
+                if len(line) >= 8:
+                    if line[:1] != '#':
+                        stuff.append(int(line[:8], 2))
+            f.close()
+
+            program = stuff
 
         for instruction in program:
             self.ram[address] = instruction
@@ -81,6 +93,9 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
+        LDI = 130
+        PRN = 71
+        HLT = 1
         # Register address, Memory Address, Value
 
         ir = None # Instruction Register (instruction)
@@ -95,21 +110,19 @@ class CPU:
                 operand_a = self.ram_read(self.pc +1)
             if ir >= 128: # operand 2
                 operand_b = self.ram_read(self.pc +2)
+
+            if ir == LDI:
+                self.reg[operand_a] = operand_b
+                self.pc += 3  
+            elif ir == PRN:
+                reg_value = self.reg[operand_a]
+                print(reg_value)
+                self.pc += 2
+            elif ir == HLT:
+                sys.exit()
                 
-            self.do_logic(ir, operand_a, operand_b)
+            #self.do_logic(ir, operand_a, operand_b)
             
     
-    def do_logic(self, ir, operand_a, operand_b= None):
-        LDI = 130
-        PRN = 71
-        HLT = 1
+    #def do_logic(self, ir, operand_a, operand_b= None):
 
-        if ir == LDI:
-            self.reg[operand_a] = operand_b
-            self.pc += 3  
-        elif ir == PRN:
-            reg_value = self.reg[operand_a]
-            print(reg_value)
-            self.pc += 2
-        elif ir == HLT:
-            sys.exit()
