@@ -111,23 +111,28 @@ class CPU:
         PRN = 0b01000111
         LDI = 0b10000010
         MUL = 0b10100010
+        PUSH = 0b01000101
+        POP = 0b01000110
 
         running = True
-        self.load()
         while running:
             instruction = self.ram_read(self.pc)
             if instruction == HLT:
                 running = False
-            elif instruction == "PUSH":
+            elif instruction == PUSH:
                 self.reg[self.sp] -= 1 # decrements as the stacks starts at the end
                 reg_num = self.ram[self.pc + 1]
                 register_value = self.reg[reg_num]
-                self.ram[self.reg[self.pc]] = register_value
-                self.pc +=1
-
-            elif instruction == "POP":
-                pass        
-            self.branchtable[instruction]()
+                self.ram[self.reg[self.sp]] = register_value
+                self.pc += 2 # program counter
+            elif instruction == POP:
+                value = self.ram[self.reg[self.sp]]
+                reg_num = self.ram[self.pc + 1]
+                self.reg[reg_num] = value
+                self.reg[self.sp] +=1
+                self.pc += 2
+            else:
+                self.branchtable[instruction]()
 
 # pc = CPU()
 # pc.run()
