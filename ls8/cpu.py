@@ -11,6 +11,17 @@ class CPU:
         self.ram = [0] * 256
         self.reg = [0] * 8
         self.pc = 0
+        self.branchtable = {}
+        ADD = 160
+        LDI = 130
+        MUL = 162
+        PRN = 71
+        HLT = 1
+        self.branchtable[ADD] = self.op_ADD
+        self.branchtable[LDI] = self.op_LDI
+        self.branchtable[MUL] = self.op_MUL
+        self.branchtable[PRN] = self.op_PRN
+        self.branchtable[HLT] = self.op_HLT
 
     def load(self, file=None):
         """Load a program into memory."""
@@ -44,28 +55,29 @@ class CPU:
             self.ram[address] = instruction
             address += 1
 
+    def op_ADD(self, reg_a, reg_b):
+        self.reg[reg_a] += self.reg[reg_b]
+    def op_LDI(self, reg_a, reg_b):
+        self.reg[reg_a] = reg_b
+        self.pc += 3
+    def op_MUL(self, reg_a, reg_b):
+        mult = self.reg[reg_a] * self.reg[reg_b]
+        self.reg[reg_a] = mult
+        self.pc += 3
+    def op_PRN(self, reg_a, reg_b):
+        reg_value = self.reg[reg_a]
+        print(reg_value)
+        self.pc += 2
+    def op_HLT(self, reg_a, reg_b):
+        sys.exit()
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
 
-        if op == "ADD":
-            self.reg[reg_a] += self.reg[reg_b]
-        elif op == "LDI":
-            self.reg[reg_a] = reg_b
-            self.pc += 3
-        elif op == "MUL":
-            mult = self.reg[reg_a] * self.reg[reg_b]
-            self.reg[reg_a] = mult
-            self.pc += 3
-        elif op == "PRN":
-            reg_value = self.reg[reg_a]
-            print(reg_value)
-            self.pc += 2
-        elif op == "HLT":
-            sys.exit()
+        self.branchtable[op](reg_a, reg_b)
         #elif op == "SUB": etc
-        else:
-            raise Exception("Unsupported ALU operation")
+        #else:
+        #    raise Exception("Unsupported ALU operation")
 
     # these below seem to have to do with the register values?
     #self.ir = None
@@ -106,10 +118,6 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        LDI = 130
-        MUL = 162
-        PRN = 71
-        HLT = 1
         # Register address, Memory Address, Value
 
         ir = None # Instruction Register (instruction)
@@ -126,11 +134,11 @@ class CPU:
             if op_code == 2: # operand 2
                 operand_b = self.ram_read(self.pc +2) #increment by an additional 1
 
-            op = ""
-            if ir == LDI: op = "LDI"
-            elif ir == MUL: op = "MUL"
-            elif ir == PRN: op = "PRN"
-            elif ir == HLT: op = "HLT"
+            #op = ""
+            #if ir == LDI: op = "LDI"
+            #elif ir == MUL: op = "MUL"
+            #elif ir == PRN: op = "PRN"
+            #elif ir == HLT: op = "HLT"
   
-            self.alu(op, operand_a, operand_b)
+            self.alu(ir, operand_a, operand_b)
 
