@@ -27,11 +27,11 @@ class CPU:
             program = f.read().splitlines()
             f.close()
 
-        program = ['0b'+line[:8] for line in program if line and line[0] in ['0', '1']]
+        program = [line[:8] for line in program if line and line[0] in ['0', '1']]
         print(program)
 
         for instruction in program:
-            self.ram[address] = eval(instruction)
+            self.ram[address] = int(instruction, 2)
             address += 1
 
 
@@ -118,12 +118,10 @@ class CPU:
                 pass   #LD
             elif instruction == 0b10000010:         #LDI
                 self.reg[operand_a] = operand_b                 
-                self.pc += 3
             elif instruction == 0b10100100: 
                 pass   #MOD
             elif instruction == 0b10100010:         #MUL
                 self.reg[operand_a] = self.reg[operand_a] * self.reg[operand_b]     
-                self.pc += 3
             elif instruction == 0b00000000: 
                 pass   #NOP
             elif instruction == 0b01101001: 
@@ -133,16 +131,13 @@ class CPU:
             elif instruction == 0b01000110:         #POP
                 self.reg[operand_a] = self.ram[self.reg[7]]
                 self.reg[7] += 1
-                self.pc += 2   
             elif instruction == 0b01001000: 
                 pass   #PRA
             elif instruction == 0b01000111:         #PRN
                 print(self.reg[operand_a])                      
-                self.pc += 2
             elif instruction == 0b01000101:         #PUSH 
                 self.reg[7] -= 1
-                self.ram[self.reg[7]] = self.reg[operand_a]
-                self.pc += 2   
+                self.ram[self.reg[7]] = self.reg[operand_a]  
             elif instruction == 0b00010001: 
                 pass   #RET
             elif instruction == 0b10101100: 
@@ -158,6 +153,14 @@ class CPU:
             else:
                 print("hmmmm ", instruction)
                 exit()
+
+            # increment program counter
+            if instruction < 64:
+                self.pc += 1
+            if instruction > 64 and instruction <= 127:
+                self.pc += 2
+            if instruction > 127:
+                self.pc += 3
         exit()
 
 
