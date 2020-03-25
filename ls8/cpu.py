@@ -30,20 +30,30 @@ class CPU:
 
         # For now, we've just hardcoded a program:
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+        if len(sys.argv) != 2:
+            print("Usage: cpu.py filename")
+            sys.exit(1)
+        
+        filename = sys.argv[1]
 
-        for instruction in program:
-            self.ram_write(address, instruction)
-            # self.ram[address] = instruction
-            address += 1
+        try:
+            with open(filename) as f:
+                for line in f:
+                    
+                    instruction = line.split("#")[0].strip()
+                    
+                    if instruction == "":
+                        continue
+
+                    val = int(instruction, 2)    
+
+                    self.ram_write(address, val)
+
+                    address += 1
+
+        except FileNotFoundError:
+            print(f"File {filename} not found")
+            sys.exit(2)
 
 
     def alu(self, op, reg_a, reg_b):
@@ -94,6 +104,16 @@ class CPU:
                 register_idx = self.ram[self.pc + 1] 
                 print(self.registers[register_idx])
                 self.pc += 2
+
+            elif command == 0b10100010: # MULT
+                register_a_idx = self.ram[self.pc + 1]
+                register_b_idx = self.ram[self.pc + 2]
+
+                val = self.registers[register_a_idx] * self.registers[register_b_idx]
+
+                self.registers[register_a_idx] = val
+
+                self.pc += 3
 
             elif command == 0b00000001: # HLT
                 self.pc += 1
