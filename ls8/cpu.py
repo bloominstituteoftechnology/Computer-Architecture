@@ -11,17 +11,22 @@ class CPU:
         self.ram = [0] * 256
         self.reg = [0] * 8
         self.pc = 0
+        self.sp_address = 7
         self.branchtable = {}
         ADD = 160
         LDI = 130
         MUL = 162
         PRN = 71
+        POP = 70
+        PUSH = 69
         HLT = 1
         self.branchtable[ADD] = self.op_ADD
         self.branchtable[LDI] = self.op_LDI
         self.branchtable[MUL] = self.op_MUL
         self.branchtable[PRN] = self.op_PRN
         self.branchtable[HLT] = self.op_HLT
+        self.branchtable[PUSH] = self.op_PUSH
+        self.branchtable[POP] = self.op_POP
 
     def load(self, file=None):
         """Load a program into memory."""
@@ -70,6 +75,16 @@ class CPU:
         self.pc += 2
     def op_HLT(self, reg_a, reg_b):
         sys.exit()
+    def op_PUSH(self, reg_a, reg_b):
+        value = self.reg[reg_a]
+        self.reg[self.sp_address] -= 1
+        self.ram[self.reg[self.sp_address]] = value
+        self.pc += 2
+    def op_POP(self, reg_a, reg_b):
+        value = self.ram[self.reg[self.sp_address]]
+        self.reg[reg_a] = value
+        self.reg[self.sp_address] += 1
+        self.pc += 2
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
