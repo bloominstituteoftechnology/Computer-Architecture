@@ -15,6 +15,8 @@ class CPU:
         """Construct a new CPU."""
         self.ram = [0] * 256
         self.reg = [0] * 8
+        self.sp = 7
+        self.reg[self.sp] = 0xf4 # where 7 is the stack pointer, the last index in the reg
         self.pc = 0
         self.branchtable = {}
         self.branchtable[0b00000001] = self.operand_HLT
@@ -113,9 +115,19 @@ class CPU:
         running = True
         self.load()
         while running:
-            if self.ram_read(self.pc) == HLT:
+            instruction = self.ram_read(self.pc)
+            if instruction == HLT:
                 running = False
-            self.branchtable[self.ram_read(self.pc)]()
+            elif instruction == "PUSH":
+                self.reg[self.sp] -= 1 # decrements as the stacks starts at the end
+                reg_num = self.ram[self.pc + 1]
+                register_value = self.reg[reg_num]
+                self.ram[self.reg[self.pc]] = register_value
+                self.pc +=1
+
+            elif instruction == "POP":
+                pass        
+            self.branchtable[instruction]()
 
 # pc = CPU()
 # pc.run()
