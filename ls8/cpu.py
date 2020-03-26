@@ -17,6 +17,7 @@ class CPU:
         self.ram = [0] * 256
         self.reg = [0] * 8
         self.pc = 0
+        self.halted = False
 
     def load(self):
         """Load a program into memory."""
@@ -102,7 +103,6 @@ class CPU:
         # Implement the core of `CPU`'s `run()` method
         self.load()
 
-        # while not self.halted:
         while True:
             # needs to read mem address stores in register PC and store in IR - local variable
             IR = self.ram_read(self.pc)
@@ -114,8 +114,7 @@ class CPU:
             if IR == HLT:
                 # In `run()` in your switch, exit the loop if a `HLT` instruction is encountered regardless of whether or not there are more lines of code in the LS-8 program you loaded
                 print("Exit")
-                # self.halted = True
-                sys.exit(-1)
+
                 break
             elif IR == PRN:
                 # Add the `PRN` instruction
@@ -126,6 +125,14 @@ class CPU:
                 # Add the `LDI` instruction
                 self.reg[operand_a] = operand_b
                 self.pc += 3
+            elif IR == ADD:
+                self.alu("ADD", operand_a, operand_b)
+                # inc_size = 3
+                self.pc += 3
 
+            elif IR == MUL:
+                self.alu("MUL", operand_a, operand_b)
+                # inc_size = 3
+                self.pc += 3
             else:
                 print("Error")
