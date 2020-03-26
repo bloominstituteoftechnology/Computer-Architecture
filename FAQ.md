@@ -42,7 +42,7 @@
 * [What is "stack overflow"?](#q500)
 * [What is "stack underflow"?](#q600)
 * [On the LS-8, why does the stack pointer start at address `F4`, when the first stack element is at `F3`?](#q700)
-* [How are stacks and subroutines used by higher-level languages like C?](#q800)
+* [How are stacks and subroutines used by higher-level languages like Python?](#q800)
 * [Why does the CPU allow for stack overflow or underflow?](#q2900)
 * [Why does the CPU support a stack and not some other data structure?](#q3000)
 * [On the LS-8, why does `POP` need an operand?](#q3500)
@@ -172,10 +172,10 @@ stored there. Exactly where we wanted it.
 ------------------------------------------------------------------------
 
 <a name="q800"></a>
-### How are stacks and subroutines used by higher-level languages like C?
+### How are stacks and subroutines used by higher-level languages like Python?
 
-In C, when you make a function call, a bunch of space is allocated (pushed) on
-the stack to hold a number of things:
+In Python, when you make a function call, a bunch of space is allocated
+(pushed) on the stack to hold a number of things:
 
 * The return address to come back to after the function completes
 * Space for all the function parameters
@@ -184,7 +184,7 @@ the stack to hold a number of things:
 This allocated chunk of stack is called a [stack
 frame](https://en.wikipedia.org/wiki/Call_stack#STACK-FRAME).
 
-When you call any function (including when `main()` gets called in C):
+When you call any function:
 
 1. A new stack frame is allocated (pushed)
 2. Parameter values are copied from the function arguments to their spots on the
