@@ -323,7 +323,7 @@ its definition, and then return back to the line of code following the call,
 subroutines will also allow us to execute instructions non-sequentially. 
 
 The stack is used to hold the return address used by `RET`, so you **must**
-implement the stack in step 11, first. Then, add subroutine instructions `CALL`
+implement the stack in step 10, first. Then, add subroutine instructions `CALL`
 and `RET`.
 
 * For `CALL`, you will likely have to modify your handler call in `cpu_run()`.
