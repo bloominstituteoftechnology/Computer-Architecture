@@ -21,23 +21,43 @@ class CPU:
     def load(self):
         """Load a program into memory."""
 
-        address = 0
+    #     # # For now, we've just hardcoded a program:
 
-        # For now, we've just hardcoded a program:
+    #     # program = [
+    #     #     # From print8.ls8
+    #     #     0b10000010,  # LDI R0,8
+    #     #     0b00000000,
+    #     #     0b00001000,
+    #     #     0b01000111,  # PRN R0
+    #     #     0b00000000,
+    #     #     0b00000001,  # HLT
+    #     # ]
 
-        program = [
-            # From print8.ls8
-            0b10000010,  # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111,  # PRN R0
-            0b00000000,
-            0b00000001,  # HLT
-        ]
+        # for instruction in program:
+        #     self.ram[address] = instruction
+        #     address += 1
+        try:
+            filename = sys.argv[1]
+            address = 0
+            with open(filename) as f:
+                # Read in its contents line by line
+                for line in f:
+                    # Remove any comments
+                    line = line.split("#")[0]
+                    # Remove whitespace
+                    line = line.strip()
+                    # Skip empty lines
+                    if line == "":
+                        continue
 
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+                    value = int(line, 2)
+
+                    # Set the instruction to memory
+                    self.ram[address] = value
+                    address += 1
+        except FileNotFoundError:
+            print("File not found")
+            sys.exit(2)
 
     def ram_read(self, address):
         # should accept the address to read and return the value stored there.
@@ -53,6 +73,7 @@ class CPU:
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
         # elif op == "SUB": etc
+
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -81,6 +102,7 @@ class CPU:
         # Implement the core of `CPU`'s `run()` method
         self.load()
 
+        # while not self.halted:
         while True:
             # needs to read mem address stores in register PC and store in IR - local variable
             IR = self.ram_read(self.pc)
@@ -92,6 +114,8 @@ class CPU:
             if IR == HLT:
                 # In `run()` in your switch, exit the loop if a `HLT` instruction is encountered regardless of whether or not there are more lines of code in the LS-8 program you loaded
                 print("Exit")
+                # self.halted = True
+                sys.exit(-1)
                 break
             elif IR == PRN:
                 # Add the `PRN` instruction
@@ -102,5 +126,6 @@ class CPU:
                 # Add the `LDI` instruction
                 self.reg[operand_a] = operand_b
                 self.pc += 3
+
             else:
                 print("Error")
