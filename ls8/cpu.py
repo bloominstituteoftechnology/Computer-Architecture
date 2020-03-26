@@ -10,6 +10,7 @@ class CPU:
         self.ram = [0] * 256
         self.pc = 0
         self.reg = [0] * 8
+        self.sp = 0xF4
         pass
 
     def load(self, filename):
@@ -83,25 +84,42 @@ class CPU:
     def run(self):
         """Run the CPU."""
         halt = False
+        LDI = 0b10000010
+        PRN = 0b01000111
+        HLT = 0b00000001
+        MUL = 0b10100010
+        PUSH = 0b01000101
+        POP = 0b01000110
         while halt is False:
             instruction = self.ram[self.pc]
-            if instruction == 0b10000010:
+            if instruction == LDI:
                 register = self.ram[self.pc + 1]
                 value = self.ram[self.pc + 2]
                 self.reg[register] = value
                 self.pc += 3
-                print('tis working')
-            elif instruction == 0b01000111:
+            elif instruction == PRN:
                 register = self.ram[self.pc + 1]
                 print(self.reg[register])
                 self.pc += 2
-            elif instruction == 0b00000001:
+            elif instruction == HLT:
                 halt = True
-            elif instruction == 0b10100010:
+            elif instruction == MUL:
                 value_1 = self.ram[self.pc + 1]
                 value_2 = self.ram[self.pc + 2]
                 self.alu('MUL', value_1, value_2)
                 self.pc += 3
+            elif instruction == PUSH:
+                register = self.ram[self.pc + 1]
+                val = self.reg[register]
+                print(val, 'val')
+                self.sp -= 1
+                self.ram[self.sp] = val
+                self.pc += 2
+            elif instruction == POP:
+                register = self.ram[self.pc + 1]
+                self.reg[register] = self.ram[self.sp]
+                self.sp += 1
+                self.pc += 2
             else:
                 print('instruction not found')
                 halt = True
