@@ -2,11 +2,16 @@
 
 import sys
 # `HLT` instruction handler
-HLT = 1
-# `LDI` instruction handler
-LDI = 130
-# `PRN` instruction handler
-PRN = 71
+# HLT = 1
+# # `LDI` instruction handler
+# LDI = 130
+# # `PRN` instruction handler
+# PRN = 71
+HLT = 0b00000001
+PRN = 0b01000111
+LDI = 0b10000010
+ADD = 0b10100000
+MUL = 0b10100010
 
 
 class CPU:
