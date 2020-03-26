@@ -25,12 +25,27 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        new_cpu = CPU()
+        self.ram = [0] * 256
+        self.register = [0] * 8
+        self.pc = 0
 
+    def ram_read(self, location): 
+        # print(location, self.ram[location])
+        return self.ram[location]
+
+
+    def ram_write(self, address, value):
+        self.ram[address] = value
+
+        
     def load(self):
         """Load a program into memory."""
-        
         address = 0
+
+        # LDI = 0b10000010
+        # EIGHT = 0b00001000
+        # PRINT_NUM = 0b01000111
+        # HALT = 0b00000001
 
         # For now, we've just hardcoded a program:
 
@@ -46,6 +61,7 @@ class CPU:
 
         for instruction in program:
             self.ram[address] = instruction
+            # print('program statements',self.ram[address])
             address += 1
 
 
@@ -54,7 +70,8 @@ class CPU:
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
-        #elif op == "SUB": etc
+        elif op == "SUB": 
+            self.reg[reg_a] -= self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -80,7 +97,33 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
+         
+        
         running = True 
+        IR = self.pc
+
+        ldi = 0b10000010
+        prn = 0b01000111
+        hlt = 0b00000001
 
         while running: 
-            instruction = 
+            # print(instruction, IR)
+            instruction = self.ram_read(IR)
+            op_a = self.ram_read(IR + 1)
+            op_b = self.ram_read(IR + 2)
+            if instruction == ldi: 
+                # print("op_a: ",op_a)
+                # self.ram_read(IR + 2)
+                self.register[op_a] = op_b
+                # print("hello")
+                IR += 3
+            elif instruction == prn: 
+                print(self.register[op_a])
+                IR += 2
+            elif instruction == hlt: 
+                sys.exit(0)
+            else:
+                print(f"Unknown instruction at pc point: {IR}")
+                # print("has exited")
+                sys.exit(1)
+
