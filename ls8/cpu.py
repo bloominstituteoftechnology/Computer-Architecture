@@ -9,14 +9,17 @@ class CPU:
         """Construct a new CPU."""
         self.ram = [0] * 256
         self.reg = [0] * 8
+        self.reg[7] = 0xFF
         self.pc = self.reg[0]
         self.commands = {
             0b00000001: self.hlt,
             0b10000010: self.ldi,
             0b01000111: self.prn,
-            0b10100010: self.mul
+            0b10100010: self.mul,
+            0b01000101: self.push,
+            0b01000110: self.pop
         }
-
+   
     def ram_read(self, address):
         return self.ram[address]
 
@@ -37,6 +40,22 @@ class CPU:
     def mul(self, operand_a, operand_b):
         self.alu("MUL", operand_a, operand_b)
         return (3, True)
+    
+
+    def push (self, operand_a, operand_b):
+        self.reg[7] -= 1
+        sp = self.reg[7]
+        value = self.reg[operand_a]
+        self.ram[sp] = value
+        return (2, True)
+
+
+    def pop (self, operand_a, operand_b):
+        sp = self.reg[7]
+        value = self.ram[sp]
+        self.reg[operand_a] = value
+        self.reg[7] += 1
+        return (2, True)
 
     def load(self, file_name):
         """Load a program into memory."""
@@ -47,8 +66,6 @@ class CPU:
             lines = f.readlines()
             lines = [line for line in lines if line.startswith('0') or line.startswith('1')]
             program = [int(line[:8], 2) for line in lines]
-
-
 
         # program = [
         #     # From print8.ls8
@@ -102,17 +119,29 @@ class CPU:
         """Run the CPU."""
         running = True
 
+        debug_cnt = 0
         while running:
+            
+            debug_cnt = debug_cnt + 1
+            # print(f"Before {debug_cnt}")
+            # self.trace()
+
             ir = self.ram[self.pc]
 
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
 
             try:
+                
                 operation_output = self.commands[ir](operand_a, operand_b)
+                # print(operation_output)
                 running = operation_output[1]
                 self.pc += operation_output[0]
 
-            except:
+                # print(f"After {debug_cnt}")
+                # self.trace()
+
+            except Exception as e:
+                print(e)
                 print(f"command: {ir}")
                 sys.exit()
