@@ -8,8 +8,9 @@ class CPU:
     def __init__(self, filename):
         """Construct a new CPU."""
         self.reg = [0] * 256
-        self.ram = [0] * 16
+        self.ram = [0] * 32
         self.filename = filename
+        self.stack_pointer = 0xF3
     def load(self):
         """Load a program into memory."""
 
@@ -74,9 +75,22 @@ class CPU:
                 register = self.ram[address + 1]
                 address += 2
                 print(self.reg[register])
+            # MUL
             elif instruction == 0b10100010:
                 self.alu("MUL", self.ram[address + 1], self.ram[address + 2])
                 address += 3
+            # PUSH
+            elif instruction == 0b01000101:
+                register = self.ram[address + 1]
+                self.stack_pointer -= 1
+                self.reg[self.stack_pointer] = self.reg[register]
+                address += 2
+            # POP
+            elif instruction == 0b01000110:
+                register = self.ram[address + 1]
+                self.reg[register] = self.reg[self.stack_pointer]
+                self.stack_pointer += 1
+                address += 2
             # HLT
             elif instruction == 0b00000001:
                 break
