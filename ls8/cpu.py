@@ -16,9 +16,11 @@ class CPU:
         ADD = 160
         LDI = 130
         MUL = 162
+        CALL = 80
         PRN = 71
         POP = 70
         PUSH = 69
+        RET = 17
         HLT = 1
         self.branchtable[ADD] = self.op_ADD
         self.branchtable[LDI] = self.op_LDI
@@ -27,6 +29,8 @@ class CPU:
         self.branchtable[HLT] = self.op_HLT
         self.branchtable[PUSH] = self.op_PUSH
         self.branchtable[POP] = self.op_POP
+        self.branchtable[CALL] = self.op_CALL
+        self.branchtable[RET] = self.op_RET
 
     def load(self, file=None):
         """Load a program into memory."""
@@ -62,6 +66,7 @@ class CPU:
 
     def op_ADD(self, reg_a, reg_b):
         self.reg[reg_a] += self.reg[reg_b]
+        self.pc += 3
     def op_LDI(self, reg_a, reg_b):
         self.reg[reg_a] = reg_b
         self.pc += 3
@@ -85,6 +90,13 @@ class CPU:
         self.reg[reg_a] = value
         self.reg[self.sp_address] += 1
         self.pc += 2
+    def op_CALL(self, reg_a, reg_b):
+        self.reg[self.sp_address] -= 1
+        self.ram[self.reg[self.sp_address]] = self.pc + 2
+        self.pc = self.reg[reg_a]
+    def op_RET(self, reg_a, reg_b):
+        self.pc = self.ram[self.reg[self.sp_address]]
+        self.reg[self.sp_address] += 1
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
