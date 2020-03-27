@@ -148,6 +148,11 @@ class CPU:
                 # pc = register[reg]
                 self.pc = self.reg[reg2]
                 # op_pc = True
-
+            elif IR == RET:
+                # pc = memory[register[sp]]
+                self.pc = self.ram[self.reg[SP]]
+                # register[sp] += 1
+                self.reg[SP] += 1
+                # op_pc = True
             else:
                 print("Error")
