@@ -20,6 +20,10 @@ Day 1: Get print8.ls8 running
 
 import sys
 
+fl_e = 0b100 # equal
+fl_l = 0b010 # less than
+fl_g = 0b001 # greater than
+
 class CPU:
     """Main CPU class."""
 
@@ -81,21 +85,13 @@ class CPU:
             self.register[reg_a] += self.reg[reg_b]
         elif op == "SUB": 
             self.register[reg_a] -= self.reg[reg_b]
-        # elif op == "MUL":
-            # self.register[reg_a] = (self.register[reg_a] * self.register[reg_b])
-        # elif op == "CMP": 
-        #     if reg_a == reg_b: 
-        #         fl_e = fl_e + 1
-        #         print(f"{reg_a} is equal to {reg_b}")
-        #         return fl_e
-        #     elif self.register[reg_a] > self.register[reg_b]:
-        #         fl_g = fl_g + 1
-        #         print(f"{reg_a} is bigger than {reg_b}")
-        #         return fl_g
-        #     elif self.register[reg_a] < self.register[reg_b]: 
-        #         fl_l = fl_l + 1
-        #         print(f"{reg_a} is less than {reg_b}")
-        #         return fl_l
+        elif op == "CMP": 
+            if self.register[reg_a] < self.register[reg_b]: 
+                self.fl = fl_l 
+            elif self.register[reg_a] > self.register[reg_b]: 
+                self.fl = fl_g
+            else: 
+                self.fl = fl_e
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -126,10 +122,6 @@ class CPU:
         running = True 
         # FL = 
         IR = self.pc
-
-        fl_e = 0b100
-        fl_l = 0b010
-        fl_g = 0b001
 
         LDI = 0b10000010
         PRN = 0b01000111
