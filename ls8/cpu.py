@@ -193,4 +193,4 @@ class CPU:
                 else:
                     self.pc += 2
             else:
-                print("Error")
+                print("Error ")
