@@ -136,5 +136,16 @@ class CPU:
                 self.reg[SP] += 1
                 self.reg[operand_a] = data
                 self.pc += 2
+            elif IR == CALL:
+                # reg = memory[pc + 1]
+                reg2 = self.reg[operand_a]
+                # register[sp] -= 1
+                self.reg[SP] -= 1
+                # memory[register[sp]] = pc + 2
+                self.ram[self.reg[SP]] = self.pc + 2
+                # pc = register[reg]
+                self.pc = self.reg[reg2]
+                # op_pc = True
+
             else:
                 print("Error")
