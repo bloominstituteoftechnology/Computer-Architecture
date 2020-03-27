@@ -94,7 +94,7 @@ class CPU:
             if debug:
                 self.trace()
             if time() - timing  >= 1:
-                self.reg[7] = 0
+                self.reg[6] = 1
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
             self.ir = self.pc
@@ -104,6 +104,21 @@ class CPU:
             except Exception as e:
                 print("hmmmm ", bin(instruction), e, operand_a, operand_b)
                 exit()
+            masked_interrupts = self.reg[5] & self.reg[6]
+            # for i in range(8):
+            #     interrupt_happened = ((masked_interrupts >> i) & 1) == 1
+            #     if interrupt_happened:
+            #         self.fl[6] = 0
+            #         self.reg[7] -= 1
+            #         self.ram[self.reg[7]] = self.pc 
+            #         self.reg[7] -= 1
+            #         self.ram[self.reg[7]] = self.fl
+            #         for j in range(7):
+            #             self.reg[7] -= 1
+            #             self.ram[self.reg[7]] = self.reg[j]
+            #         self.pc = self.ram[i]
+            #         break
+
         exit()
 
 class Branch:
