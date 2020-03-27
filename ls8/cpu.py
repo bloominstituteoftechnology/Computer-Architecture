@@ -1,6 +1,10 @@
 """CPU functionality."""
 
 import sys
+# reserved ragisters
+SP = 7
+
+# opcodes
 # `HLT` instruction handler
 # HLT = 1
 # # `LDI` instruction handler
