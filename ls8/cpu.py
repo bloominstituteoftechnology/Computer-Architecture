@@ -40,7 +40,18 @@ class CPU:
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
-        #elif op == "SUB": etc
+        elif op == "OR":
+            self.reg[reg_a] = self.reg[reg_a] | self.reg[reg_b]
+        elif op == "XOR":
+            self.reg[reg_a] = self.reg[reg_a] ^ self.reg[reg_b]
+        elif op == "NOT":
+            self.reg[reg_a] = ~self.reg[reg_a]
+        elif op == "SHL":
+            self.reg[reg_a] = self.reg[reg_a] << self.reg[reg_b]
+        elif op == "SHR":
+            self.reg[reg_a] = self.reg[reg_a] >> self.reg[reg_b]
+        elif op == "MOD":
+            self.reg[reg_a] = self.reg[reg_a] % self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -132,7 +143,9 @@ class Branch:
         self.branchtable[0b10101011] = self.handle_XOR
     
     def handle_ADD(self, instruction, operand_a, operand_b):
-        pass
+        self.cpu.alu("ADD", operand_a, operand_b)
+    def handle_ADDI(self, instruction, operand_a, operand_b):
+        self.cpu.reg[operand_a] += operand_b
     def handle_AND(self, instruction, operand_a, operand_b):
         pass
     def handle_CALL(self, instruction, operand_a, operand_b):
@@ -195,15 +208,15 @@ class Branch:
     def handle_LDI(self, instruction, operand_a, operand_b):
         self.cpu.reg[operand_a] = operand_b 
     def handle_MOD (self, instruction, operand_a, operand_b):
-        pass
+        self.cpu.alu("MOD", operand_a, operand_b)
     def handle_MUL(self, instruction, operand_a, operand_b):
         self.cpu.reg[operand_a] = self.cpu.reg[operand_a] * self.cpu.reg[operand_b]
     def handle_NOP (self, instruction, operand_a, operand_b):
         pass
     def handle_NOT (self, instruction, operand_a, operand_b):
-        pass
+        self.cpu.alu("NOT", operand_a, operand_b)
     def handle_OR (self, instruction, operand_a, operand_b):
-        pass
+        self.cpu.alu("OR", operand_a, operand_b)
     def handle_POP(self, instruction, operand_a, operand_b):
         self.cpu.reg[operand_a] = self.cpu.ram[self.cpu.reg[7]]
         self.cpu.reg[7] += 1
@@ -217,15 +230,15 @@ class Branch:
     def handle_RET(self, instruction, operand_a, operand_b):
         pass
     def handle_SHL(self, instruction, operand_a, operand_b):
-        pass
+        self.cpu.alu("SHL", operand_a, operand_b)
     def handle_SHR(self, instruction, operand_a, operand_b):
-        pass
+        self.cpu.alu("SHR", operand_a, operand_b)
     def handle_ST(self, instruction, operand_a, operand_b):
         pass
     def handle_SUB(self, instruction, operand_a, operand_b):
         pass
     def handle_XOR(self, instruction, operand_a, operand_b):
-        pass
+        self.cpu.alu("XOR", operand_a, operand_b)
 
 
 
