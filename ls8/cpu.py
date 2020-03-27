@@ -235,5 +235,8 @@ class CPU:
             elif IR == SHR:
                 self.alu("SHR", operand_a, operand_b)
                 self.pc += 3
+            elif IR == MOD:
+                self.alu("MOD", operand_a, operand_b)
+                self.pc += 3
             else:
                 print("Error")
