@@ -12,6 +12,7 @@ class CPU:
         self.reg = [0] * 8
         self.sp = 0xF4
         self.halt = False
+        self.fl = 0b00000000
         self.jump_table = {}
         self.jump_table[f'{0b10000010}'] = self.LDI
         self.jump_table[f'{0b01000111}'] = self.PRN
@@ -22,6 +23,11 @@ class CPU:
         self.jump_table[f'{0b01000110}'] = self.POP
         self.jump_table[f'{0b01010000}'] = self.CALL
         self.jump_table[f'{0b00010001}'] = self.RET
+        self.jump_table[f'{0b10100111}'] = self.CMP
+        self.jump_table[f'{0b01010110}'] = self.JNE
+        self.jump_table[f'{0b01010101}'] = self.JEQ
+        self.jump_table[f'{0b01010100}'] = self.JEQ
+
        
 
     def load(self, filename):
@@ -141,6 +147,36 @@ class CPU:
         self.pc = self.ram[self.sp]
         self.sp += 1
     
+    def CMP(self):
+        register_1 = self.ram[self.pc + 1]
+        value_1 = self.reg[register_1]
+        register_2 = self.ram[self.pc + 2]
+        value_2 = self.reg[register_2]
+        if value_1 == value_2:
+            self.fl = 0b00000001
+        elif value_1 > value_2:
+            self.fl = 0b00000010
+        elif value_1 < value_2:
+            self.fl = 0b00000100
+        self.pc += 3
+
+    def JEQ(self):
+        if self.fl == 0b00000001:
+            register = self.ram[self.pc + 1]
+            self.pc = self.reg[register]
+        else:
+            self.pc += 2
+    
+    def JNE(self):
+        if self.fl != 0b00000001:
+            register = self.ram[self.pc + 1]
+            self.pc = self.reg[register]
+        else:
+            self.pc += 2
+    
+    def JMP(self):
+        register = self.ram[self.pc + 1]
+        self.pc = self.reg[register]
     def run(self):
         """Run the CPU."""
        
