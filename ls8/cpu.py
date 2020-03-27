@@ -73,6 +73,17 @@ class CPU:
         # elif op == "SUB": etc
         elif op == "MUL":
             self.reg[reg_a] *= self.reg[reg_b]
+        # Add the `CMP` instruction This is an instruction handled by the ALU.
+        elif op == "CMP":
+            # If they are equal, set the Equal E flag to 1, otherwise set it to 0.
+            if self.reg[reg_a] == self.reg[reg_b]:
+                self.E = 1
+            # If registerA is less than registerB, set the Less-than L flag to 1, otherwise set it to 0.
+            elif self.reg[reg_a] < self.reg[reg_b]:
+                self.L = 1
+            # If registerA is greater than registerB, set the Greater-than G flag to 1, otherwise set it to 0.
+            elif self.reg[reg_a] > self.reg[reg_b]:
+                self.G = 1
         else:
             raise Exception("Unsupported ALU operation")
 
