@@ -110,7 +110,6 @@ class CPU:
             if IR == HLT:
                 # In `run()` in your switch, exit the loop if a `HLT` instruction is encountered regardless of whether or not there are more lines of code in the LS-8 program you loaded
                 print("Exit")
-
                 break
             elif IR == PRN:
                 # Add the `PRN` instruction
@@ -133,9 +132,9 @@ class CPU:
                 self.ram_write(data, self.reg[SP])
                 self.pc += 2
             elif IR == POP:
-                val = self.ram_read(self.reg[SP])
+                data = self.ram_read(self.reg[SP])
                 self.reg[SP] += 1
-                self.reg[operand_a] = val
+                self.reg[operand_a] = data
                 self.pc += 2
             else:
                 print("Error")
