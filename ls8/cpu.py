@@ -50,9 +50,10 @@ class CPU:
         from run() if you need help debugging.
         """
 
+        print(self.fl)
         print(f"TRACE: %02X | %02X %02X %02X |" % (
             self.pc,
-            #self.fl,
+            # self.fl,
             #self.ie,
             self.ram_read(self.pc),
             self.ram_read(self.pc + 1),
@@ -86,7 +87,7 @@ class CPU:
             try:
                 handler.run(instruction, operand_a, operand_b)
             except Exception as e:
-                print("hmmmm ", instruction, e)
+                print("hmmmm ", bin(instruction), e, operand_a, operand_b)
                 exit()
         exit()
 
@@ -98,6 +99,7 @@ class Branch:
         self.branchtable[0b10100000] = self.handle_ADD
         self.branchtable[0b10101000] = self.handle_AND
         self.branchtable[0b01010000] = self.handle_CALL
+        self.branchtable[0b10100111] = self.handle_CMP
         self.branchtable[0b01100110] = self.handle_DEC 
         self.branchtable[0b10100011] = self.handle_DIV
         self.branchtable[0b00000001] = self.handle_HLT                              
@@ -137,6 +139,23 @@ class Branch:
         self.cpu.reg[7] -= 1
         self.cpu.ram[self.cpu.reg[7]] = operand_a
         #TODO
+    def handle_CMP (self, instruction, operand_a, operand_b):
+        reg_a = self.cpu.reg[operand_a]
+        reg_b = self.cpu.reg[operand_b]
+        if reg_a == reg_b:
+            self.cpu.fl[7] = 1
+        else:
+            self.cpu.fl[7] = 0
+
+        if reg_a < reg_b:
+            self.cpu.fl[5] = 1
+        else:
+            self.cpu.fl[5] = 0
+
+        if reg_a > reg_b:
+            self.cpu.fl[6] = 1
+        else:
+            self.cpu.fl[6] = 0
     def handle_DEC (self, instruction, operand_a, operand_b):
         pass
     def handle_DIV (self, instruction, operand_a, operand_b):
@@ -152,7 +171,10 @@ class Branch:
     def handle_IRET(self, instruction, operand_a, operand_b):
         pass
     def handle_JEQ(self, instruction, operand_a, operand_b):
-        pass
+        if self.cpu.fl[7]:
+            self.cpu.pc = operand_a
+        else:
+            self.cpu.pc += 2
     def handle_JGE(self, instruction, operand_a, operand_b):
         pass
     def handle_JGT (self, instruction, operand_a, operand_b):
@@ -162,9 +184,12 @@ class Branch:
     def handle_JLT (self, instruction, operand_a, operand_b):
         pass
     def handle_JMP (self, instruction, operand_a, operand_b):
-        pass
+        self.cpu.pc = self.cpu.reg[operand_a]
     def handle_JNE (self, instruction, operand_a, operand_b):
-        pass
+        if not self.cpu.fl[7]:
+            self.cpu.pc = operand_a
+        else:
+            self.cpu.pc += 2
     def handle_LD (self, instruction, operand_a, operand_b):
         pass
     def handle_LDI(self, instruction, operand_a, operand_b):
@@ -182,7 +207,6 @@ class Branch:
     def handle_POP(self, instruction, operand_a, operand_b):
         self.cpu.reg[operand_a] = self.cpu.ram[self.cpu.reg[7]]
         self.cpu.reg[7] += 1
-        # TODO
     def handle_PRA(self, instruction, operand_a, operand_b):
         pass
     def handle_PRN(self, instruction, operand_a, operand_b):
@@ -206,15 +230,20 @@ class Branch:
 
 
     def run(self, instruction, OP1, OP2):
-        # run instruction
-        self.branchtable[instruction](instruction, OP1, OP2)
-        
-        # increment program counter if necessary
-        if instruction & 0b00010000 == 0b00000000:
-            if instruction < 64:
-                self.cpu.pc += 1
-            if instruction > 64 and instruction <= 127:
-                self.cpu.pc += 2
-            if instruction > 127:
-                self.cpu.pc += 3
+        try:
+            # run instruction
+            # print("input:", bin(instruction), OP1, OP2)
+            self.branchtable[instruction](instruction, OP1, OP2)
+            
+            # increment program counter if necessary
+            if instruction & 0b00010000 == 0b00000000:
+                if instruction < 64:
+                    self.cpu.pc += 1
+                if instruction > 64 and instruction <= 127:
+                    self.cpu.pc += 2
+                if instruction > 127:
+                    self.cpu.pc += 3
+        except Exception as e:
+            print("exception:", e)
+            exit()
 
