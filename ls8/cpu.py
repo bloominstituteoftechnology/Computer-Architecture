@@ -172,7 +172,7 @@ class Branch:
         pass
     def handle_JEQ(self, instruction, operand_a, operand_b):
         if self.cpu.fl[7]:
-            self.cpu.pc = operand_a
+            self.cpu.pc = self.cpu.reg[operand_a]
         else:
             self.cpu.pc += 2
     def handle_JGE(self, instruction, operand_a, operand_b):
@@ -187,7 +187,7 @@ class Branch:
         self.cpu.pc = self.cpu.reg[operand_a]
     def handle_JNE (self, instruction, operand_a, operand_b):
         if not self.cpu.fl[7]:
-            self.cpu.pc = operand_a
+            self.cpu.pc = self.cpu.reg[operand_a]
         else:
             self.cpu.pc += 2
     def handle_LD (self, instruction, operand_a, operand_b):
