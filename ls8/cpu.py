@@ -173,6 +173,7 @@ class CPU:
                 # op_pc = True
             elif IR == CMP:
                 self.alu("CMP", operand_a, operand_b)
+                self.pc += 3
             elif IR == JMP:
                 # Jump to the address stored in the given register.
                 # Set the PC to the address stored in the given register.
