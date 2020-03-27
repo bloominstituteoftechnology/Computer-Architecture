@@ -18,7 +18,7 @@ class CPU:
         self.ram = [0]*256
         self.reg = [0]*8
         self.pc = 0    # program counter: address of the currently executing instruction
-    #    self.fl = 0     # flags
+        self.ir = 0     # flags
         self.sp = 7     # represents the 8th register
         self.Flags = [0]*8
 
@@ -94,14 +94,7 @@ class CPU:
         self.ram[MAR]=MDR
         # so we will move the stuff from MAR TO MDR
 
-# beautifuly the run function:
 
-    # def run(self):
-    #     ir = HLT
-    #     self.branchtable[ir]
-    #
-    #     ir = LDI
-    #     self.branchtable[ir]
     def run(self):
         """Run the CPU."""
 
@@ -111,12 +104,20 @@ class CPU:
         HLT=0b00000001
         PRN=0b01000111
         MUL=0b10100010
-        ADD=0b10100000
         PUSH=0b01000101
         POP=0b01000110
         CALL=0b01010000
         RET=0b00010001
         ADD=0b10100000
+        CMP=0b10100111
+        JMP=0b01010100
+        JEQ=0b01010101
+        JNE=0b01010110
+        L= 0
+        E= 0
+        G= 0
+
+
         while Running:
             # read the memory address sotred in pc and store it in Instruction Register
             Command=self.ram_read(self.pc)
@@ -124,28 +125,24 @@ class CPU:
             #print("------")
             # load immediate, store avalue in a register
             if Command == LDI:
+                # self.trace()
                 operand_a = self.ram_read(self.pc+1)
                 operand_b = self.ram_read(self.pc+2)
-                # registers
-                # sets a specific register to a specified value
-                self.reg[operand_a]=operand_b
-                #print("LDI", self.reg)
+                self.reg[operand_a]=operand_b   # sets a specific register to a specified value
                 self.pc+=3
                 # print(operand_a)
-
+            elif Command==HLT:
+                Running=False
+                self.pc+=1
             # halt the CPU and exit the emulator
             elif Command==PRN:
                 # PRN: adding
                 reg = self.ram[self.pc+1]
+                #print(num)
                 # print(self.reg[reg])  # prints 8 to the console.
+                print(self.reg[reg])
                 self.pc+=2
-            elif Command==HLT:
-                Running=False
-                self.pc+=1
-
             # prints the numeric
-
-
             elif Command==MUL:
                 register_a = self.ram_read(self.pc+1)
                 register_b = self.ram_read(self.pc+2)
@@ -166,90 +163,86 @@ class CPU:
             #     self.reg[register_a] += self.reg[register_b]
             #     self.pc += 3
 
-            # System stack ..
-            elif Command==PUSH:
-                #print("PUSH")
-                reg=self.ram[self.pc+1]
-                #print(reg)
-                val=self.reg[reg]
-                self.sp-=1
-                self.ram[self.reg[self.sp]]= val
-                self.pc+=2
+            elif Command == PUSH:
+                # a number from 0 to 7
+                #self.trace()
+                reg = self.ram[self.pc+1]
+                # look in the identified register and find the value
+                val = self.reg[reg]
+                # decriment the value i.e. memory address by 1
+                self.reg[self.sp] -=1
+                # copy the value from the register into the memory
+                self.ram[self.reg[self.sp]] = val
+                self.pc += 2 # because we had one argument
 
-            elif Command==POP:
-                #print("POP")
-                reg=self.ram[self.pc+1]
-                #print(reg)
-                val=self.ram[self.reg[self.sp]]
-                self.reg[reg]=val
-                self.reg[self.sp] += 1
-                self.pc+=2
-                print(val)
+            elif Command == POP:
+                reg = self.ram[self.pc+1]     # memory of the register holding our SP
+                val = self.ram[self.reg[self.sp]]    # register number 7
+                self.reg[reg] = val    # copy that value into register that we are pointing at
+                self.reg[self.sp] += 1    # incrememnt the stock pointer:
+                # print(val)
+                self.pc += 2
 
-            # elif Command == PUSH:
-            #     # look at the opcode argument
-            #     # a number from 0 to 7
-            #     reg = self.ram[self.pc+1]
-            #     # look in the identified register and find the value
-            #     val = self.reg[reg]
-            #     # self.reg[self.sp]
-            #     # decriment the value i.e. memory address by 1
-            #     self.sp -=1
-            #     # copy the value from the register into the memory
-            #     self.ram[self.reg[self.sp]] = val
-            #     self.pc += 2 # because we had one argument
-            #
-            # elif Command == POP:
-            #     # pop works the same way but in reverse
-            #     # look at the memory
-            #     #print("POP")
-            #     reg = self.ram[self.pc+1]
-            #     # memory of the register holding our SP
-            #     val = self.ram[self.reg[self.sp]]    # register number 7
-            #     #print(val)
-            #     # copy that value into register that we are pointing at
-            #     self.reg[reg] = val
-            #
-            #     # incrememnt the stock pointer:
-            #     self.reg[self.sp] += 1
-            #     # print(val)
-            #     self.pc += 2
-            #     print(self.reg[reg])
-                #print(val)
+            elif Command == CALL:
+                val = self.pc+2
+                reg = self.ram[self.pc+1]
+                sub_address = self.reg[reg]
+                # decriment the stack pointer
+                self.reg[self.sp]-=1
+                self.ram[self.reg[self.sp]]=val
+                # update the address
+                self.pc=sub_address
+            elif Command == ADD:
+                self.alu("ADD", self.ram_read(self.pc+1), self.ram_read(self.pc+2))
+                self.pc+=3
 
-            # elif Command == CALL:
-            #     # the address of the instruction directly after CALL is pushed into the stack.
-            #     # decrement the stack pointer
-            #     # self.reg[self.sp] -=1 # storing address on the stack.
-            #     # # memory from register is self.pc +2 because we are at the pointer
-            #     # # we need to move the counter to 0 and then to HALT
-            #     # self.ram[self.rag[self.sp]] = self.pc+2
-            #     # # the PC is set to the address
-            #     # reg = self.ram[self.pc+1]
-            #     # self.pc = self.ram[reg]
-            #     # this allows us to return to where we left off when the subroutine finishes executing
-            #     # The PC is set to the address stored in the given register.
-            #     # We jump to that location in ram and execute the first instruction in the subroutine.
-            #     # the PC can move forward and abckwards from its current location.
-            #     val = self.pc+2
-            #     reg = self.ram[self.pc+1]
-            #     sub_address = self.reg[reg]
-            #     # decriment the stack pointer
-            #     self.reg[self.sp]-=1
-            #     self.ram[self.reg[self.pc]]=val
-                # # update the address
-                # self.pc=sub_address
-            # elif Command == ADD:
-            #     self.alu("ADD", self.ram_read(self.pc+1), self.ram_read(self.pc+2))
-            #     self.pc+=3
-            #
-            # elif Command == RET:
-            #     return_add = self.reg[self.sp]
-            #     self.pc = self.ram[return_add]
-            #     # increment the sp
-            #     self.reg[self.sp] +=1
+            elif Command == RET:
+                return_add = self.reg[self.sp]
+                self.pc = self.ram[return_add]
+                # increment the sp
+                self.reg[self.sp] +=1
 
+                # get the values froms the ram and read it into register
+                # registerA = self.reg[self.ram_read(self.pc+1)]
+                # registerB = self.reg[self.ram_read(self.pc+2)]
+                # if A is less than B, set L flag to 1
+            elif Command==CMP:
+                self.Flags = CMP
+                if self.reg[self.ram_read(self.pc+1)] < self.reg[self.ram_read(self.pc+2)]:
+                    L=1
+                    G=0
+                    E=0
+                    self.Flags=CMP-0b00000100
+                elif self.reg[self.ram_read(self.pc+1)] > self.reg[self.ram_read(self.pc+2)]:
+                    G=1
+                    L=0
+                    E=0
+                    self.Flags=CMP-0b00000010
+                elif self.reg[self.ram_read(self.pc+1)] ==self.reg[self.ram_read(self.pc+2)]:
+                    E=1
+                    L=0
+                    G=0
+                    self.Flags=CMP-0b00000001
+                self.pc+=3
+#                self.trace()
+                # takes in the register
+                # jumps to the address stored in the given register
+                # set the PC to the address stored in the given register.
+            elif Command==JMP:
+                self.pc = self.reg[self.ram_read(self.pc+1)]
 
-        else:
-            print(f"Unknown Instruction: {Command}")
-            sys.exit(1)
+            elif Command==JEQ:
+                if E==1:
+                    self.pc = self.reg[self.ram_read(self.pc+1)]
+                else:
+                    self.pc+=2
+
+            elif Command==JNE:
+                if E==0:
+                    self.pc = self.reg[self.ram_read(self.pc+1)]
+                else:
+                    self.pc+=2
+
+            # else:
+            #     print(f"Unknown Instruction: {Command}")
+            #     sys.exit(1)
