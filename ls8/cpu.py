@@ -108,6 +108,7 @@ class Branch:
         self.cpu = cpu
         self.branchtable = {}
         self.branchtable[0b10100000] = self.handle_ADD
+        self.branchtable[0b10110000] = self.handle_ADDI
         self.branchtable[0b10101000] = self.handle_AND
         self.branchtable[0b01010000] = self.handle_CALL
         self.branchtable[0b10100111] = self.handle_CMP
@@ -234,7 +235,7 @@ class Branch:
     def handle_SHR(self, instruction, operand_a, operand_b):
         self.cpu.alu("SHR", operand_a, operand_b)
     def handle_ST(self, instruction, operand_a, operand_b):
-        pass
+        self.cpu.ram[self.cpu.reg[operand_a]] = self.cpu.reg[operand_b]
     def handle_SUB(self, instruction, operand_a, operand_b):
         pass
     def handle_XOR(self, instruction, operand_a, operand_b):
