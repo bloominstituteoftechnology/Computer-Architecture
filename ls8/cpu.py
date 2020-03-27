@@ -28,6 +28,7 @@ class CPU:
         self.ram = [0] * 256
         self.register = [0] * 8
         self.pc = 0
+        self.fl = 0b00000001
 
     def ram_read(self, location): 
         # print(location, self.ram[location])
@@ -72,11 +73,29 @@ class CPU:
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
+        # fl_e = 0
+        # fl_l = 0
+        # fl_g = 0
 
         if op == "ADD":
-            self.reg[reg_a] += self.reg[reg_b]
+            self.register[reg_a] += self.reg[reg_b]
         elif op == "SUB": 
-            self.reg[reg_a] -= self.reg[reg_b]
+            self.register[reg_a] -= self.reg[reg_b]
+        # elif op == "MUL":
+            # self.register[reg_a] = (self.register[reg_a] * self.register[reg_b])
+        # elif op == "CMP": 
+        #     if reg_a == reg_b: 
+        #         fl_e = fl_e + 1
+        #         print(f"{reg_a} is equal to {reg_b}")
+        #         return fl_e
+        #     elif self.register[reg_a] > self.register[reg_b]:
+        #         fl_g = fl_g + 1
+        #         print(f"{reg_a} is bigger than {reg_b}")
+        #         return fl_g
+        #     elif self.register[reg_a] < self.register[reg_b]: 
+        #         fl_l = fl_l + 1
+        #         print(f"{reg_a} is less than {reg_b}")
+        #         return fl_l
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -105,28 +124,62 @@ class CPU:
          
         
         running = True 
+        # FL = 
         IR = self.pc
 
-        ldi = 0b10000010
-        prn = 0b01000111
-        hlt = 0b00000001
+        fl_e = 0b100
+        fl_l = 0b010
+        fl_g = 0b001
+
+        LDI = 0b10000010
+        PRN = 0b01000111
+        HLT = 0b00000001
+        MUL = 0b10100010
+        CMP = 0b10100111
+        JEQ = 0b01010101
+        JMP = 0b01010100
+        JNE = 0b01010110
 
         while running: 
             # print(instruction, IR)
             instruction = self.ram_read(IR)
             op_a = self.ram_read(IR + 1)
             op_b = self.ram_read(IR + 2)
-            if instruction == ldi: 
+            if instruction == LDI: 
                 # print("op_a: ",op_a)
                 # self.ram_read(IR + 2)
                 self.register[op_a] = op_b
                 # print("hello")
                 IR += 3
-            elif instruction == prn: 
+            elif instruction == PRN: 
                 print(self.register[op_a])
                 IR += 2
-            elif instruction == hlt: 
+            elif instruction == HLT: 
                 sys.exit(0)
+            # elif instruction == CMP: 
+            #     if self.register[op_a] == self.register[op_b]: 
+            #         print(f"{self.register[op_a]}is equal to {self.register[op_b]}")
+            # elif self.register[op_a] > self.register[op_b]:
+            #     fl_g = fl_g + 1
+            #     print(f"{op_a} is bigger than {op_b}")
+            #     return fl_g
+            # elif self.register[op_a] < self.register[op_b]: 
+            #     fl_l = fl_l + 1
+            #     print(f"{op_a} is less than {op_b}")
+            #     return fl_l
+            elif instruction == JMP: 
+                self.pc = self.register[op_a]
+            elif instruction == JEQ: 
+                if self.fl & fl_e: 
+                    self.pc = self.register[op_a]
+                else: 
+                    self.pc += 2
+            elif instruction == JNE: 
+                if not self.fl & fl_e: 
+                    self.pc = self.register[op_a]
+                else: 
+                    self.pc += 2
+
             else:
                 print(f"Unknown instruction at pc point: {IR}")
                 # print("has exited")
