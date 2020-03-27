@@ -11,7 +11,18 @@ class CPU:
         self.pc = 0
         self.reg = [0] * 8
         self.sp = 0xF4
-        pass
+        self.halt = False
+        self.jump_table = {}
+        self.jump_table[f'{0b10000010}'] = self.LDI
+        self.jump_table[f'{0b01000111}'] = self.PRN
+        self.jump_table[f'{0b00000001}'] = self.HLT
+        self.jump_table[f'{0b10100000}'] = self.ADD
+        self.jump_table[f'{0b10100010}'] = self.MUL
+        self.jump_table[f'{0b01000101}']= self.PUSH
+        self.jump_table[f'{0b01000110}'] = self.POP
+        self.jump_table[f'{0b01010000}'] = self.CALL
+        self.jump_table[f'{0b00010001}'] = self.RET
+       
 
     def load(self, filename):
         """Load a program into memory."""
@@ -81,48 +92,68 @@ class CPU:
 
         print()
 
+    def LDI(self):
+        register = self.ram[self.pc + 1]
+        value = self.ram[self.pc + 2]
+        self.reg[register] = value
+        self.pc += 3
+    
+    def PRN(self):
+        register = self.ram[self.pc + 1]
+        print(self.reg[register])
+        self.pc += 2
+
+    def HLT(self):
+        self.halt = True
+        
+    def ADD(self):
+        value_1 = self.ram[self.pc + 1]
+        value_2 = self.ram[self.pc + 2]
+        self.alu('ADD', value_1, value_2)
+        self.pc += 3
+    def MUL(self):
+        value_1 = self.ram[self.pc + 1]
+        value_2 = self.ram[self.pc + 2]
+        self.alu('MUL', value_1, value_2)
+        self.pc += 3
+    
+    def PUSH(self):
+        register = self.ram[self.pc + 1]
+        val = self.reg[register]
+        self.sp -= 1
+        self.ram[self.sp] = val
+        self.pc += 2
+    
+    def POP(self):
+        register = self.ram[self.pc + 1]
+        self.reg[register] = self.ram[self.sp]
+        self.sp += 1
+        self.pc += 2
+
+    def CALL(self):
+        return_address = self.pc + 2
+        self.sp -= 1
+        register = self.ram[self.pc + 1]
+        self.ram[self.sp] = return_address
+        self.pc = self.reg[register]
+
+    def RET(self):
+        self.pc = self.ram[self.sp]
+        self.sp += 1
+    
     def run(self):
         """Run the CPU."""
-        halt = False
-        LDI = 0b10000010
-        PRN = 0b01000111
-        HLT = 0b00000001
-        MUL = 0b10100010
-        PUSH = 0b01000101
-        POP = 0b01000110
-        while halt is False:
+       
+        
+
+        while self.halt is False:
             instruction = self.ram[self.pc]
-            if instruction == LDI:
-                register = self.ram[self.pc + 1]
-                value = self.ram[self.pc + 2]
-                self.reg[register] = value
-                self.pc += 3
-            elif instruction == PRN:
-                register = self.ram[self.pc + 1]
-                print(self.reg[register])
-                self.pc += 2
-            elif instruction == HLT:
-                halt = True
-            elif instruction == MUL:
-                value_1 = self.ram[self.pc + 1]
-                value_2 = self.ram[self.pc + 2]
-                self.alu('MUL', value_1, value_2)
-                self.pc += 3
-            elif instruction == PUSH:
-                register = self.ram[self.pc + 1]
-                val = self.reg[register]
-                print(val, 'val')
-                self.sp -= 1
-                self.ram[self.sp] = val
-                self.pc += 2
-            elif instruction == POP:
-                register = self.ram[self.pc + 1]
-                self.reg[register] = self.ram[self.sp]
-                self.sp += 1
-                self.pc += 2
+        
+            if f'{instruction}' in self.jump_table:
+                self.jump_table[f'{instruction}']()
             else:
-                print('instruction not found')
-                halt = True
+                print('instruction not found', instruction)
+                self.halt = True
      
 
 
