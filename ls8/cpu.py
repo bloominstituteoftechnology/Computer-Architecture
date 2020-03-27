@@ -175,5 +175,12 @@ class CPU:
                 # Jump to the address stored in the given register.
                 # Set the PC to the address stored in the given register.
                 self.pc = self.reg[operand_a]
+            elif IR == JEQ:
+                # If equal flag is set (true),
+                if self.E is 1:
+                    # jump to the address stored in the given register.
+                    self.pc = self.reg[operand_a]
+                else:
+                    self.pc += 2
             else:
                 print("Error")
