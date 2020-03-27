@@ -168,5 +168,7 @@ class CPU:
                 # register[sp] += 1
                 self.reg[SP] += 1
                 # op_pc = True
+            elif IR == CMP:
+                self.alu("CMP", operand_a, operand_b)
             else:
                 print("Error")
