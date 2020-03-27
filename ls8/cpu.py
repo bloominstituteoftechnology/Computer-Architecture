@@ -127,6 +127,11 @@ class CPU:
                 data = self.reg[operand_a]
                 self.reg[SP] -= 1
                 self.ram_write(data, self.reg[SP])
-
+                self.pc += 2
+            elif IR == POP:
+                val = self.ram_read(self.reg[SP])
+                self.reg[SP] += 1
+                self.reg[operand_a] = val
+                self.pc += 2
             else:
                 print("Error")
