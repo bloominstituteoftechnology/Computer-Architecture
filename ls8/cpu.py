@@ -196,5 +196,10 @@ class CPU:
                     self.pc = self.reg[operand_a]
                 else:
                     self.pc += 2
+
+            # stretch
+            elif IR == AND:
+                self.alu("ADD", operand_a, operand_b)
+                self.pc += 3
             else:
                 print("Error")
