@@ -205,5 +205,8 @@ class CPU:
             elif IR == AND:
                 self.alu("ADD", operand_a, operand_b)
                 self.pc += 3
+            elif IR == OR:
+                self.alu("OR", operand_a, operand_b)
+                self.pc += 3
             else:
                 print("Error")
