@@ -62,7 +62,7 @@ class CPU:
         """Run the CPU."""
 
         address = 0
-        while address < len(self.ram) - 1:
+        while True:
             instruction = self.ram[address]
             # LDI
             if instruction == 0b10000010:
@@ -75,6 +75,10 @@ class CPU:
                 register = self.ram[address + 1]
                 address += 2
                 print(self.reg[register])
+            # ADD
+            elif instruction == 0b10100000:
+                self.alu("ADD", self.ram[address + 1], self.ram[address + 2])
+                address += 3
             # MUL
             elif instruction == 0b10100010:
                 self.alu("MUL", self.ram[address + 1], self.ram[address + 2])
@@ -91,6 +95,15 @@ class CPU:
                 self.reg[register] = self.reg[self.stack_pointer]
                 self.stack_pointer += 1
                 address += 2
+            # CALL
+            elif instruction == 0b01010000:
+                self.stack_pointer -= 1
+                self.reg[self.stack_pointer] = address + 2
+                address = self.reg[self.ram[address + 1]]
+            # RET
+            elif instruction == 0b00010001:
+                address = self.reg[self.stack_pointer]
+                self.stack_pointer += 1
             # HLT
             elif instruction == 0b00000001:
                 break
