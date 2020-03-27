@@ -148,29 +148,21 @@ class CPU:
                 IR += 2
             elif instruction == HLT: 
                 sys.exit(0)
-            # elif instruction == CMP: 
-            #     if self.register[op_a] == self.register[op_b]: 
-            #         print(f"{self.register[op_a]}is equal to {self.register[op_b]}")
-            # elif self.register[op_a] > self.register[op_b]:
-            #     fl_g = fl_g + 1
-            #     print(f"{op_a} is bigger than {op_b}")
-            #     return fl_g
-            # elif self.register[op_a] < self.register[op_b]: 
-            #     fl_l = fl_l + 1
-            #     print(f"{op_a} is less than {op_b}")
-            #     return fl_l
+            elif instruction == CMP: 
+                self.alu("CMP", op_a, op_b)
+                IR += 3
             elif instruction == JMP: 
-                self.pc = self.register[op_a]
+                IR = self.register[op_a]
             elif instruction == JEQ: 
                 if self.fl & fl_e: 
-                    self.pc = self.register[op_a]
+                    IR = self.register[op_a]
                 else: 
-                    self.pc += 2
+                    IR += 2
             elif instruction == JNE: 
                 if not self.fl & fl_e: 
-                    self.pc = self.register[op_a]
+                    IR = self.register[op_a]
                 else: 
-                    self.pc += 2
+                    IR += 2
 
             else:
                 print(f"Unknown instruction at pc point: {IR}")
