@@ -60,6 +60,34 @@ class CPU:
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
         #elif op == "SUB": etc
+        if op == "AND":
+            if reg_a == 1 and reg_b == 1:
+                return True
+            else:
+                return False
+        if op =="OR":
+            if reg_a == 1 and reg_b ==0:
+                return True
+            elif reg_a == 0 and reg_b == 1:
+                return True
+            elif reg_a == 1 and reg_b == 1:
+                return True
+            else:
+                return False
+        if op =="XOR":
+            if reg_a==1 and reg_b ==0:
+                return True
+            if reg_a==0 and reg_b ==1:
+                return True
+            else:
+                return False
+
+        if op =="NOR":
+            if reg_a==0 and reg_b==0:
+                return True
+            else:
+                return False 
+
         else:
             raise Exception("Unsupported ALU operation")
 
