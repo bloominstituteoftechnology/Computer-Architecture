@@ -24,6 +24,7 @@ class CPU:
         self.ram = [0] * 256
         self.reg = [0] * 8
         self.pc = 0
+        self.reg[SP] = 0XF4
 
     def load(self):
         """Load a program into memory."""
