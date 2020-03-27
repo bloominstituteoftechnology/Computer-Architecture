@@ -38,7 +38,7 @@ class CPU:
         self.ram[address] = value
 
         
-    def load(self):
+    def load(self, file_name):
         """Load a program into memory."""
         address = 0
 
@@ -47,17 +47,22 @@ class CPU:
         # PRINT_NUM = 0b01000111
         # HALT = 0b00000001
 
+        with open(file_name) as f: 
+            lines = f.readlines()
+            lines = [line for line in lines if line.startswith('0') or line.startswith('1')]
+            program = [int(line[:8], 2) for line in lines]
+
         # For now, we've just hardcoded a program:
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+        # program = [
+        #     # From print8.ls8
+        #     0b10000010, # LDI R0,8
+        #     0b00000000,
+        #     0b00001000,
+        #     0b01000111, # PRN R0
+        #     0b00000000,
+        #     0b00000001, # HLT
+        # ]
 
         for instruction in program:
             self.ram[address] = instruction
