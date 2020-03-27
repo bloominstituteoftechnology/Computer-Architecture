@@ -96,6 +96,9 @@ class CPU:
         # stretch
         elif op == "AND":
             self.reg[reg_a] &= self.reg[reg_b]
+        elif op == "OR":
+            self.reg[reg_a] |= self.reg[reg_b]
+
         else:
             raise Exception("Unsupported ALU operation")
 
