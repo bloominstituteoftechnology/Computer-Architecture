@@ -123,5 +123,10 @@ class CPU:
             elif IR == MUL:
                 self.alu("MUL", operand_a, operand_b)
                 self.pc += 3
+            elif IR == PUSH:
+                data = self.reg[operand_a]
+                self.reg[SP] -= 1
+                self.ram_write(data, self.reg[SP])
+
             else:
                 print("Error")
