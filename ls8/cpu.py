@@ -72,8 +72,10 @@ class CPU:
 
     def run(self, debug=False):
         """Run the CPU."""
+        global running
         running = True
 
+        handler = Branch(cpu=self)
         while running == True:
             if debug:
                 self.trace()
@@ -81,88 +83,138 @@ class CPU:
             operand_b = self.ram_read(self.pc + 2)
             self.ir = self.pc
             instruction = self.ram[self.ir]
-            if instruction == 0b10100000: 
-                pass   #ADD
-            elif instruction == 0b10101000: 
-                pass   #AND
-            elif instruction == 0b01010000: 
-                pass   #CALL register
-            elif instruction == 0b01100110: 
-                pass   #DEC
-            elif instruction == 0b10100011: 
-                pass   #DIV
-            elif instruction == 0b00000001:         #HLT
-                print("quit")
-                running = False                                 
-            elif instruction == 0b01100101: 
-                pass   #INC
-            elif instruction == 0b01010010: 
-                pass   #INT
-            elif instruction == 0b00010011: 
-                pass   #IRET
-            elif instruction == 0b01010101: 
-                pass   #JEQ
-            elif instruction == 0b01011010: 
-                pass   #JGE
-            elif instruction == 0b01010111: 
-                pass   #JGT
-            elif instruction == 0b01011001: 
-                pass   #JLE
-            elif instruction == 0b01011000: 
-                pass   #JLT
-            elif instruction == 0b01010100: 
-                pass   #JMP
-            elif instruction == 0b01010110: 
-                pass   #JNE
-            elif instruction == 0b10000011: 
-                pass   #LD
-            elif instruction == 0b10000010:         #LDI
-                self.reg[operand_a] = operand_b                 
-            elif instruction == 0b10100100: 
-                pass   #MOD
-            elif instruction == 0b10100010:         #MUL
-                self.reg[operand_a] = self.reg[operand_a] * self.reg[operand_b]     
-            elif instruction == 0b00000000: 
-                pass   #NOP
-            elif instruction == 0b01101001: 
-                pass   #NOT
-            elif instruction == 0b10101010: 
-                pass   #OR
-            elif instruction == 0b01000110:         #POP
-                self.reg[operand_a] = self.ram[self.reg[7]]
-                self.reg[7] += 1
-            elif instruction == 0b01001000: 
-                pass   #PRA
-            elif instruction == 0b01000111:         #PRN
-                print(self.reg[operand_a])                      
-            elif instruction == 0b01000101:         #PUSH 
-                self.reg[7] -= 1
-                self.ram[self.reg[7]] = self.reg[operand_a]  
-            elif instruction == 0b00010001: 
-                pass   #RET
-            elif instruction == 0b10101100: 
-                pass   #SHL
-            elif instruction == 0b10101101: 
-                pass   #SHR
-            elif instruction == 0b10000100: 
-                pass   #ST
-            elif instruction == 0b10100001: 
-                pass   #SUB
-            elif instruction == 0b10101011: 
-                pass   #XOR
-            else:
-                print("hmmmm ", instruction)
+            try:
+                handler.run(instruction, operand_a, operand_b)
+            except Exception as e:
+                print("hmmmm ", instruction, e)
                 exit()
-
-            # increment program counter
-            if instruction < 64:
-                self.pc += 1
-            if instruction > 64 and instruction <= 127:
-                self.pc += 2
-            if instruction > 127:
-                self.pc += 3
         exit()
 
+class Branch:
+
+    def __init__(self, cpu):
+        self.cpu = cpu
+        self.branchtable = {}
+        self.branchtable[0b10100000] = self.handle_ADD
+        self.branchtable[0b10101000] = self.handle_AND
+        self.branchtable[0b01010000] = self.handle_CALL
+        self.branchtable[0b01100110] = self.handle_DEC 
+        self.branchtable[0b10100011] = self.handle_DIV
+        self.branchtable[0b00000001] = self.handle_HLT                              
+        self.branchtable[0b01100101] = self.handle_INC 
+        self.branchtable[0b01010010] = self.handle_INT 
+        self.branchtable[0b00010011] = self.handle_IRET 
+        self.branchtable[0b01010101] = self.handle_JEQ
+        self.branchtable[0b01011010] = self.handle_JGE
+        self.branchtable[0b01010111] = self.handle_JGT 
+        self.branchtable[0b01011001] = self.handle_JLE     
+        self.branchtable[0b01011000] = self.handle_JLT     
+        self.branchtable[0b01010100] = self.handle_JMP   
+        self.branchtable[0b01010110] = self.handle_JNE   
+        self.branchtable[0b10000011] = self.handle_LD
+        self.branchtable[0b10000010] = self.handle_LDI                
+        self.branchtable[0b10100100] = self.handle_MOD   
+        self.branchtable[0b10100010] = self.handle_MUL     
+        self.branchtable[0b00000000] = self.handle_NOP  
+        self.branchtable[0b01101001] = self.handle_NOT 
+        self.branchtable[0b10101010] = self.handle_OR 
+        self.branchtable[0b01000110] = self.handle_POP
+        self.branchtable[0b01001000] = self.handle_PRA 
+        self.branchtable[0b01000111] = self.handle_PRN                     
+        self.branchtable[0b01000101] = self.handle_PUSH 
+        self.branchtable[0b00010001] = self.handle_RET 
+        self.branchtable[0b10101100] = self.handle_SHL 
+        self.branchtable[0b10101101] = self.handle_SHR 
+        self.branchtable[0b10000100] = self.handle_ST 
+        self.branchtable[0b10100001] = self.handle_SUB 
+        self.branchtable[0b10101011] = self.handle_XOR
+    
+    def handle_ADD(self, instruction, operand_a, operand_b):
+        pass
+    def handle_AND(self, instruction, operand_a, operand_b):
+        pass
+    def handle_CALL(self, instruction, operand_a, operand_b):
+        self.cpu.reg[7] -= 1
+        self.cpu.ram[self.cpu.reg[7]] = operand_a
+        #TODO
+    def handle_DEC (self, instruction, operand_a, operand_b):
+        pass
+    def handle_DIV (self, instruction, operand_a, operand_b):
+        pass
+    def handle_HLT(self, instruction, operand_a, operand_b):
+        print("quit")
+        global running
+        running = False   
+    def handle_INC (self, instruction, operand_a, operand_b):
+        pass
+    def handle_INT (self, instruction, operand_a, operand_b):
+        pass
+    def handle_IRET(self, instruction, operand_a, operand_b):
+        pass
+    def handle_JEQ(self, instruction, operand_a, operand_b):
+        pass
+    def handle_JGE(self, instruction, operand_a, operand_b):
+        pass
+    def handle_JGT (self, instruction, operand_a, operand_b):
+        pass
+    def handle_JLE (self, instruction, operand_a, operand_b):
+        pass
+    def handle_JLT (self, instruction, operand_a, operand_b):
+        pass
+    def handle_JMP (self, instruction, operand_a, operand_b):
+        pass
+    def handle_JNE (self, instruction, operand_a, operand_b):
+        pass
+    def handle_LD (self, instruction, operand_a, operand_b):
+        pass
+    def handle_LDI(self, instruction, operand_a, operand_b):
+        self.cpu.reg[operand_a] = operand_b 
+    def handle_MOD (self, instruction, operand_a, operand_b):
+        pass
+    def handle_MUL(self, instruction, operand_a, operand_b):
+        self.cpu.reg[operand_a] = self.cpu.reg[operand_a] * self.cpu.reg[operand_b]
+    def handle_NOP (self, instruction, operand_a, operand_b):
+        pass
+    def handle_NOT (self, instruction, operand_a, operand_b):
+        pass
+    def handle_OR (self, instruction, operand_a, operand_b):
+        pass
+    def handle_POP(self, instruction, operand_a, operand_b):
+        self.cpu.reg[operand_a] = self.cpu.ram[self.cpu.reg[7]]
+        self.cpu.reg[7] += 1
+        # TODO
+    def handle_PRA(self, instruction, operand_a, operand_b):
+        pass
+    def handle_PRN(self, instruction, operand_a, operand_b):
+        print(self.cpu.reg[operand_a]) 
+    def handle_PUSH(self, instruction, operand_a, operand_b):
+        self.cpu.reg[7] -= 1
+        self.cpu.ram[self.cpu.reg[7]] = self.cpu.reg[operand_a]  
+    def handle_RET(self, instruction, operand_a, operand_b):
+        pass
+    def handle_SHL(self, instruction, operand_a, operand_b):
+        pass
+    def handle_SHR(self, instruction, operand_a, operand_b):
+        pass
+    def handle_ST(self, instruction, operand_a, operand_b):
+        pass
+    def handle_SUB(self, instruction, operand_a, operand_b):
+        pass
+    def handle_XOR(self, instruction, operand_a, operand_b):
+        pass
 
 
+
+    def run(self, instruction, OP1, OP2):
+        # run instruction
+        self.branchtable[instruction](instruction, OP1, OP2)
+        
+        # increment program counter if necessary
+        if instruction & 0b00010000 == 0b00000000:
+            if instruction < 64:
+                self.cpu.pc += 1
+            if instruction > 64 and instruction <= 127:
+                self.cpu.pc += 2
+            if instruction > 127:
+                self.cpu.pc += 3
 
