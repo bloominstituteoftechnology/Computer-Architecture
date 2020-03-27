@@ -91,6 +91,10 @@ class CPU:
             # If registerA is greater than registerB, set the Greater-than G flag to 1, otherwise set it to 0.
             elif self.reg[reg_a] > self.reg[reg_b]:
                 self.G = 1
+
+        # stretch
+        elif op == "AND":
+            self.reg[reg_a] &= self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -193,4 +197,4 @@ class CPU:
                 else:
                     self.pc += 2
             else:
-                print("Error ")
+                print("Error")
