@@ -22,6 +22,7 @@ CALL = 0b01010000
 RET = 0b00010001
 CMP = 0b10100111
 JMP = 0b01010100
+JEQ = 0b01010101
 
 
 class CPU:
@@ -178,6 +179,13 @@ class CPU:
             elif IR == JEQ:
                 # If equal flag is set (true),
                 if self.E is 1:
+                    # jump to the address stored in the given register.
+                    self.pc = self.reg[operand_a]
+                else:
+                    self.pc += 2
+            elif IR == JNE:
+                # If E flag is clear (false, 0)
+                if self.E is 0:
                     # jump to the address stored in the given register.
                     self.pc = self.reg[operand_a]
                 else:
