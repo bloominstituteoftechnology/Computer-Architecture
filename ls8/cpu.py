@@ -1,6 +1,7 @@
 """CPU functionality."""
 
 import sys
+from time import time
 
 class CPU:
     """Main CPU class."""
@@ -88,9 +89,12 @@ class CPU:
         running = True
 
         handler = Branch(cpu=self)
+        timing = time()
         while running == True:
             if debug:
                 self.trace()
+            if time() - timing  >= 1:
+                self.reg[7] = 0
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
             self.ir = self.pc
