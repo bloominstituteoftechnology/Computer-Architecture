@@ -11,13 +11,18 @@ class CPU:
         self.reg = [0] * 8
         self.reg[7] = 0xFF
         self.pc = self.reg[0]
+        self.fl = self.reg[4]
         self.commands = {
             0b00000001: self.hlt,
             0b10000010: self.ldi,
             0b01000111: self.prn,
             0b10100010: self.mul,
             0b01000101: self.push,
-            0b01000110: self.pop
+            0b01000110: self.pop,
+            0b10100111: self.cmp,
+            0b01010101: self.jeq,
+            0b01010110: self.jne,
+            0b01010100: self.jmp,
         }
    
     def ram_read(self, address):
@@ -56,6 +61,39 @@ class CPU:
         self.reg[operand_a] = value
         self.reg[7] += 1
         return (2, True)
+
+    def cmp(self, operand_a, operand_b):
+        val_a = self.reg[operand_a]
+        val_b = self.reg[operand_b]
+        if val_a > val_b:
+            value = 0b00000010
+        elif val_a == val_b:
+            value = 0b00000001
+        else:
+            value = 0b00000100
+        self.fl = value
+        return (3, True)
+
+    def jeq(self, operand_a, operand_b):
+        if self.fl == 0b00000001 :
+            address = self.reg[operand_a]
+            self.pc = address
+            return (0, True)
+        else:
+            return (2, True)
+    
+    def jne(self, operand_a, operand_b):
+        address = self.reg[operand_a]
+        if self.fl == 0b00000100 :
+            self.pc = address
+            return (0, True)
+        else:
+            return (2, True)
+
+    def jmp(self, operand_a, operand_b):
+        address = self.reg[operand_a]
+        self.pc = address
+        return (0, True)
 
     def load(self, file_name):
         """Load a program into memory."""
@@ -103,7 +141,7 @@ class CPU:
 
         print(f"TRACE: %02X | %02X %02X %02X |" % (
             self.pc,
-            #self.fl,
+            self.fl,
             #self.ie,
             self.ram_read(self.pc),
             self.ram_read(self.pc + 1),
