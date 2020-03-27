@@ -108,6 +108,8 @@ class CPU:
             self.reg[reg_a] = ~self.reg[reg_a]
         elif op == "SHL":
             self.reg[reg_a] = self.reg[reg_a] << self.reg[reg_b]
+        elif op == "SHR":
+            self.reg[reg_a] = self.reg[reg_a] >> self.reg[reg_b]
 
         else:
             raise Exception("Unsupported ALU operation")
