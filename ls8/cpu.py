@@ -140,7 +140,7 @@ class CPU:
                 self.pc += 2
             elif IR == CALL:
                 # reg = memory[pc + 1]
-                reg2 = self.reg[operand_a]
+                reg2 = self.ram[operand_a]
                 # register[sp] -= 1
                 self.reg[SP] -= 1
                 # memory[register[sp]] = pc + 2
