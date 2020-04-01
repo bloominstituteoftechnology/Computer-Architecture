@@ -42,7 +42,6 @@ class CPU:
                 self.flags[6] = 1
             elif self.reg[reg_a] > self.reg[reg_b]:
                 self.flags[7] = 1
-        #elif op == "SUB": etc
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -51,20 +50,9 @@ class CPU:
         Handy function to print out the CPU state. You might want to call this
         from run() if you need help debugging.
         """
-
-        print(f"TRACE: %02X | %02X %02X %02X |" % (
-            self.pc,
-            #self.fl,
-            #self.ie,
-            self.ram_read(self.pc),
-            self.ram_read(self.pc + 1),
-            self.ram_read(self.pc + 2)
-        ), end='')
-
-        for i in range(8):
-            print(" %02X" % self.reg[i], end='')
-
-        print()
+        print("RAM:", self.ram)
+        print("REG:", self.reg[:10])
+        print("STACK:", self.reg[self.stack_pointer:0xF4])
 
     def run(self):
         """Run the CPU."""
