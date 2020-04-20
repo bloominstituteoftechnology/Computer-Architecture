@@ -7,8 +7,11 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
-
+        # total CPU memory
+        self.ram = [0] * 256
+        # lambda CPU to print 8
+        self.reg = [0] * 8
+        self.pc = self.reg[0]
     def load(self):
         """Load a program into memory."""
 
@@ -50,9 +53,9 @@ class CPU:
             self.pc,
             #self.fl,
             #self.ie,
-            self.ram_read(self.pc),
-            self.ram_read(self.pc + 1),
-            self.ram_read(self.pc + 2)
+            # self.ram_read(self.pc),
+            # self.ram_read(self.pc + 1),
+            # self.ram_read(self.pc + 2)
         ), end='')
 
         for i in range(8):
@@ -62,4 +65,27 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        '''
+        * `LDI`: load "immediate", store a value in a register, or "set this register to
+        this value".
+        * `PRN`: a pseudo-instruction that prints the numeric value stored in a
+        register.
+        * `HLT`: halt the CPU and exit the emulator.
+        '''
+
+        PRT = 1
+        HLT = 2
+        LDI = 3
+        
+        self.pc = 0
+
+        self.running = True
+        while self.running:
+            self.instruction = self.reg[self.pc]
+            if self.instruction == PRT:
+                print("8")
+                # next instruction
+                self.pc += 1
+            elif self.instruction == HLT:
+                self.running = False
+        
