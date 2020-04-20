@@ -7,29 +7,60 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.ram = [0] * 256
+        self.reg = [0] * 8
+        self.pc = 0
+        self.SP = 7
+        self.reg[7] = 255
+
+    def ram_read(self, MAR):
+        return self.ram[MAR]
+
+        LDI = 0b10000010
+        PRN = 0b01000111
+        MUL = 0b10100010
+        PUSH = 0b01000101
+        POP = 0b01000110
+
+    def ram_write(self, MAR, MDR):
+        self.ram[MAR] = MDR
 
     def load(self):
         """Load a program into memory."""
 
         address = 0
 
-        # For now, we've just hardcoded a program:
+        # # For now, we've just hardcoded a program:
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+        # program = [
+        #     # From print8.ls8
+        #     0b10000010, # LDI R0,8
+        #     0b00000000,
+        #     0b00001000,
+        #     0b01000111, # PRN R0
+        #     0b00000000,
+        #     0b00000001, # HLT
+        # ]
 
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
-
+        # for instruction in program:
+        #     self.ram[address] = instruction
+        #     address += 1
+         try:
+            # open the program specified by the second command line argument
+            with open(sys.argv[1]) as f:
+                # for each line in the file
+                for line in f:
+                    # check if it starts with a binary number
+                    if line[0].startswith('0') or line[0].startswith('1'):
+                        # only use the first (non-commented) part of the instruction
+                        binary = line.split("#")[0]
+                        # remove any white space
+                        binary = binary.strip()
+                        # convert to binary and store it in RAM
+                        self.ram[address] = int(binary, 2)
+                        address += 1
+        except:
+            print(f"{sys.argv[0]}: {sys.argv[1]} not found.")
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -37,6 +68,8 @@ class CPU:
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
         #elif op == "SUB": etc
+        elif op == "MUL":
+            self.reg[reg_a] += self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -62,4 +95,57 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+         HLT = 0b00000001
+        pass	        LDI = 0b10000010
+        PRN = 0b01000111
+        MUL = 0b10100010
+
+        running = True
+
+        while running:
+            # It needs to read the memory address that's stored in register `PC`, and store
+            # that result in `IR`, the _Instruction Register_. This can just be a local
+            # variable in `run()`.
+            IR = self.ram[self.pc]
+
+            # Using `ram_read()`,read the bytes at `PC+1` and `PC+2` from RAM into variables
+            # `operand_a` and `operand_b` in case the instruction needs them.
+            operand_a = self.ram_read(self.pc + 1)
+            operand_b = self.ram_read(self.pc + 2)
+
+            # Then, depending on the value of the opcode, perform the actions needed for the
+            # instruction per the LS-8 spec. Maybe an `if-elif` cascade...? There are other
+            # options, too.
+            # Implment a system stack per spec - Add PUSH and POP instructions.
+            # Read the beginning of the spec to see which register is the stack pointer
+            if IR == HLT:
+                running = False
+            elif IR == LDI:
+                self.reg[operand_a] = operand_b
+                self.pc += 3
+            elif IR == PRN:
+                print(self.reg[operand_a])
+                self.pc += 2
+            elif IR == MUL:
+                self.alu("MUL", operand_a, operand_b)
+                self.pc += 3
+            elif IR == PUSH:
+                # 1. Decrement the 'SP'
+                # 2. copy the valu in the given register to the address pointed to by 'SP'
+                self.reg[7] = (self.reg[7] - 1) % 255
+                self.SP = self.reg[7]
+                self.SP = self.reg[7]
+                value = self.reg[register_address]
+                self.ram[self.SP] = value
+                self.PC += 2
+            elif IR ==POP:
+                # 1. copy the value from the address pointed to by 'SP' to the given register
+                # 2 Increment 'SP'
+                self.SP = self.reg[7]
+                value = self.ram[self.SP]
+                register_address = self.ram[self.PC + 1]
+                self.reg[register_address] = value
+                self.reg[7] = (self.SP + 1) % 255
+                self.pc += 2
+            else:
+                print("Unknown instruction.")
