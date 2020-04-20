@@ -11,7 +11,27 @@ class CPU:
         self.ram = [0] * 256
         # lambda CPU to print 8
         self.reg = [0] * 8
+        # Program Counter, address of the currently executing instruction
         self.pc = self.reg[0]
+        #LDI = memory address2 has address of memory address 1 and separately memory address 1 has some value,
+        # so here we are trying to retrieve a data indirectly. 
+        LDI = 1
+        PRN = 2
+        HLT = 3
+        # Instruction Registry, contains a copy of the currently executing instruction
+        self.instruction_registry = 0 
+        # Instruction Registry Dictionary:
+        self.instruction_registry = {
+            0b00000001: self.HLT_handler,
+            0b00000001: self.HLT_handler,
+            0b01000111: self.PRN_handler,
+        }
+    def ram_read(self, address):
+        return self.ram[address]
+
+    def ram_write(self, value, address):
+        self.ram[address] = value
+
     def load(self):
         """Load a program into memory."""
 
