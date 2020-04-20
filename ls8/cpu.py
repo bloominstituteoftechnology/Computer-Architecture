@@ -6,12 +6,22 @@ import sys
 class CPU:
     """Main CPU class."""
 
-    def __init__(self):
+    def __init__(self, register, pc, ram):
         """Construct a new CPU."""
         # Add list properties to the CPU class to hold 256 bytes of memory and 8 general-purpose registers.
-        self.mar = [0b0] * [0b1000]  # 8 general purpose registers: 8 bits
+        self.register = [0b0] * [0b1000]  # 8 general purpose registers: 8 bits
         self.pc = 0b0
         self.ram = [0b0] * 0b100000000  # 256 bytes of memory
+
+    # ram_read() should accept the address to read and return the value stored there.
+    # The MAR contains the address that is being read or written to.
+    def ram_read(self, mar):
+        pass
+
+    # ram_write() should accept a value to write, and the address to write it to.
+    # The MDR contains the data that was read or the data to write.
+    def ram_write(self, mdr):
+        pass
 
     def load(self):
         """Load a program into memory."""
