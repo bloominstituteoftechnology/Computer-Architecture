@@ -10,7 +10,7 @@ PRINT_REG = 4  # corresponds to PRN in the LS8
 
 memory = [
     PRINT_BEEJ,
-    SAVE_REG,  # SAVE R0, 37    store 37 in R0     the opcode
+    SAVE_REG,  # SAVE R0, 37    (store the value 37 in R0)     the opcode (the instruction byte itself)
     0,  # R0      operand("argument")
     37,  # 37      operand
     PRINT_BEEJ,
@@ -37,11 +37,13 @@ while running:
         print("Beej!")
         pc += 1  # moves us through all the instructions in memory array by index
 
-    elif inst == SAVE_REG:
-        reg_num = memory[pc + 1]
-        value = memory[pc + 2]
+    elif inst == SAVE_REG:  # pc is at SAVE_REG
+        reg_num = memory[
+            pc + 1
+        ]  # so the reg number we want is one slot after pc in memory
+        value = memory[pc + 2]  # and the value is two slots after pc in the register
         register[reg_num] = value
-        pc += 3
+        pc += 3  # we incrememnt three to get to the next instruction after SAVE_REG, which is PRINT_BEEJ
 
     elif inst == PRINT_REG:
         reg_num = memory[pc + 1]
