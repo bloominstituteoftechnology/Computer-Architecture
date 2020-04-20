@@ -215,11 +215,11 @@ arbitrary nesting level. Indeed, it is what allows for recursion at all.
 <a name="q900"></a>
 ### Is the flags `FL` register one of the `Rx` registers, or is it a special register?
 
-It's a special purpose register that can be added separately to the `struct cpu`
+It's a special purpose register that can be added separately to the `class CPU`
 similar to how `PC` works.
 
-In `struct cpu`, it's convenient to have an array to store `R0` through `R7`,
-but the other registers are just fields in the `struct`.
+In `class CPU`, it's convenient to have an array to store `R0` through `R7`,
+but the other registers are just fields in the `class`.
 
 ------------------------------------------------------------------------
 
@@ -227,7 +227,7 @@ but the other registers are just fields in the `struct`.
 ### What about the `IR`, `MAR`, and `MDR` registers?
 
 You can store those special-purpose registers similar to how `PC` and `FL` are
-stored in the `struct`.
+stored in the `class`.
 
 ...Or, if you're not using them in any place except a single function, maybe
 they can be locals or function parameters.
@@ -545,7 +545,7 @@ ADD R0,R1  ; Valid
 ADD FL,R0  ; INVALID--FL is not a general-purpose register
 ```
 
-In `struct cpu`, it's convenient to represent the general purpose registers with
+In `class CPU`, it's convenient to represent the general purpose registers with
 an array for easy indexing from `0` to `7`.
 
 ------------------------------------------------------------------------
