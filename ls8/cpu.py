@@ -72,20 +72,5 @@ class CPU:
         register.
         * `HLT`: halt the CPU and exit the emulator.
         '''
-
-        PRN = 1
-        HLT = 2
-        LDI = 8
-        
-        self.pc = 0
-
-        self.running = True
-        while self.running:
-            self.instruction = self.reg[self.pc]
-            if self.instruction == LDI:
-                print("8")
-                # next instruction
-                self.pc += 1
-            elif self.instruction == HLT:
-                self.running = False
+        pass
         
