@@ -7,5 +7,13 @@ from cpu import *
 
 cpu = CPU()
 
-cpu.load()
-cpu.run()
+try:
+    if sys.argv[2] == "debug":
+        debug = True
+    else:
+        debug = False
+except:
+    debug = False
+
+cpu.load(sys.argv[1])
+cpu.run(debug=debug)
