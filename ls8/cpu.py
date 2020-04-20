@@ -15,22 +15,43 @@ class CPU:
         self.pc = self.reg[0]
         #LDI = memory address2 has address of memory address 1 and separately memory address 1 has some value,
         # so here we are trying to retrieve a data indirectly. 
-        LDI = 1
-        PRN = 2
-        HLT = 3
+        # LDI = 1
+        # PRN = 2
+        # HLT = 3
         # Instruction Registry, contains a copy of the currently executing instruction
         self.instruction_registry = 0 
         # Instruction Registry Dictionary:
         self.instruction_registry = {
-            0b00000001: self.HLT_handler,
-            0b00000001: self.HLT_handler,
-            0b01000111: self.PRN_handler,
+            0b00000001: self.HLT_HANDLER,
+            0b10000010: self.LDI_HANDLER,
+            0b01000111: self.PRN_HANDLER,
         }
     def ram_read(self, address):
         return self.ram[address]
 
     def ram_write(self, value, address):
         self.ram[address] = value
+
+    #stop the program:
+    def HLT_HANDLER(self):
+        sys.exit(0)
+    # read stuff frommemory
+    def LDI_HANDLER(self):
+        # Get the address and value from Memory
+        address = self.ram_read(self.pc + 1)
+        value = self.ram_read(self.pc + 2)
+        # Write it to the registry
+        self.reg[address] = value
+        # Advance the Program Counter
+        self.pc += 3
+
+    def PRN_HANDLER(self):
+        # Get the address
+        address = self.ram_read(self.pc + 1)
+        # Print the value
+        print(self.reg[address])
+        # Advance the Program Counter
+        self.pc += 2
 
     def load(self):
         """Load a program into memory."""
@@ -73,9 +94,9 @@ class CPU:
             self.pc,
             #self.fl,
             #self.ie,
-            # self.ram_read(self.pc),
-            # self.ram_read(self.pc + 1),
-            # self.ram_read(self.pc + 2)
+            self.ram_read(self.pc),
+            self.ram_read(self.pc + 1),
+            self.ram_read(self.pc + 2)
         ), end='')
 
         for i in range(8):
@@ -92,5 +113,9 @@ class CPU:
         register.
         * `HLT`: halt the CPU and exit the emulator.
         '''
-        pass
+        while True:
+            op = self.ram[self.pc]
+            # Get dictionary entry then execute returned instruction
+            instruction = self.instruction_registry[op]
+            instruction()
         
