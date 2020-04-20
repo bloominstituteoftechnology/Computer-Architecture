@@ -82,10 +82,10 @@ class CPU:
             if IR == LDI:
                 operand_a = self.ram_read(self.pc+1)
                 operand_b = self.ram_read(self.pc+2)
-                self.reg[0] = operand_b
+                self.reg[operand_a] = operand_b
                 self.pc += 2
             elif IR == PRN:
-                print(self.reg[0])
+                print(self.reg[operand_a])
                 self.pc += 1
             elif IR == HLT:
                 break
