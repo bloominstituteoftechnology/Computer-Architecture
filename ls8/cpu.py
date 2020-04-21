@@ -7,24 +7,114 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.ram = [0] * 256
+        self.reg = [0] * 8
+        self.reg[7] = 0xFF
+        self.pc = self.reg[0]
+        self.fl = self.reg[4]
+        self.commands = {
+            0b00000001: self.hlt,
+            0b10000010: self.ldi,
+            0b01000111: self.prn,
+            0b10100010: self.mul,
+            0b01000101: self.push,
+            0b01000110: self.pop,
+            0b10100111: self.cmp,
+            0b01010101: self.jeq,
+            0b01010110: self.jne,
+            0b01010100: self.jmp,
+        }
+   
+    def ram_read(self, address):
+        return self.ram[address]
 
-    def load(self):
+    def ram_write(self, value, address):
+        self.ram[address] = value
+
+    def hlt(self, operand_a, operand_b):
+        return (0, False)
+
+    def ldi(self, operand_a, operand_b):
+        self.reg[operand_a] = operand_b
+        return (3, True)
+
+    def prn(self, operand_a, operand_b):
+        print(self.reg[operand_a])
+        return (2, True)
+
+    def mul(self, operand_a, operand_b):
+        self.alu("MUL", operand_a, operand_b)
+        return (3, True)
+    
+
+    def push (self, operand_a, operand_b):
+        self.reg[7] -= 1
+        sp = self.reg[7]
+        value = self.reg[operand_a]
+        self.ram[sp] = value
+        return (2, True)
+
+
+    def pop (self, operand_a, operand_b):
+        sp = self.reg[7]
+        value = self.ram[sp]
+        self.reg[operand_a] = value
+        self.reg[7] += 1
+        return (2, True)
+
+    def cmp(self, operand_a, operand_b):
+        val_a = self.reg[operand_a]
+        val_b = self.reg[operand_b]
+        if val_a > val_b:
+            value = 0b00000010
+        elif val_a == val_b:
+            value = 0b00000001
+        else:
+            value = 0b00000100
+        self.fl = value
+        return (3, True)
+
+    def jeq(self, operand_a, operand_b):
+        if self.fl == 0b00000001 :
+            address = self.reg[operand_a]
+            self.pc = address
+            return (0, True)
+        else:
+            return (2, True)
+    
+    def jne(self, operand_a, operand_b):
+        address = self.reg[operand_a]
+        if self.fl == 0b00000100 :
+            self.pc = address
+            return (0, True)
+        else:
+            return (2, True)
+
+    def jmp(self, operand_a, operand_b):
+        address = self.reg[operand_a]
+        self.pc = address
+        return (0, True)
+
+    def load(self, file_name):
         """Load a program into memory."""
 
         address = 0
 
-        # For now, we've just hardcoded a program:
+        with open(file_name) as f:
+            lines = f.readlines()
+            lines = [line for line in lines if line.startswith('0') or line.startswith('1')]
+            program = [int(line[:8], 2) for line in lines]
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+        # program = [
+        #     # From print8.ls8
+        #     0b10000010, # LDI R0,8
+        #     0b00000000,
+        #     0b00001000,
+        #     0b01000111, # PRN R0
+        #     0b00000000,
+        #     0b00000001, # HLT
+        # ]
+
 
         for instruction in program:
             self.ram[address] = instruction
@@ -35,8 +125,11 @@ class CPU:
         """ALU operations."""
 
         if op == "ADD":
-            self.reg[reg_a] += self.reg[reg_b]
-        #elif op == "SUB": etc
+               self.reg[reg_a] += self.reg[reg_b]
+        # elif op == "SUB":
+        elif op == "MUL":
+                self.reg[reg_a] = (self.reg[reg_a] * self.reg[reg_b])
+
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -48,7 +141,7 @@ class CPU:
 
         print(f"TRACE: %02X | %02X %02X %02X |" % (
             self.pc,
-            #self.fl,
+            self.fl,
             #self.ie,
             self.ram_read(self.pc),
             self.ram_read(self.pc + 1),
@@ -62,4 +155,26 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        running = True
+
+        debug_cnt = 0
+        while running:
+            
+            debug_cnt = debug_cnt + 1
+        
+            ir = self.ram[self.pc]
+
+            operand_a = self.ram_read(self.pc + 1)
+            operand_b = self.ram_read(self.pc + 2)
+
+            try:
+                
+                operation_output = self.commands[ir](operand_a, operand_b)
+                running = operation_output[1]
+                self.pc += operation_output[0]
+
+
+            except Exception as e:
+                print(e)
+                print(f"command: {ir}")
+                sys.exit()
