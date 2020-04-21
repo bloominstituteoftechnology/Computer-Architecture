@@ -67,8 +67,18 @@ class CPU:
 			self.registers[reg_a] += self.registers[reg_b]
 		elif op == "MUL":
 			self.registers[reg_a] = self.registers[reg_a] * self.registers[reg_b]
+		elif op == "SUB":
+			self.registers[reg_a] = self.registers[reg_a] - self.registers[reg_b]
+		elif op == "XOR":
+			self.registers[reg_a] = self.registers[reg_a] ^ self.registers[reg_b]
 		elif op == "AND":
 			self.registers[reg_a] = self.registers[reg_a] & self.registers[reg_b]
+		elif op == "OR":
+			self.registers[reg_a] = self.registers[reg_a] | self.registers[reg_b]
+		elif op == "SHR":
+			self.registers[reg_a] = self.registers[reg_a] >> self.registers[reg_b]
+		elif op == "SHL":
+			self.registers[reg_a] = self.registers[reg_a] << self.registers[reg_b]
 		elif op == "CMP":
 			# Clear the LGE flags
 			self.fl = self.fl & 0b11111000
@@ -81,10 +91,18 @@ class CPU:
 				self.fl = self.fl | 0b00000100
 		elif op == "DEC":
 			self.registers[reg_a] -= 1
+		elif op == "INC":
+			self.registers[reg_a] += 1
+		elif op == "NOT":
+			self.registers[reg_a] = ~self.registers[reg_a]
 		elif op == "DIV":
 			if self.registers[reg_b] == 0:
 				raise Exception("Division by zero")
 			self.registers[reg_a] = self.registers[reg_a] / self.registers[reg_b]
+		elif op == "MOD":
+			if self.registers[reg_b] == 0:
+				raise Exception("Division by zero")
+			self.registers[reg_a] = self.registers[reg_a] % self.registers[reg_b]
 		else:
 			raise Exception("Unsupported ALU operation")
 
