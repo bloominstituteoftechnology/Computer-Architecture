@@ -20,11 +20,12 @@ class CPU:
         # HLT = 3
         # Instruction Registry, contains a copy of the currently executing instruction
         self.instruction_registry = 0 
-        # Instruction Registry Dictionary:
+        # Instruction Registry Dictionary: (This is step 1 to building the handler, similar to program load) 
         self.instruction_registry = {
-            0b00000001: self.HLT_HANDLER,
-            0b10000010: self.LDI_HANDLER,
-            0b01000111: self.PRN_HANDLER,
+            0b00000001: self.HLT_HANDLER, # 1
+            0b00000010: self.LDI_HANDLER, # 2
+            0b00000011: self.PRN_HANDLER, # 3
+            0b00000100: self.MULT_HANDLER,
         }
     def ram_read(self, address):
         return self.ram[address]
