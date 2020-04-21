@@ -60,26 +60,26 @@ class CPU:
             with open(file) as f:
 
                 address = 0
-            for line in f:
+                for line in f:
                 # split the lines with coments
-                comments = line.split().strip('#')
+                    comments = line.split().strip('#')
                 # take the first element of the line
-                strings = comments[0].strip
+                    strings = comments[0].strip
                 # skip empty lines
-                if strings == '':
-                    continue
+                    if strings == '':
+                        continue
                 # convert the line to an int
-                int_value = int(strings, 2)
+                    int_value = int(strings, 2)
                 # save to memory
-                self.ram[address] = int_value
+                    self.ram[address] = int_value
                 # increment the adress counter
-                address += 1
+                    address += 1
                 # then close the file
-                f.close()
+                    f.close()
         # exception for try block if file npot found
         except FileNotFoundError:
             print("there are no requested files")
-            sys.exit()
+            sys.exit(2)
         # For now, we've just hardcoded a program:
 
         # program = [
@@ -92,7 +92,7 @@ class CPU:
         #     0b00000001, # HLT
         # ]
 
-        for instruction in program:
+        for instruction in file:
             self.ram[address] = instruction
             address += 1
 
