@@ -23,26 +23,21 @@ class CPU:
     def ram_write(self, mdr, mar):
         self.ram[mar] = mdr
 
-    def load(self):
+    def load(self, prog):
         """Load a program into memory."""
 
         address = 0
 
-        # For now, we've just hardcoded a program:
+        with open(prog) as f:
+            for instruction in f:
+                instruction = instruction.split("#")
+                instruction = instruction[0].strip()
 
-        program = [
-            # From print8.ls8
-            0b10000010,  # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111,  # PRN R0
-            0b00000000,
-            0b00000001,  # HLT
-        ]
+                if instruction == "":
+                    continue
 
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+                self.ram[address] = int(instruction)
+                address += 1
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -85,11 +80,16 @@ class CPU:
         running = True
 
         while running:
+            print("HLT", HLT)
+            print("LDI", LDI)
+            print("PRN", PRN)
             ir = self.ram_read(self.pc)
+            print(ir)
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
             if ir == HLT:
                 running = False
+                self.pc += 1
                 sys.exit()
             elif ir == LDI:
                 self.reg[operand_a] = operand_b
@@ -97,6 +97,7 @@ class CPU:
             elif ir == PRN:
                 print(self.reg[operand_a])
                 self.pc += 2
+                print(ir)
             else:
                 print("Unknown instruction")
                 running = False
