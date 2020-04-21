@@ -2,14 +2,21 @@
 
 import sys
 
+
+HLT = 1
+LDI = 130
+PRN = 71
+
 class CPU:
     """Main CPU class."""
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.pc = 0
+        self.reg = [0] * 8
+        self.ram = [0] * 256
 
-    def load(self):
+    def load(self, filename):
         """Load a program into memory."""
 
         address = 0
@@ -59,7 +66,32 @@ class CPU:
             print(" %02X" % self.reg[i], end='')
 
         print()
+    def ram_read(self, address):
+        return self.ram[address]
 
+    def ram_write(self, address, value):
+        self.ram[address] = value
     def run(self):
         """Run the CPU."""
-        pass
+        self.load()
+
+        while True:
+            # needs to read mem address stores in register PC and store in IR - local variable
+            IR = self.ram_read(self.pc)
+            # read the bytes at `PC+1` and `PC+2` from RAM into variables `operand_a` and `operand_b` in case the instruction needs them
+            operand_a = self.ram_read(self.pc + 1)
+            operand_b = self.ram_read(self.pc + 2)
+            # Then, depending on the value of the opcode, perform the actions needed for the instruction per the LS-8 spec. Maybe an `if-elif` cascade...? There are other options, too
+
+            if IR == HLT:
+                print("Exit")
+                break
+            elif IR == PRN:
+                data = self.ram[self.pc + 1]
+                print(self.reg[data])
+                self.pc += 2
+            elif IR == LDI:
+                self.reg[operand_a] = operand_b
+                self.pc += 3
+            else:
+                print("Error")
