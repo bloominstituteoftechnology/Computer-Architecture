@@ -6,22 +6,22 @@ import sys
 class CPU:
     """Main CPU class."""
 
-    def __init__(self, register, pc, ram):
+    def __init__(self):
         """Construct a new CPU."""
         # Add list properties to the CPU class to hold 256 bytes of memory and 8 general-purpose registers.
-        self.register = [0b0] * [0b1000]  # 8 general purpose registers: 8 bits
-        self.pc = 0b0
-        self.ram = [0b0] * 0b100000000  # 256 bytes of memory
+        self.reg = [0] * 8  # 8 general purpose registers: 8 bits
+        self.pc = 0
+        self.ram = [0] * 256  # 256 bytes of memory
 
-    # ram_read() should accept the address to read and return the value stored there.
+    # ram_read() accepts the address to read and return the value stored there.
     # The MAR contains the address that is being read or written to.
     def ram_read(self, mar):
         return self.ram[mar]
 
-    # ram_write() should accept a value to write, and the address to write it to.
+    # ram_write() accepts a value to write, and the address to write it to.
     # The MDR contains the data that was read or the data to write.
     def ram_write(self, mdr, mar):
-        return self.ram[mar] = mdr
+        self.ram[mar] = mdr
 
     def load(self):
         """Load a program into memory."""
@@ -79,4 +79,25 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        HLT = 0b00000001
+        LDI = 0b10000010
+        PRN = 0b01000111
+        running = True
+
+        while running:
+            ir = self.ram_read(self.pc)
+            operand_a = self.ram_read(self.pc + 1)
+            operand_b = self.ram_read(self.pc + 2)
+            if ir == HLT:
+                running = False
+                sys.exit()
+            elif ir == LDI:
+                self.reg[operand_a] = operand_b
+                self.pc += 3
+            elif ir == PRN:
+                print(self.reg[operand_a])
+                self.pc += 2
+            else:
+                print("Unknown instruction")
+                running = False
+                sys.exit()
