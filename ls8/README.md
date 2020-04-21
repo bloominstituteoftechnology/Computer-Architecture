@@ -134,7 +134,7 @@ name instead of by numeric value.
 
 In `run()` in your if-else block, exit the loop if a `HLT` instruction is
 encountered, regardless of whether or not there are more lines of code in the
-LS-8 program you loaded. 
+LS-8 program you loaded.
 
 We can consider `HLT` to be similar to Python's `exit()` in that we stop
 whatever we are doing, wherever we are.
@@ -194,7 +194,7 @@ so you can look in `sys.argv[1]` for the name of the file to load.
 > expect, and print an error and exit if they didn't.
 
 In `load()`, you will now want to use those command line arguments to open a
-file, read in its contents line by line, and save appropriate data into RAM. 
+file, read in its contents line by line, and save appropriate data into RAM.
 
 As you process lines from the file, you should be on the lookout for blank lines
 (ignore them), and you should ignore everything after a `#`, since that's a
@@ -264,25 +264,25 @@ OP2 = 0b11110000
 
 class Foo:
 
-    def __init__(self):
-        # Set up the branch table
-        self.branchtable = {}
-        self.branchtable[OP1] = self.handle_op1
-        self.branchtable[OP2] = self.handle_op2
+	def __init__(self):
+		# Set up the branch table
+		self.branchtable = {}
+		self.branchtable[OP1] = self.handle_op1
+		self.branchtable[OP2] = self.handle_op2
 
-    def handle_op1(self, a):
-        print("op 1: " + a)
+	def handle_op1(self, a):
+		print("op 1: " + a)
 
-    def handle_op2(self, a):
-        print("op 2: " + a)
+	def handle_op2(self, a):
+		print("op 2: " + a)
 
-    def run(self):
-        # Example calls into the branch table
-        ir = OP1
-        self.branchtable[ir]("foo")
+	def run(self):
+		# Example calls into the branch table
+		ir = OP1
+		self.branchtable[ir]("foo")
 
-        ir = OP2
-        self.branchtable[ir]("bar")
+		ir = OP2
+		self.branchtable[ir]("bar")
 
 c = Foo()
 c.run()
@@ -296,10 +296,10 @@ a high address) and grows _downward_ as things are pushed on. The LS-8 is no
 exception to this.
 
 Implement a system stack per the spec. Add `PUSH` and `POP` instructions. Read
-  the beginning of the spec to see which register is the stack pointer. 
-  
-* Values themselves should be saved in the ***portion of RAM*** _that is allocated for the stack_. 
-  -  Use the stack pointer to modify the correct block of memory. 
+  the beginning of the spec to see which register is the stack pointer.
+
+* Values themselves should be saved in the ***portion of RAM*** _that is allocated for the stack_.
+  -  Use the stack pointer to modify the correct block of memory.
   - Make sure you update the stack pointer appropriately as you `PUSH` and `POP` items to and from the stack.
 
 If you run `python3 ls8.py examples/stack.ls8` you should see the output:
@@ -320,7 +320,7 @@ enables you to create reusable functions.
 Subroutines have many similarities to functions in higher-level languages. Just
 as a function in C, JavaScript or Python will jump from the function call, to
 its definition, and then return back to the line of code following the call,
-subroutines will also allow us to execute instructions non-sequentially. 
+subroutines will also allow us to execute instructions non-sequentially.
 
 The stack is used to hold the return address used by `RET`, so you **must**
 implement the stack in step 10, first. Then, add subroutine instructions `CALL`
@@ -332,13 +332,13 @@ and `RET`.
   specific address.
 
   > Note: `CALL` is very similar to the `JMP` instruction. However, there is one
-  > key difference between them. Can you find it in the specs? 
+  > key difference between them. Can you find it in the specs?
 
   * In **any** case where the instruction handler sets the `PC` directly, you
-    _don't_ want to advance the PC to the next instruction. So you'll have to
-    set up a special case for those types of instructions. This can be a flag
-    you explicitly set per-instruction... but can also be computed from the
-    value in `IR`. Check out the spec for more.
+	_don't_ want to advance the PC to the next instruction. So you'll have to
+	set up a special case for those types of instructions. This can be a flag
+	you explicitly set per-instruction... but can also be computed from the
+	value in `IR`. Check out the spec for more.
 
 If you run `python3 ls8.py examples/call.ls8` you should see the output:
 

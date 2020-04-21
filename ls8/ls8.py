@@ -1,9 +1,9 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 """Main."""
 
 import sys
-from cpu import *
+from cpu import CPU
 
 cpu = CPU()
 

@@ -1,6 +1,6 @@
 #!/bin/sh
 
 for a in *.asm; do
-    outfile=$(basename $a .asm).ls8
-    python asm.py $a > ../ls8/examples/$outfile
+	outfile=$(basename $a .asm).ls8
+	python asm.py $a > ../ls8/examples/$outfile
 done

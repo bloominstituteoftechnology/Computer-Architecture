@@ -2,14 +2,14 @@
 
 /**
  * Assembler for LS-8 v4.0
- * 
+ *
  * Example code:
- * 
+ *
  *  INC R0   ; A comment
  *  Label1:
  *  DEC R2
  *  LDI R3,Label1
- * 
+ *
  *  DS A String that is declared
  *  DB 0x0a   ; a hex byte
  *  DB 12   ; a decimal byte
@@ -115,7 +115,7 @@ const regexDB = /(?:(\w+?):)?\s*DB\s*(.+)/i;
 
 /**
  * Pass 1
- * 
+ *
  * Read the source code lines
  * Parse labels, opcodes, and operands
  * Record label offsets
@@ -127,7 +127,7 @@ rl.on('line', (input) => {
   // Strip comments
   const commentIndex = input.indexOf(';');
   if (commentIndex !== -1) {
-    input = input.substr(0, commentIndex);
+	input = input.substr(0, commentIndex);
   }
 
   // Normalize
@@ -135,61 +135,61 @@ rl.on('line', (input) => {
 
   // Ignore blank lines
   if (input === '') {
-    return;
+	return;
   }
 
   //console.log(input);
   const m = input.match(regex);
 
   if (m) {
-    let [, label, opcode, opA, opB] = m;
-    
-    label = uppercase(label);
-    opcode = uppercase(opcode);
-    opA = uppercase(opA);
-    opB = uppercase(opB);
+	let [, label, opcode, opA, opB] = m;
 
-    //console.log(label, opcode, opA, opB);
+	label = uppercase(label);
+	opcode = uppercase(opcode);
+	opA = uppercase(opA);
+	opB = uppercase(opB);
 
-    // Track label address
-    if (label) {
-      sym[label] = addr;
-      //console.log("Label " + label + ": " + addr);
-      code.push(`# ${label} (address ${addr}):`);
-    }
+	//console.log(label, opcode, opA, opB);
 
-    if (opcode !== undefined) {
-      switch (opcode) {
-        case 'DS':
-          handleDS(input);
-          break;
-        case 'DB':
-          handleDB(input);
-          break;
-        default:
-          {
-            // Check operand count
-            checkOps(opcode, opA, opB);
+	// Track label address
+	if (label) {
+	  sym[label] = addr;
+	  //console.log("Label " + label + ": " + addr);
+	  code.push(`# ${label} (address ${addr}):`);
+	}
 
-            // Handle opcodes
-            const opInfo = ops[opcode];
-            const handler = typeF[opInfo.type];
-            handler(opcode, opA, opB, opInfo.code);
-          }
-          break;
-      }
-    }
+	if (opcode !== undefined) {
+	  switch (opcode) {
+		case 'DS':
+		  handleDS(input);
+		  break;
+		case 'DB':
+		  handleDB(input);
+		  break;
+		default:
+		  {
+			// Check operand count
+			checkOps(opcode, opA, opB);
+
+			// Handle opcodes
+			const opInfo = ops[opcode];
+			const handler = typeF[opInfo.type];
+			handler(opcode, opA, opB, opInfo.code);
+		  }
+		  break;
+	  }
+	}
 
   } else {
-    console.log("No match: " + input);
-    process.exit(3);
+	console.log("No match: " + input);
+	process.exit(3);
   }
 
 });
 
 /**
  * Pass 2
- * 
+ *
  * Output the code, substituting in any symbols
  */
 rl.on('close', () => {
@@ -197,21 +197,21 @@ rl.on('close', () => {
 
   // Output result
   for (let i = 0; i < code.length; i++) {
-    let c = code[i];
+	let c = code[i];
 
-    // Replace symbols
-    if (c.substr(0,4) == 'sym:') {
-      let s = c.substr(4).trim();
+	// Replace symbols
+	if (c.substr(0,4) == 'sym:') {
+	  let s = c.substr(4).trim();
 
-      if (s in sym) {
-        c = p8(sym[s]);
-      } else {
-        console.error('unknown symbol: ' + s);
-        process.exit(2);
-      }
-    }
+	  if (s in sym) {
+		c = p8(sym[s]);
+	  } else {
+		console.error('unknown symbol: ' + s);
+		process.exit(2);
+	  }
+	}
 
-    fs.writeSync(output, c + '\n');
+	fs.writeSync(output, c + '\n');
   }
 });
 
@@ -222,19 +222,19 @@ function checkOps(opcode, opA, opB) {
 
   // Makes sure we have right operand count
   function checkOpsCount(desired, found) {
-    if (found < desired) {
-      console.error(`Line ${line}: missing operand to ${opcode}`);
-      process.exit(1);
-    } else if (found > desired) {
-      console.error(`Line ${line}: unexpected operand to ${opcode}`);
-      process.exit(1);
-    }
+	if (found < desired) {
+	  console.error(`Line ${line}: missing operand to ${opcode}`);
+	  process.exit(1);
+	} else if (found > desired) {
+	  console.error(`Line ${line}: unexpected operand to ${opcode}`);
+	  process.exit(1);
+	}
   }
 
   // Make sure we know this opcode at all
   if (!(opcode in ops)) {
-    console.error(`line ${line}: unknown opcode ${opcode}`);
-    process.exit(2);
+	console.error(`line ${line}: unknown opcode ${opcode}`);
+	process.exit(2);
   }
 
   const type = ops[opcode].type;
@@ -242,12 +242,12 @@ function checkOps(opcode, opA, opB) {
   const totalOperands = (opA !== undefined? 1: 0) + (opB !== undefined? 1: 0);
 
   if (type === 0 || type === 1 || type === 2) {
-    // 0, 1, or 2 register operands
-    checkOpsCount(type, totalOperands);
+	// 0, 1, or 2 register operands
+	checkOpsCount(type, totalOperands);
 
   } else if (type === 8) {
-    // LDI r,i or LDI r,label
-    checkOpsCount(2, totalOperands);
+	// LDI r,i or LDI r,label
+	checkOpsCount(2, totalOperands);
   }
 }
 
@@ -258,12 +258,12 @@ function getReg(op, fatal=true) {
   const m = op.match(/R([0-7])/);
 
   if (m === null) {
-    if (fatal) {
-      console.error(`Line ${line}: unknown register ${op}`);
-      process.exit(1);
-    } else {
-      return null;
-    }
+	if (fatal) {
+	  console.error(`Line ${line}: unknown register ${op}`);
+	  process.exit(1);
+	} else {
+	  return null;
+	}
   }
 
   return m[1]|0;
@@ -281,7 +281,7 @@ function p8(v) {
  */
 function uppercase(s) {
   if (s === undefined || s === null) {
-    return s;
+	return s;
   }
 
   return s.toUpperCase();
@@ -330,10 +330,10 @@ function out8(opcode, opA, opB, machineCode) {
   let outB;
 
   if (isNaN(valB)) {
-    // If it's not a value, it might be a symbol
-    outB = `sym:${opB}`;
+	// If it's not a value, it might be a symbol
+	outB = `sym:${opB}`;
   } else {
-    outB = p8(valB);
+	outB = p8(valB);
   }
 
   code.push(`${machineCode} # ${opcode} ${opA},${opB}`);
@@ -348,22 +348,22 @@ function out8(opcode, opA, opB, machineCode) {
  */
 function handleDS(input) {
   const m = input.match(regexDS);
-  
+
   if (m === null || m[2] === '') {
-    console.error(`line ${line}: missing argument to DS`);
-    process.exit(2);
+	console.error(`line ${line}: missing argument to DS`);
+	process.exit(2);
   }
 
   const data = m[2];
 
   for (let i = 0; i < data.length; i++) {
-    let printChar = data.charAt(i);
+	let printChar = data.charAt(i);
 
-    if (printChar === ' ') {
-      printChar = '[space]';
-    }
+	if (printChar === ' ') {
+	  printChar = '[space]';
+	}
 
-    code.push(`${p8(data.charCodeAt(i))} # ${printChar}`);
+	code.push(`${p8(data.charCodeAt(i))} # ${printChar}`);
   }
 
   addr += data.length;
@@ -374,10 +374,10 @@ function handleDS(input) {
  */
 function handleDB(input) {
   const m = input.match(regexDB);
-  
+
   if (m === null || m[2] === '') {
-    console.error(`line ${line}: missing argument to DB`);
-    process.exit(2);
+	console.error(`line ${line}: missing argument to DB`);
+	process.exit(2);
   }
 
   const data = m[2];
@@ -385,8 +385,8 @@ function handleDB(input) {
   let val = parseInt(data);
 
   if (isNaN(val)) {
-    console.error(`line ${line}: invalid integer argument to DB`);
-    process.exit(2);
+	console.error(`line ${line}: invalid integer argument to DB`);
+	process.exit(2);
   }
 
   // Force to byte size
