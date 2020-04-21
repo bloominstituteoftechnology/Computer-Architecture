@@ -1,4 +1,14 @@
+import sys
+
 # Write a program in python that runs programs
+
+# parse command line
+# this takes whatever program we specify after our emulator and runs it through the emulator
+# i.e python3 comp.py my_program
+# we would take everything in memory and extract them to a new file, my_program
+program_filename = sys.argv[1]
+print(program_filename)
+sys.exit()
 
 PRINT_BEEJ = 1
 HALT = 2
@@ -19,6 +29,17 @@ memory = [
     HALT,
 ]
 register = [0] * 8  # registers are like variables. R0 - R7. They hold values.
+memory = [0] * 256
+
+# load program into memory
+address = 0
+
+with open(program_filename) as f:
+    for line in f:
+        line = int(line)
+        memory[address] = line
+        address += 1
+
 
 # We can do this with a for loop, but it is inflexible. We can introduce a program counter≈
 # for v in memory:
@@ -57,3 +78,6 @@ while running:
     else:
         print("unknown instruction")
         running = False
+
+# instead of incrementing pc every time, we can extract instr_len
+# no. of operands (first two bits of instruction) + 1 (see notion doc)
