@@ -30,13 +30,14 @@ class CPU:
 
         with open(prog) as f:
             for instruction in f:
-                instruction = instruction.split("#")
-                instruction = instruction[0].strip()
+                inst_split = instruction.split("#")
+                inst = inst_split[0].strip()
 
-                if instruction == "":
+                if inst == "":
                     continue
 
-                self.ram[address] = int(instruction)
+                inst_int = int(inst, 2)
+                self.ram_write(inst_int, address)
                 address += 1
 
     def alu(self, op, reg_a, reg_b):
@@ -77,14 +78,11 @@ class CPU:
         HLT = 0b00000001
         LDI = 0b10000010
         PRN = 0b01000111
+        MUL = 0b10100010
         running = True
 
         while running:
-            print("HLT", HLT)
-            print("LDI", LDI)
-            print("PRN", PRN)
             ir = self.ram_read(self.pc)
-            print(ir)
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
             if ir == HLT:
@@ -97,7 +95,9 @@ class CPU:
             elif ir == PRN:
                 print(self.reg[operand_a])
                 self.pc += 2
-                print(ir)
+            elif ir == MUL:
+                print(self.reg[operand_a] * self.reg[operand_b])
+                self.pc += 3
             else:
                 print("Unknown instruction")
                 running = False
