@@ -7,10 +7,5 @@ from cpu import *
 
 cpu = CPU()
 
-args = sys.argv
-
-if len(args) == 2:
-    cpu.load(args[1])
-else:
-    cpu.load()
+cpu.load(sys.argv[1])
 cpu.run()
