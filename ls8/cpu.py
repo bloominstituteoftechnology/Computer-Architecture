@@ -25,7 +25,7 @@ class CPU:
             0b00000001: self.HLT_HANDLER, # 1
             0b00000010: self.LDI_HANDLER, # 2
             0b00000011: self.PRN_HANDLER, # 3
-            0b00000100: self.MULT_HANDLER,
+            #0b00000100: self.MULT_HANDLER,
         }
     def ram_read(self, address):
         return self.ram[address]
@@ -54,22 +54,43 @@ class CPU:
         # Advance the Program Counter
         self.pc += 2
 
-    def load(self):
+    def load(self, file):
         """Load a program into memory."""
+        try:
+            with open(file) as f:
 
-        address = 0
-
+                address = 0
+            for line in f:
+                # split the lines with coments
+                comments = line.split().strip('#')
+                # take the first element of the line
+                strings = comments[0].strip
+                # skip empty lines
+                if strings == '':
+                    continue
+                # convert the line to an int
+                int_value = int(strings, 2)
+                # save to memory
+                self.ram[address] = int_value
+                # increment the adress counter
+                address += 1
+                # then close the file
+                f.close()
+        # exception for try block if file npot found
+        except FileNotFoundError:
+            print("there are no requested files")
+            sys.exit()
         # For now, we've just hardcoded a program:
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+        # program = [
+        #     # From print8.ls8
+        #     0b10000010, # LDI R0,8
+        #     0b00000000,
+        #     0b00001000,
+        #     0b01000111, # PRN R0
+        #     0b00000000,
+        #     0b00000001, # HLT
+        # ]
 
         for instruction in program:
             self.ram[address] = instruction
@@ -82,6 +103,8 @@ class CPU:
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
         #elif op == "SUB": etc
+        if op == "MULT":
+            self.reg[reg_a] *= self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
