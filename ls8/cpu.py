@@ -112,17 +112,17 @@ class CPU:
 		from run() if you need help debugging.
 		"""
 
-		print(f"TRACE: %02X | %02X %02X %02X |" % (
-			self.pc,
+		print(f"TRACE: %s | %s %s %s |" % (
+			format(self.pc, '08b'),
 			#self.fl,
 			#self.ie,
-			self.ram_read(self.pc),
-			self.ram_read(self.pc + 1),
-			self.ram_read(self.pc + 2)
+			format(self.ram_read(self.pc), '08b'),
+			format(self.ram_read(self.pc + 1), '08b'),
+			format(self.ram_read(self.pc + 2), '08b')
 		), end='')
 
 		for i in range(8):
-			print(" %02X" % self.registers[i], end='')
+			print(" %s" % format(self.registers[i], '08b'), end='')
 
 		print()
 
@@ -148,7 +148,7 @@ class CPU:
 					print(f'Instruction {self.ops[ir].__name__} called with operands {operand_1:08b}, {operand_2:08b}')
 				# Call the operation based on the lower four bits
 				self.ops[ir](self, operand_1, operand_2)
-			except Exception:
+			except (Exception, KeyboardInterrupt):
 				self.trace()
 				raise
 

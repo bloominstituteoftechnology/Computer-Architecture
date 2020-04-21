@@ -216,8 +216,11 @@ def JEQ(cpu, register, *_):
 	```
 	'''
 
+	# print(f'Flags: {cpu.fl:08b}')
 	if cpu.fl & 0b00000001:
 		cpu.pc = cpu.registers[register]
+	else:
+		cpu.pc += 2
 
 
 def JGE(cpu, register, *_):
@@ -235,6 +238,8 @@ def JGE(cpu, register, *_):
 
 	if cpu.fl & 0b00000011:
 		cpu.pc = cpu.registers[register]
+	else:
+		cpu.pc += 2
 
 
 def JGT(cpu, register, *_):
@@ -253,6 +258,8 @@ def JGT(cpu, register, *_):
 
 	if cpu.fl & 0b00000010:
 		cpu.pc = cpu.registers[register]
+	else:
+		cpu.pc += 2
 
 
 def JLE(cpu, register, *_):
@@ -270,6 +277,8 @@ def JLE(cpu, register, *_):
 
 	if cpu.fl & 0b00000101:
 		cpu.pc = cpu.registers[register]
+	else:
+		cpu.pc += 2
 
 
 def JLT(cpu, register, *_):
@@ -288,6 +297,8 @@ def JLT(cpu, register, *_):
 
 	if cpu.fl & 0b00000100:
 		cpu.pc = cpu.registers[register]
+	else:
+		cpu.pc += 2
 
 
 def JMP(cpu, register, *_):
@@ -324,6 +335,8 @@ def JNE(cpu, register, *_):
 
 	if not cpu.fl & 0b00000001:
 		cpu.pc = cpu.registers[register]
+	else:
+		cpu.pc += 2
 
 
 def LD(cpu, register_A, register_B, *_):
@@ -341,7 +354,7 @@ def LD(cpu, register_A, register_B, *_):
 	```
 	'''
 
-	cpu.registers[register_A] = cpu.read_ram(cpu.registers[register_B])
+	cpu.registers[register_A] = cpu.ram_read(cpu.registers[register_B])
 
 
 def LDI(cpu, register, value, *_):
@@ -491,7 +504,7 @@ def PRA(cpu, register, *_):
 
 	# While chr technically returns Unicode, this does not cause problems
 	# (As Unicode is a superset of ASCII)
-	print(chr(cpu.registers[register]))
+	print(chr(cpu.registers[register]), end='')
 
 
 def PRN(cpu, register, *_):
