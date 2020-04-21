@@ -1,13 +1,16 @@
 """CPU functionality."""
 
 import sys
+from ls8Instructions import *
 
+
+IM = 5 # Interrupt Mask Index
+IS = 6 # Interrupt Status Index
+SP = 7 # Stack Pointer Index
+    
 class CPU:
     """Main CPU class."""
     
-    IM = 5 # Interrupt Mask Index
-    IS = 6 # Interrupt Status Index
-    SP = 7 # Stack Pointer Index
 
     def __init__(self):
         """Construct a new CPU."""
@@ -79,4 +82,13 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        inst = self.ram_read(self.pc)
+        
+        while True:
+            if inst == HLT:
+                print("We are in HALT")
+                exit()
+            else:
+                print("Unknown Instruction")
+                exit()
+            
