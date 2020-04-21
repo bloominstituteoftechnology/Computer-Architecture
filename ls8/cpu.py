@@ -2,6 +2,7 @@
 
 """CPU functionality."""
 
+import re
 import sys
 
 
@@ -19,7 +20,7 @@ class CPU:
 		self.fl = 0b10000000  # Flags Register
 		# First bit is used as `running` flag
 
-		self.ram = [0b00000000] * 0b11111111
+		self.ram = [0b00000001] * 0b11111111
 
 		from operations import ops
 		self.ops = ops
@@ -30,24 +31,22 @@ class CPU:
 	def ram_write(self, mar, mdr):
 		self.ram[mar] = mdr
 
-	def load(self):
+	def load(self, debug=False):
 		"""Load a program into memory."""
+
+		filename = sys.argv[1]
+		with open(filename, 'r') as f:
+			lines = f.read()
+		cleaned_lines = re.findall(r'^[01]+', lines, flags=re.MULTILINE)
+		program = [int(line, 2) for line in cleaned_lines]
 
 		address = 0
 
-		# For now, we've just hardcoded a program:
-
-		program = [
-			# From print8.ls8
-			0b10000010,  # LDI R0,8
-			0b00000000,
-			0b00001000,
-			0b01000111,  # PRN R0
-			0b00000000,
-			0b00000001,  # HLT
-		]
-
+		if debug:
+			print('Loading program:')
 		for instruction in program:
+			if debug:
+				print(f'{address:03}: {instruction:08b}')
 			self.ram[address] = instruction
 			address += 1
 
@@ -55,8 +54,10 @@ class CPU:
 		"""ALU operations."""
 
 		if op == "ADD":
-			self.reg[reg_a] += self.reg[reg_b]
-		#elif op == "SUB": etc
+			self.registers[reg_a] += self.registers[reg_b]
+		elif op == "MUL":
+			self.registers[reg_a] = self.registers[reg_a] * self.registers[reg_b]
+		# elif op == "SUB": etc
 		else:
 			raise Exception("Unsupported ALU operation")
 
@@ -80,14 +81,14 @@ class CPU:
 
 		print()
 
-	def run(self, debug=True):
+	def run(self, debug=False):
 		"""Run the CPU."""
 
 		# As long as our running flag is set
 		while self.fl & 0b10000000:
 			ir = self.ram_read(self.pc)  # Load the instruction
 			if debug:
-				print(f'Reading RAM at address {self.pc:08b}: {ir:08b}')
+				print(f'Reading instruction at address {self.pc:08b}: {ir:08b}')
 
 			# Load as many operands as the top two bits call for
 			operand_1 = None
@@ -99,7 +100,7 @@ class CPU:
 
 			try:
 				# Call the operation based on the lower four bits
-				self.ops[ir & 0b00001111](self, operand_1, operand_2)
+				self.ops[ir](self, operand_1, operand_2)
 			except Exception:
 				self.trace()
 				raise
