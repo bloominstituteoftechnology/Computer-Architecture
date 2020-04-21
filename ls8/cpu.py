@@ -4,10 +4,19 @@ import sys
 
 class CPU:
     """Main CPU class."""
+    
+    IM = 5 # Interrupt Mask Index
+    IS = 6 # Interrupt Status Index
+    SP = 7 # Stack Pointer Index
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.ram = [0] * 256 # RAM capacity of 256 bytes
+        self.ir = [0] * 8 # Setting up 8 general-purpose resgisters
+        self.pc = 0 # Program Counter
+        self.flags = 0
+        self.ir[SP] = 0xF4
+
 
     def load(self):
         """Load a program into memory."""
@@ -29,6 +38,14 @@ class CPU:
         for instruction in program:
             self.ram[address] = instruction
             address += 1
+            
+    
+    def ram_read(self, MAR):
+        return self.ram[MAR]
+    
+    
+    def ram_write(self, MAR, MDR):
+        ram[MAR] = MDR
 
 
     def alu(self, op, reg_a, reg_b):
