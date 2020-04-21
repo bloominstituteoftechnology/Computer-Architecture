@@ -25,14 +25,21 @@ class CPU:
             0b00000001: self.HLT_HANDLER, # 1
             0b10000010: self.LDI_HANDLER, # 2
             0b01000111: self.PRN_HANDLER, # 3
-            #0b00000100: self.MULT_HANDLER,
+            0b10100010: self.MUL_HANDLER,
         }
     def ram_read(self, address):
         return self.ram[address]
 
     def ram_write(self, value, address):
         self.ram[address] = value
-
+    def MUL_HANDLER(self):
+        # get two values:
+        reg_a = self.ram_read(self.pc + 1)
+        reg_b = self.ram_read(self.pc + 2)
+        # ALU MUL
+        self.alu("MUL", reg_a, reg_b)
+        # then advance the counter 
+        self.pc += 3
     #stop the program:
     def HLT_HANDLER(self):
         sys.exit(0)
@@ -66,7 +73,7 @@ class CPU:
                 # take the first element of the line
                     strings = comments[0].strip()
                 # skip empty lines
-                    if strings == '':
+                    if strings == "":
                         continue
                 # convert the line to an int
                     int_value = int(strings, 2)
@@ -103,7 +110,7 @@ class CPU:
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
         #elif op == "SUB": etc
-        if op == "MULT":
+        elif op == "MUL":
             self.reg[reg_a] *= self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
