@@ -1,5 +1,14 @@
 import sys
+# stack is last in first out
+'''
+PUSH:
+    1. decrement SP
+    2. copy value from reg into memory at SP
 
+POP:
+    1. copy the value from memory into reg
+    2. Increment SP
+'''
 # write program in python that runs programs:
 program_filename = sys.argv[0]
 print(program_filename)
@@ -9,6 +18,8 @@ sys.exit()
 
 PRINT_BEEJ = 1
 HALT  = 2
+PUSH =5
+POP = 6 
 
 '''
 memory = [
