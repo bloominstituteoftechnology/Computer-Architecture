@@ -26,8 +26,8 @@ class CPU:
             0b10000010: self.LDI_HANDLER, # 130
             0b01000111: self.PRN_HANDLER, 
             0b10100010: self.MUL_HANDLER,
-            0b01000110: self.POP_handler,
-            0b01000101: self.PUSH_handler
+            0b01000110: self.POP_HANDLER,
+            0b01000101: self.PUSH_HANDLER
         }
     def ram_read(self, address):
         return self.ram[address]
@@ -65,7 +65,7 @@ class CPU:
     
     def POP_HANDLER(self):
         # get the value from memory with stack pointer(cursor)
-        address = self.ram_read(self.pc += 1)
+        address = self.ram_read(self.pc + 1)
         val = self.ram[self.reg[7]]
         # now copy the val to the registry
         self.reg[address] = val
@@ -76,7 +76,7 @@ class CPU:
     
     def PUSH_HANDLER(self):
         # get the value from memory with stack pointer(cursor)
-        address = self.ram_read(self.pc += 1)
+        address = self.ram_read(self.pc + 1)
         val = self.reg[address]
         
         # decrement the pointer
