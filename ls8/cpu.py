@@ -31,10 +31,10 @@ class CPU:
         program = [
             # From print8.ls8
             0b10000010, # LDI R0,8
-            0b00000000,
+            0b00000001,
             0b00001000,
             0b01000111, # PRN R0
-            0b00000000,
+            0b00000001,
             0b00000001, # HLT
         ]
 
@@ -52,6 +52,7 @@ class CPU:
 
 
     def alu(self, op, reg_a, reg_b):
+        
         """ALU operations."""
 
         if op == "ADD":
@@ -82,13 +83,22 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        inst = self.ram_read(self.pc)
-        
         while True:
+            inst = self.ram_read(self.pc)
+            # print("Instruction: ", hex(inst))
             if inst == HLT:
-                print("We are in HALT")
                 exit()
+            elif inst == LDI:
+                reg_num = self.ram_read(self.pc + 1)
+                value = self.ram_read(self.pc + 2)
+                self.ir[reg_num] = value
+                self.pc += 3
+            elif inst == PRN:
+                reg_num = self.ram_read(self.pc + 1)
+                value = self.ir[reg_num]
+                print(value)
+                self.pc += 2
             else:
-                print("Unknown Instruction")
+                print("Unknown Instruction: ", hex(inst))
                 exit()
             
