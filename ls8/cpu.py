@@ -71,7 +71,18 @@ class CPU:
         self.reg[7] += 1
         # then the pc
         self.pc += 2
-
+    
+    def PUSH_HANDLER(self):
+        # get the value from memory with stack pointer(cursor)
+        address = self.ram_read(self.pc += 1)
+        val = self.reg[address]
+        
+        # decrement the pointer
+        self.reg[7] -= 1
+        # copy it to the stack
+        self.ram[self.reg[7]] = val
+        # then the pc
+        self.pc += 2
 
     def load(self, file):
         """Load a program into memory."""
