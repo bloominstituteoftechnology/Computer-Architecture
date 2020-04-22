@@ -60,6 +60,18 @@ class CPU:
         print(self.reg[address])
         # Advance the Program Counter
         self.pc += 2
+    
+    def POP_HANDLER(self):
+        # get the value from memory with stack pointer(cursor)
+        address = self.ram_read(self.pc += 1)
+        val = self.ram[self.reg[7]]
+        # now copy the val to the registry
+        self.reg[address] = val
+        # increment the pointer
+        self.reg[7] += 1
+        # then the pc
+        self.pc += 2
+
 
     def load(self, file):
         """Load a program into memory."""
