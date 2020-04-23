@@ -188,22 +188,22 @@ class CPU:
             print(" %02X" % self.reg[i], end='')
 
         print()
-'''
-INVALID KEY ERROR: 160
-'''
-    # def run(self):
 
-    #     while True:
-    #         op = self.ram[self.pc]
+#INVALID KEY ERROR: 160
 
-    #         # set the codes for functions to run
+    def run(self):
+
+        while True:
+            op = self.ram[self.pc]
+
+            # set the codes for functions to run
     
-    #         # Get dictionary entry then execute returned instruction
-    #         instruction = self.instruction_registry[op]
-    #         instruction()
-'''
-UNKNOWN INPUT ERROR : 130
-'''
+            # Get dictionary entry then execute returned instruction
+            instruction = self.instruction_registry[op]
+            instruction()
+
+# UNKNOWN INPUT ERROR : 130
+
     # def run(self):
 
     #     running = True
