@@ -189,30 +189,30 @@ class CPU:
 
         print()
 
-    def run(self):
-
-        while True:
-            op = self.ram[self.pc]
-
-            # set the codes for functions to run
-    
-            # Get dictionary entry then execute returned instruction
-            instruction = self.instruction_registry[op]
-            instruction()
-
     # def run(self):
 
-    #     running = True
-    #     while running:
+    #     while True:
     #         op = self.ram[self.pc]
-    #         op1 = self.ram_read(self.pc + 1)
-    #         op2 = self.ram_read(self.pc + 2)
-    #         try:
-    #             ops = self.instruction_registry[op](op1, op2)
-    #             running = ops[1]
-    #             self.pc += ops[0]
-    #         except:
-    #             print(f"Unknown input: {op}")
-    #             sys.exit()
+
+    #         # set the codes for functions to run
+    
+    #         # Get dictionary entry then execute returned instruction
+    #         instruction = self.instruction_registry[op]
+    #         instruction()
+
+    def run(self):
+
+        running = True
+        while running:
+            op = self.ram[self.pc]
+            op1 = self.ram_read(self.pc + 1)
+            op2 = self.ram_read(self.pc + 2)
+            try:
+                ops = self.instruction_registry[op](op1, op2)
+                running = ops[1]
+                self.pc += ops[0]
+            except:
+                print(f"Unknown input: {op}")
+                sys.exit()
 
 
