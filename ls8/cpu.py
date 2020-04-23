@@ -1,14 +1,14 @@
 """CPU functionality."""
 
 import sys
-
+# get the top of the stack
+sp_address = 7
 class CPU:
     """Main CPU class."""
 
     def __init__(self):
         """Construct a new CPU."""
-        # get the top of the stack
-        self.sp_address = 7
+        self.set_PC = False
         # total CPU memory
         self.ram = [0] * 256
         # lambda CPU to print 8
@@ -90,18 +90,30 @@ class CPU:
         # then the pc
         self.pc += 2
     
-    def CALL_HANDLER(self, reg_a, reg_b):
+    def CALL_HANDLER(self):
         #compute pc value and push onto stack:
-        self.sp_address -= 1
-        self.ram[self.sp_address] = self.pc + 2
+        self.reg[sp_address] -= 1
+        self.ram[self.reg[sp_address]] = self.pc + 2
         # set the pc to the value in the given register
-        self.pc = self.reg[reg_a]
-        return (0, True)
-    def RET_HANDLER(self, reg_a, reg_b):
-        # pop return address from top of stackv
-        self.pc = self.ram[self.sp_address]
-        #set the PC
-        self.reg[self.sp_address] += 1
+        register = self.ram[self.pc + 1]
+        self.pc = self.reg[register]
+
+    def RET_HANDLER(self):
+        # Pop the value from the top of the stack and store it in the PC.
+        self.pc = self.ram[self.reg[sp_address]]
+        self.reg[sp_address] += 1
+    
+    def pushStack(self,value):
+        self.reg[sp_address] -= 1
+        self.ram_write(self.reg[sp_address],value)
+
+    def popStack(self):
+        value = self.ram_read(self.reg[sp_address])
+        self.reg[sp_address] += 1
+        return value
+
+        
+
 
     def load(self, file):
         """Load a program into memory."""
@@ -148,6 +160,7 @@ class CPU:
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
+        # self.instruction_registry[op](reg_a, reg_b)
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
         #elif op == "SUB": etc
@@ -177,24 +190,29 @@ class CPU:
         print()
 
     def run(self):
-        """Run the CPU."""
-        '''
-        * `LDI`: load "immediate", store a value in a register, or "set this register to
-        this value".
-        * `PRN`: a pseudo-instruction that prints the numeric value stored in a
-        register.
-        * `HLT`: halt the CPU and exit the emulator.
-        '''
+
         while True:
             op = self.ram[self.pc]
 
             # set the codes for functions to run
-            code = op >> 6
-            if code >= 1: # operand 1
-                operand_a = self.ram_read(self.pc +1) #increment by 2
-            if code == 2: # operand 2
-                operand_b = self.ram_read(self.pc +2) #increment by an additional 1            
+    
             # Get dictionary entry then execute returned instruction
             instruction = self.instruction_registry[op]
             instruction()
-            # self.alu(op, operand_a, operand_b)
+
+    # def run(self):
+
+    #     running = True
+    #     while running:
+    #         op = self.ram[self.pc]
+    #         op1 = self.ram_read(self.pc + 1)
+    #         op2 = self.ram_read(self.pc + 2)
+    #         try:
+    #             ops = self.instruction_registry[op](op1, op2)
+    #             running = ops[1]
+    #             self.pc += ops[0]
+    #         except:
+    #             print(f"Unknown input: {op}")
+    #             sys.exit()
+
+
