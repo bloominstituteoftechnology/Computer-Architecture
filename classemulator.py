@@ -1,119 +1,94 @@
 import sys
-# stack is last in first out
-'''
-PUSH:
-    1. decrement SP
-    2. copy value from reg into memory at SP
 
-POP:
-    1. copy the value from memory into reg
-    2. Increment SP
-'''
-# write program in python that runs programs:
 program_filename = sys.argv[0]
-print(program_filename)
-sys.exit()
-#print beej = 1 
-# halt = 2
 
 PRINT_BEEJ = 1
-HALT  = 2
-PUSH =5
-POP = 6 
+HALT = 2
+SAVE_REG = 3   # Store a value in a register (in the LS8 called LDI)
+PRINT_REG = 4  # corresponds to PRN in the LS8
+PUSH = 5
+POP = 6
 
-'''
+"""
 memory = [
-    PRINT_BEEJ,
-    PRINT_BEEJ,
-    PRINT_BEEJ,
-    HALT
+	PRINT_BEEJ,
+​
+	SAVE_REG,    # SAVE R0,37   store 37 in R0      the opcode
+	0,  # R0     operand ("argument")
+	37, # 37     operand
+​
+	PRINT_BEEJ,
+​
+	PRINT_REG,  # PRINT_REG R0
+	0, # R0
+​
+	HALT
 ]
-'''
+"""
 memory = [0] * 256
-register = [0] * 8
+register = [0] * 8   # like variables R0-R7
 
+# R7 is the SP
+SP = 7
+register[SP] = 0xF4
 
+# Load program into memory
 address = 0
-with open('beej.ls8') as f:
-    for line in f:
-        line = line.split('#')
-        line = line[0].strip()
-        if line == '':
-            continue
-        try:
-            line = int(line)
-        except ValueError:
-            continue
-        memory[address] = int(line)
-        address += 1
-        print(line)
 
-sys.exit()
-# address of the current instruction
-# which slot in memory it is
-pc = 0
-running = True
-while running:
-    instruction = memory[pc]
-    if instruction == PRINT_BEEJ:
-        print("beej!")
-        # next instruction
-        pc += 1
-    elif instruction == HALT:
-        running = False
-
-# another form of storage is called register
-# named like this R0 through R7
-# they hold values and numbers
-# this is fixed depending on the actual CPU
-register = [0] * 8
-# store value to register and print it out
-SAVE_REG = 3
-PRINT_REG = 4
-
-
-# memory = [
-#     PRINT_BEEJ,
-#     SAVE_REG, # save the val 37 to R0
-#     0, # represents Register 0 (operands)
-#     37, # represents the value (operands)
-#     PRINT_BEEJ,
-#     PRINT_REG, # print R 0
-#     0,
-#     HALT
-# ]
-memory = [0] * 256
-register = [0] * 8
 with open(program_filename) as f:
-    for line in f:
-        print(line)
+	for line in f:
+		line = line.split('#')
+		line = line[0].strip()
 
-sys.exit()
-# address of the current instruction
-# which slot in memory it is
-pc = 0
+		if line == '':
+			continue
+        
+		memory[address] = int(line)
+
+		address += 1
+
+#print(type(memory[0]))
+#sys.exit()
+# ​
+pc = 0 # Program Counter, the address of the current instruction
 running = True
+
 while running:
-    instruction = memory[pc]
+	inst = memory[pc]
 
+	if inst == PRINT_BEEJ:
+		print("Beej!")
+		pc += 1
+        
+	elif inst == SAVE_REG:
+		reg_num = memory[pc + 1]
+		value = memory[pc + 2]
+		register[reg_num] = value
+		pc += 3
 
-    if instruction == PRINT_BEEJ:
-        print("beej!")
-        # next instruction
-        pc += 1
-    # add instruction
-    elif instruction == SAVE_REG:
-        register_num = memory[pc + 1]
-        value = memory[pc + 2]
-        register[0] = 37
-        pc += 3
-    elif instruction == PRINT_REG:
-        register_num = memory[pc + 1]
-        value = register[register_num]
-        print(value)
-        pc += 2
-    elif instruction == HALT:
-        running = False
-    else:
-        print("Unknown Instruction")
+	elif inst == PRINT_REG:
+		reg_num = memory[pc + 1]
+		value = register[reg_num]
+		print(value)
+		pc += 2
+
+	elif inst == PUSH:
+		# decrement the stack pointer
+		register[SP] -= 1   # address_of_the_top_of_stack -= 1
+
+		# copy value from register into memory
+		reg_num = memory[pc + 1]
+		value = register[reg_num]  # this is what we want to push
+        
+		address = register[SP]
+		memory[address] = value   # store the value on the stack
+
+		pc += 2
+        
+	elif inst == HALT:
+		running = False
+
+	else:
+		print("Unknown instruction")
+		running = False
 
