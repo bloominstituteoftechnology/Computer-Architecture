@@ -44,7 +44,7 @@ class CPU:
     
     
     def ram_write(self, MAR, MDR):
-        ram[MAR] = MDR
+        self.ram[MAR] = MDR
 
 
     def alu(self, op, reg_a, reg_b):
@@ -75,14 +75,25 @@ class CPU:
         ), end='')
 
         for i in range(8):
-            print(" %02X" % self.reg[i], end='')
+            print(" %02X" % self.ir[i], end='')
 
         print()
+        
+        
+    def handle_hlt(self, hlt):
+        exit()
+        
+    def handle_ldi(self, ldi):
+        reg_num = self.ram_read(self.pc + 1)
+        value = self.ram_read(self.pc + 2)
+        self.ir[reg_num] = value
+        self.pc += 3
 
     def run(self):
         """Run the CPU."""
         while True:
             inst = self.ram_read(self.pc)
+            self.trace()
             # print("Instruction: ", hex(inst))
             if inst == HLT:
                 exit()
@@ -101,6 +112,20 @@ class CPU:
                 reg_numB = self.ram_read(self.pc + 2)
                 self.alu("MULT", reg_numA, reg_numB)
                 self.pc += 3
+            elif inst == PUSH:
+                self.ir[SP] -= 1
+                reg_num = self.ram_read(self.pc + 1)
+                value = self.ir[reg_num]
+                address = self.ir[SP]
+                self.ram_write(address, value)
+                self.pc += 2
+            elif inst == POP:
+                reg_num = self.ram_read(self.pc + 1)
+                address = self.ir[SP]
+                value = self.ram[address]
+                self.ir[reg_num] = value
+                self.ir[SP] += 1
+                self.pc += 2
             else:
                 print("Unknown Instruction: ", hex(inst))
                 exit()
