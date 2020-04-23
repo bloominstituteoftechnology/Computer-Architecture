@@ -622,7 +622,7 @@ def ST(cpu, register_A, register_B, *_):
 	```
 	'''
 
-	cpu.ram_write(cpu[register_A], cpu[register_B])
+	cpu.ram_write(cpu.registers[register_A], cpu.registers[register_B])
 
 
 def SUB(cpu, register_A, register_B, *_):

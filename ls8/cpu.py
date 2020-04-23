@@ -5,6 +5,8 @@
 import re
 import sys
 
+from datetime import datetime
+
 
 class CPU:
 	"""Main CPU class."""
@@ -24,26 +26,28 @@ class CPU:
 
 		self.ram = [0b00000001] * 0b11111111
 
+		self._last_second = datetime.now()
+
 		from operations import ops
 		self.ops = ops
 
 	# Interrupt Mask is R5
 	@property
 	def IM(self):
-		return self.registers[7]
+		return self.registers[5]
 
 	@IM.setter
 	def IM(self, value):
-		self.registers[7] = value
+		self.registers[5] = value
 
 	# Interrupt Status is R6
 	@property
 	def IS(self):
-		return self.registers[7]
+		return self.registers[6]
 
 	@IS.setter
 	def IS(self, value):
-		self.registers[7] = value
+		self.registers[6] = value
 
 	# Stack Pointer is R7
 	@property
@@ -53,6 +57,15 @@ class CPU:
 	@SP.setter
 	def SP(self, value):
 		self.registers[7] = value
+
+	# Key Pressed is RAM: 0xF4
+	@property
+	def key_pressed(self):
+		return self.ram_read(0xF4)
+
+	@key_pressed.setter
+	def key_pressed(self, value):
+		self.ram_write(0xF4, value)
 
 	def ram_read(self, mar):
 		return self.ram[mar]
@@ -145,6 +158,12 @@ class CPU:
 
 		print()
 
+	def _check_timer_interrupt(self):
+		now = datetime.now()
+		if (now - self._last_second).seconds >= 1:
+			self._last_second = now
+			self.IS = self.IS | 0b00000001
+
 	def run(self, debug=True):
 		"""Run the self."""
 
@@ -153,12 +172,22 @@ class CPU:
 
 			# If interrupts are enabled
 			if self.fl & 0b01000000:
+				# Check for timer interrupts
+				self._check_timer_interrupt()
+
 				maskedInterrupts = self.IM & self.IS
+				if self.debug and maskedInterrupts:
+					print(f'Interrupt caught, maskedInterrupts: {maskedInterrupts:08b}')
+					print(f'Interrupt Mask: {self.IM:08b}, Interrupt Status: {self.IS:08b}')
 				for i in range(8):
 					# If bit i in the IS register is set
 					if ((maskedInterrupts >> i) & 1) == 1:
+
+						# If this statement is not here, the PRA statement will not function
+						print()  # TODO: Find out *why* this is needed
+
 						if self.debug:
-							print(f'Interrupt found at bit {i}, maskedInterrupts: {maskedInterrupts:08b}')
+							print(f'Interrupt found at bit {i}')
 						# Disable further interrupts
 						self.fl = self.fl & 0b10111111
 						# Clear the bit in the IS register
@@ -173,7 +202,7 @@ class CPU:
 						for r in range(7):
 							self.ops[0b01000101](self, r)
 						# Look up the vector from the interrupt vector table
-						vector = self.ram_read(0xFF - i)
+						vector = self.ram_read(0xF8 + i)
 						self.pc = vector
 						break
 
