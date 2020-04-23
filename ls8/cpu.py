@@ -7,6 +7,8 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
+        # get the top of the stack
+        self.sp_address = 7
         # total CPU memory
         self.ram = [0] * 256
         # lambda CPU to print 8
