@@ -29,7 +29,9 @@ class CPU:
             0b01000111: self.PRN_HANDLER, 
             0b10100010: self.MUL_HANDLER,
             0b01000110: self.POP_HANDLER,
-            0b01000101: self.PUSH_HANDLER
+            0b01000101: self.PUSH_HANDLER,
+            0b01010000: self.CALL_HANDLER,
+            0b00010001: self.RET_HANDLER
         }
     def ram_read(self, address):
         return self.ram[address]
@@ -90,10 +92,16 @@ class CPU:
     
     def CALL_HANDLER(self, reg_a, reg_b):
         #compute pc value and push onto stack:
-        self.reg[self.sp_address] -= 1
-        self.ram[self.reg[self.sp_address]] = self.pc + 2
+        self.sp_address -= 1
+        self.ram[self.sp_address] = self.pc + 2
         # set the pc to the value in the given register
         self.pc = self.reg[reg_a]
+        return (0, True)
+    def RET_HANDLER(self, reg_a, reg_b):
+        # pop return address from top of stackv
+        self.pc = self.ram[self.sp_address]
+        #set the PC
+        self.reg[self.sp_address] += 1
 
     def load(self, file):
         """Load a program into memory."""
@@ -140,7 +148,6 @@ class CPU:
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
-
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
         #elif op == "SUB": etc
@@ -180,7 +187,14 @@ class CPU:
         '''
         while True:
             op = self.ram[self.pc]
+
+            # set the codes for functions to run
+            code = op >> 6
+            if code >= 1: # operand 1
+                operand_a = self.ram_read(self.pc +1) #increment by 2
+            if code == 2: # operand 2
+                operand_b = self.ram_read(self.pc +2) #increment by an additional 1            
             # Get dictionary entry then execute returned instruction
             instruction = self.instruction_registry[op]
             instruction()
-        
+            # self.alu(op, operand_a, operand_b)
