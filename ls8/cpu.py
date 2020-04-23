@@ -159,12 +159,57 @@ class CPU:
 		print()
 
 	def _check_timer_interrupt(self):
-		now = datetime.now()
-		if (now - self._last_second).seconds >= 1:
-			self._last_second = now
-			self.IS = self.IS | 0b00000001
+		# If timer interrupts are enabled
+		if self.IM & 0b00000001:
+			now = datetime.now()
+			if (now - self._last_second).seconds >= 1:
+				self._last_second = now
+				self.IS = self.IS | 0b00000001
 
-	def run(self, debug=True):
+	def _check_keyboard_interrupt(self):
+		# If keyboard interrupts are enabled
+		if self.IM & 0b00000010:
+			try:
+				c = sys.stdin.read(1)
+				if c:
+					self.IS = self.IS | 0b00000010
+					self.key_pressed = ord(c) & 0xFF
+			except IOError:
+				pass
+
+	def _handle_interrupts(self):
+		# Check for interrupts
+		self._check_timer_interrupt()
+		self._check_keyboard_interrupt()
+
+		maskedInterrupts = self.IM & self.IS
+		if self.debug and maskedInterrupts:
+			print(f'Interrupt caught, maskedInterrupts: {maskedInterrupts:08b}')
+			print(f'Interrupt Mask: {self.IM:08b}, Interrupt Status: {self.IS:08b}')
+		for i in range(8):
+			# If bit i in the IS register is set
+			if ((maskedInterrupts >> i) & 1) == 1:
+				if self.debug:
+					print(f'Interrupt found at bit {i}')
+				# Disable further interrupts
+				self.fl = self.fl & 0b10111111
+				# Clear the bit in the IS register
+				self.IS = self.IS & ((1 << i) ^ 0xFF)
+				# Push the PC register
+				self.SP -= 1
+				self.ram_write(self.SP, self.pc)
+				# Push the FL register
+				self.SP -= 1
+				self.ram_write(self.SP, self.fl)
+				# Push R0-R6, in that order
+				for r in range(7):
+					self.ops[0b01000101](self, r)
+				# Look up the vector from the interrupt vector table
+				vector = self.ram_read(0xF8 + i)
+				self.pc = vector
+				break
+
+	def run(self):
 		"""Run the self."""
 
 		# As long as our running flag is set
@@ -172,35 +217,7 @@ class CPU:
 
 			# If interrupts are enabled
 			if self.fl & 0b01000000:
-				# Check for timer interrupts
-				self._check_timer_interrupt()
-
-				maskedInterrupts = self.IM & self.IS
-				if self.debug and maskedInterrupts:
-					print(f'Interrupt caught, maskedInterrupts: {maskedInterrupts:08b}')
-					print(f'Interrupt Mask: {self.IM:08b}, Interrupt Status: {self.IS:08b}')
-				for i in range(8):
-					# If bit i in the IS register is set
-					if ((maskedInterrupts >> i) & 1) == 1:
-						if self.debug:
-							print(f'Interrupt found at bit {i}')
-						# Disable further interrupts
-						self.fl = self.fl & 0b10111111
-						# Clear the bit in the IS register
-						self.IS = self.IS & ((1 << i) ^ 0xFF)
-						# Push the PC register
-						self.SP -= 1
-						self.ram_write(self.SP, self.pc)
-						# Push the FL register
-						self.SP -= 1
-						self.ram_write(self.SP, self.fl)
-						# Push R0-R6, in that order
-						for r in range(7):
-							self.ops[0b01000101](self, r)
-						# Look up the vector from the interrupt vector table
-						vector = self.ram_read(0xF8 + i)
-						self.pc = vector
-						break
+				self._handle_interrupts()
 
 			ir = self.ram_read(self.pc)  # Load the instruction
 			if self.debug:
