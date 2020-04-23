@@ -161,7 +161,7 @@ def INC(cpu, register, *_):
 	cpu.alu('INC', register, 0b00000000)
 
 
-def INT(cpu, *_):
+def INT(cpu, register, *_):
 	'''
 	`INT register`
 
@@ -177,7 +177,7 @@ def INT(cpu, *_):
 	```
 	'''
 
-	raise NotImplementedError
+	cpu.IS = cpu.IS | (1 << register)
 
 
 def IRET(cpu, *_):
@@ -200,7 +200,16 @@ def IRET(cpu, *_):
 	```
 	'''
 
-	raise NotImplementedError
+	for r in range(6, -1, -1):
+		POP(cpu, r)
+
+	cpu.fl = cpu.ram_read(cpu.SP)
+	cpu.SP += 1
+	cpu.pc = cpu.ram_read(cpu.SP)
+	cpu.SP += 1
+
+	cpu.fl = cpu.fl | 0b01000000
+
 
 
 def JEQ(cpu, register, *_):

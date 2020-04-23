@@ -10,7 +10,7 @@ class CPU:
 	"""Main CPU class."""
 
 	def __init__(self, debug=False):
-		"""Construct a new CPU."""
+		"""Construct a new self."""
 		self.debug = debug
 		self.registers = [0b00000000] * 8
 		self.registers[7] = 0xF4
@@ -18,9 +18,9 @@ class CPU:
 		# self.ir = 0b00000000  # Instruction Register
 		# self.mar = 0b00000000  # Memory Address Register
 		# self.mdr = 0b00000000  # Memory Data Register
-		self.fl = 0b10000000  # Flags Register
-		# R0000LGE
-		# Running, Less than, Greater than, Equal
+		self.fl = 0b11000000  # Flags Register
+		# RI000LGE
+		# Running, Interrupts Enabled, Less than, Greater than, Equal
 
 		self.ram = [0b00000001] * 0b11111111
 
@@ -113,7 +113,7 @@ class CPU:
 		elif op == "INC":
 			self.registers[reg_a] = self.registers[reg_a] + 1 & 0xFF
 		elif op == "NOT":
-			self.registers[reg_a] = ~self.registers[reg_a]
+			self.registers[reg_a] = self.registers[reg_a] ^ 0xFF
 		elif op == "DIV":
 			if self.registers[reg_b] == 0:
 				raise Exception("Division by zero")
@@ -146,10 +146,37 @@ class CPU:
 		print()
 
 	def run(self, debug=True):
-		"""Run the CPU."""
+		"""Run the self."""
 
 		# As long as our running flag is set
 		while self.fl & 0b10000000:
+
+			# If interrupts are enabled
+			if self.fl & 0b01000000:
+				maskedInterrupts = self.IM & self.IS
+				for i in range(8):
+					# If bit i in the IS register is set
+					if ((maskedInterrupts >> i) & 1) == 1:
+						if self.debug:
+							print(f'Interrupt found at bit {i}, maskedInterrupts: {maskedInterrupts:08b}')
+						# Disable further interrupts
+						self.fl = self.fl & 0b10111111
+						# Clear the bit in the IS register
+						self.IS = self.IS & ((1 << i) ^ 0xFF)
+						# Push the PC register
+						self.SP -= 1
+						self.ram_write(self.SP, self.pc)
+						# Push the FL register
+						self.SP -= 1
+						self.ram_write(self.SP, self.fl)
+						# Push R0-R6, in that order
+						for r in range(7):
+							self.ops[0b01000101](self, r)
+						# Look up the vector from the interrupt vector table
+						vector = self.ram_read(0xFF - i)
+						self.pc = vector
+						break
+
 			ir = self.ram_read(self.pc)  # Load the instruction
 			if self.debug:
 				print(f'Reading instruction at address {self.pc:08b} ({self.pc:03}): {ir:08b}')
