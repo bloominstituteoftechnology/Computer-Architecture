@@ -4,6 +4,8 @@
 
 import re
 import sys
+import tty
+import termios
 
 from datetime import datetime
 
@@ -166,16 +168,32 @@ class CPU:
 				self._last_second = now
 				self.IS = self.IS | 0b00000001
 
-	def _check_keyboard_interrupt(self):
+	def _check_keyboard_interrupt(self, exit_on_esc=True):
 		# If keyboard interrupts are enabled
 		if self.IM & 0b00000010:
+			# Save the previous terminal settings
+			fd = sys.stdin.fileno()
+			old_settings = termios.tcgetattr(fd)
 			try:
+				# Set the terminal to raw mode
+				tty.setraw(sys.stdin.fileno())
+				# Get a character
 				c = sys.stdin.read(1)
 				if c:
+					# If there is a character, do the keyboard interrupt
 					self.IS = self.IS | 0b00000010
 					self.key_pressed = ord(c) & 0xFF
+
+					# If exiting is enabled and the key is esc, disable running flag
+					# (This should really be set up in the interrupt handler coroutine instead)
+					if exit_on_esc and self.key_pressed == 27:
+						self.fl = self.fl & 0b01111111
 			except IOError:
+				# Continue on with our day if there's no char to read
 				pass
+			finally:
+				# Restore the terminal to original settings
+				termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
 
 	def _handle_interrupts(self):
 		# Check for interrupts
