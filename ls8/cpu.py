@@ -85,6 +85,13 @@ class CPU:
         self.ram[self.reg[7]] = val
         # then the pc
         self.pc += 2
+    
+    def CALL_HANDLER(self, reg_a, reg_b):
+        #compute pc value and push onto stack:
+        self.reg[self.sp_address] -= 1
+        self.ram[self.reg[self.sp_address]] = self.pc + 2
+        # set the pc to the value in the given register
+        self.pc = self.reg[reg_a]
 
     def load(self, file):
         """Load a program into memory."""
