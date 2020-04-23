@@ -1,6 +1,6 @@
 import sys
 
-program_filename = sys.argv[0]
+program_filename = sys.argv[1]
 
 PRINT_BEEJ = 1
 HALT = 2
@@ -31,6 +31,7 @@ register = [0] * 8   # like variables R0-R7
 # R7 is the SP
 SP = 7
 register[SP] = 0xF4
+
 
 # Load program into memory
 address = 0
@@ -65,7 +66,24 @@ while running:
 		value = memory[pc + 2]
 		register[reg_num] = value
 		pc += 3
+	elif inst == CALL:
+		# compute the pc value
+		return_address = pc + 2
+		# push onto a stack
+		register[SP] -= 1
+		memory[register[SP]] = return_address
+		# set the pc to the value in the given register
+		reg_num = memory[pc + 1]
+		dest_address = register[reg_num]
 
+		pc = dest_address
+
+	elif inst == RET:
+		# pop return address from top of stack
+		return_address =memory[register[SP]]
+		register[SP] = return_address
+		#set the PC
+		pc = return_address
 	elif inst == PRINT_REG:
 		reg_num = memory[pc + 1]
 		value = register[reg_num]
