@@ -28,11 +28,11 @@ class CPU:
 		self.ops = ops
 
 	@property
-	def sc(self):
+	def sp(self):
 		return self.registers[7]
 
-	@sc.setter
-	def sc(self, value):
+	@sp.setter
+	def sp(self, value):
 		self.registers[7] = value
 
 	def ram_read(self, mar):
