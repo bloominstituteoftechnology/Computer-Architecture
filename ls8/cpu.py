@@ -105,19 +105,16 @@ class CPU:
         reg_num = op_a
         value = op_b
         self.ir[reg_num] = value
-        # self.pc += 3
         
     def handle_prn(self, op_a):
         reg_num = op_a
         value = self.ir[reg_num]
         print(value)
-        # self.pc += 2
         
     def handle_mult(self, op_a, op_b):
         reg_numA = op_a
         reg_numB = op_b
         self.alu("MULT", reg_numA, reg_numB)
-        # self.pc += 3
         
     def handle_push(self, op_a):
         self.ir[SP] -= 1
@@ -125,7 +122,6 @@ class CPU:
         value = self.ir[reg_num]
         address = self.ir[SP]
         self.ram_write(address, value)
-        # self.pc += 2
     
     def handle_pop(self, op_a):
         reg_num = op_a
@@ -133,7 +129,7 @@ class CPU:
         value = self.ram[address]
         self.ir[reg_num] = value
         self.ir[SP] += 1
-        # self.pc += 2
+
 
 
     def run(self):
@@ -145,43 +141,11 @@ class CPU:
                 operand_a = self.ram_read(self.pc + 1)
             if params >= 2:
                 operand_b = self.ram_read(self.pc + 2)
-                
-            self.operand_helper(inst, operand_a, operand_b)
+            
+            if inst in self.branchtable:
+                self.operand_helper(inst, operand_a, operand_b)
+            else:
+                print("Unknown Instruction: ", hex(inst))
+                exit()
             self.pc += (params + 1)    
             self.trace()
-            # print("Instruction: ", hex(inst))
-            # if inst == inst_dict["HLT"]:
-            #     exit()
-            # elif inst == inst_dict["LDI"]:
-            #     # reg_num = self.ram_read(self.pc + 1)
-            #     # value = self.ram_read(self.pc + 2)
-            #     self.ir[reg_num] = value
-            #     self.pc += 3
-            # elif inst == inst_dict["PRN"]:
-            #     # reg_num = self.ram_read(self.pc + 1)
-            #     value = self.ir[reg_num]
-            #     print(value)
-            #     self.pc += 2
-            # elif inst == inst_dict["MUL"]:
-            #     reg_numA = self.ram_read(self.pc + 1)
-            #     reg_numB = self.ram_read(self.pc + 2)
-            #     self.alu("MULT", reg_numA, reg_numB)
-            #     self.pc += 3
-            # elif inst == inst_dict["PUSH"]:
-            #     self.ir[SP] -= 1
-            #     # reg_num = self.ram_read(self.pc + 1)
-            #     value = self.ir[reg_num]
-            #     address = self.ir[SP]
-            #     self.ram_write(address, value)
-            #     self.pc += 2
-            # elif inst == inst_dict["POP"]:
-            #     # reg_num = self.ram_read(self.pc + 1)
-            #     address = self.ir[SP]
-            #     value = self.ram[address]
-            #     self.ir[reg_num] = value
-            #     self.ir[SP] += 1
-            #     self.pc += 2
-            # else:
-            #     print("Unknown Instruction: ", hex(inst))
-            #     exit()
-            
