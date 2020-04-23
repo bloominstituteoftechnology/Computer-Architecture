@@ -513,7 +513,7 @@ def PRA(cpu, register, *_):
 
 	# While chr technically returns Unicode, this does not cause problems
 	# (As Unicode is a superset of ASCII)
-	print(chr(cpu.registers[register]), end='')
+	print(chr(cpu.registers[register]), end='', flush=True)
 
 
 def PRN(cpu, register, *_):

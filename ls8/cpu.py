@@ -182,10 +182,6 @@ class CPU:
 				for i in range(8):
 					# If bit i in the IS register is set
 					if ((maskedInterrupts >> i) & 1) == 1:
-
-						# If this statement is not here, the PRA statement will not function
-						print()  # TODO: Find out *why* this is needed
-
 						if self.debug:
 							print(f'Interrupt found at bit {i}')
 						# Disable further interrupts
