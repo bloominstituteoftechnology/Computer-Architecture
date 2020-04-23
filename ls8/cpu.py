@@ -26,6 +26,8 @@ class CPU:
         self.branchtable[inst_dict["MUL"]] = self.handle_mult
         self.branchtable[inst_dict["PUSH"]] = self.handle_push
         self.branchtable[inst_dict["POP"]] = self.handle_pop
+        self.branchtable[inst_dict["CALL"]] = self.handle_call
+        self.branchtable[inst_dict["RET"]] = self.handle_ret
 
     def load(self, program_filepath):
         """Load a program into memory."""
@@ -129,7 +131,28 @@ class CPU:
         value = self.ram[address]
         self.ir[reg_num] = value
         self.ir[SP] += 1
+        
+    def handle_call(self, op_a):
+        # Compute return address
+        return_addr = op_a
+        
+        # Push on the stack
+        self.ir[SP] -= 1
+        self.ram_write(return_addr, SP)
+        
+        # Set the PC to the vaue in the given register
+        reg_num = self.ram_read(op_a)
+        dest_addr = self.ir[reg_num]
+        
+        pc = dest_addr
 
+    def handle_ret(self):
+        # Pop return address from top of stack
+        return_addr = self.ram_read(SP)
+        self.ir[SP] += 1
+        
+        # Set the PC
+        pc = self.pc + 2
 
 
     def run(self):

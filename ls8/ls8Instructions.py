@@ -4,5 +4,7 @@ inst_dict = {
     "PRN": 0x47,
     "MUL": 0xA2,
     "PUSH": 0x45,
-    "POP": 0x46,  
+    "POP": 0x46,
+    "CALL": 0x50,
+    "RET": 0x11
 }
