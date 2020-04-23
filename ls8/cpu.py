@@ -7,7 +7,15 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.reg = [0] * 8,
+        self.ram = [],
+        self.pc = '',
+        self.ir = {
+            'MAR': '',
+            'MDR': ''
+        },
+        self.fl = ''
+
 
     def load(self):
         """Load a program into memory."""
@@ -27,7 +35,7 @@ class CPU:
         ]
 
         for instruction in program:
-            self.ram[address] = instruction
+            setattr(self.ram[address], instruction)
             address += 1
 
 
@@ -35,7 +43,9 @@ class CPU:
         """ALU operations."""
 
         if op == "ADD":
-            self.reg[reg_a] += self.reg[reg_b]
+            reg_a = getattr(self.ram[reg_a])
+            reg_b = getattr(self.reg[reg_b])
+            setattr(self.reg[reg_a], reg_a + reg_b)
         #elif op == "SUB": etc
         else:
             raise Exception("Unsupported ALU operation")
@@ -59,6 +69,12 @@ class CPU:
             print(" %02X" % self.reg[i], end='')
 
         print()
+
+    def ram_read(self, mar):
+        return getattr(self.ram[mar])
+
+    def ram_write(self, addr, mar, mdr):
+        setattr(self.ram[mar], mdr)
 
     def run(self):
         """Run the CPU."""
