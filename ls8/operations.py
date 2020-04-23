@@ -55,8 +55,8 @@ def CALL(cpu, register, *_):
 	```
 	'''
 
-	cpu.sp -= 1
-	cpu.ram_write(cpu.sp, cpu.pc + 2)
+	cpu.SP -= 1
+	cpu.ram_write(cpu.SP, cpu.pc + 2)
 
 	cpu.pc = cpu.registers[register]
 
@@ -482,8 +482,8 @@ def POP(cpu, register, *_):
 	```
 	'''
 
-	cpu.registers[register] = cpu.ram_read(cpu.sp)
-	cpu.sp += 1
+	cpu.registers[register] = cpu.ram_read(cpu.SP)
+	cpu.SP += 1
 
 
 def PRA(cpu, register, *_):
@@ -543,8 +543,8 @@ def PUSH(cpu, register, *_):
 	```
 	'''
 
-	cpu.sp -= 1
-	cpu.ram_write(cpu.sp, cpu.registers[register])
+	cpu.SP -= 1
+	cpu.ram_write(cpu.SP, cpu.registers[register])
 
 
 def RET(cpu, *_):
@@ -562,8 +562,8 @@ def RET(cpu, *_):
 	```
 	'''
 
-	cpu.pc = cpu.ram_read(cpu.sp)
-	cpu.sp += 1
+	cpu.pc = cpu.ram_read(cpu.SP)
+	cpu.SP += 1
 
 
 def SHL(cpu, register_A, register_B, *_):

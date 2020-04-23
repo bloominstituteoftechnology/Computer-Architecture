@@ -27,12 +27,31 @@ class CPU:
 		from operations import ops
 		self.ops = ops
 
+	# Interrupt Mask is R5
 	@property
-	def sp(self):
+	def IM(self):
 		return self.registers[7]
 
-	@sp.setter
-	def sp(self, value):
+	@IM.setter
+	def IM(self, value):
+		self.registers[7] = value
+
+	# Interrupt Status is R6
+	@property
+	def IS(self):
+		return self.registers[7]
+
+	@IS.setter
+	def IS(self, value):
+		self.registers[7] = value
+
+	# Stack Pointer is R7
+	@property
+	def SP(self):
+		return self.registers[7]
+
+	@SP.setter
+	def SP(self, value):
 		self.registers[7] = value
 
 	def ram_read(self, mar):
@@ -64,11 +83,11 @@ class CPU:
 		"""ALU operations."""
 
 		if op == "ADD":
-			self.registers[reg_a] += self.registers[reg_b]
+			self.registers[reg_a] = self.registers[reg_a] + self.registers[reg_b] & 0xFF
 		elif op == "MUL":
-			self.registers[reg_a] = self.registers[reg_a] * self.registers[reg_b]
+			self.registers[reg_a] = self.registers[reg_a] * self.registers[reg_b] & 0xFF
 		elif op == "SUB":
-			self.registers[reg_a] = self.registers[reg_a] - self.registers[reg_b]
+			self.registers[reg_a] = self.registers[reg_a] - self.registers[reg_b] & 0xFF
 		elif op == "XOR":
 			self.registers[reg_a] = self.registers[reg_a] ^ self.registers[reg_b]
 		elif op == "AND":
@@ -78,7 +97,7 @@ class CPU:
 		elif op == "SHR":
 			self.registers[reg_a] = self.registers[reg_a] >> self.registers[reg_b]
 		elif op == "SHL":
-			self.registers[reg_a] = self.registers[reg_a] << self.registers[reg_b]
+			self.registers[reg_a] = self.registers[reg_a] << self.registers[reg_b] & 0xFF
 		elif op == "CMP":
 			# Clear the LGE flags
 			self.fl = self.fl & 0b11111000
@@ -90,15 +109,15 @@ class CPU:
 			elif self.registers[reg_a] < self.registers[reg_b]:
 				self.fl = self.fl | 0b00000100
 		elif op == "DEC":
-			self.registers[reg_a] -= 1
+			self.registers[reg_a] = self.registers[reg_a] - 1 & 0xFF
 		elif op == "INC":
-			self.registers[reg_a] += 1
+			self.registers[reg_a] = self.registers[reg_a] + 1 & 0xFF
 		elif op == "NOT":
 			self.registers[reg_a] = ~self.registers[reg_a]
 		elif op == "DIV":
 			if self.registers[reg_b] == 0:
 				raise Exception("Division by zero")
-			self.registers[reg_a] = self.registers[reg_a] / self.registers[reg_b]
+			self.registers[reg_a] = self.registers[reg_a] // self.registers[reg_b]
 		elif op == "MOD":
 			if self.registers[reg_b] == 0:
 				raise Exception("Division by zero")
