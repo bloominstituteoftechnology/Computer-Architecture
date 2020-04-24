@@ -13,19 +13,23 @@ class CPU:
         self.reg[self.sp] = 0xF4 # Stack pointer starts at F4 or 244 in RAM
         self.pc = 0 # Program Counter, address of the currently executing instruction
         self.ir = 0 # Instruction Register, contains a copy of the currently executing instruction
-        self.op_table = {0b10000010 : self.ldi, 
+        self.op_table = {
+                        0b10000010 : self.ldi, 
                         0b01000111 : self.prn, 
                         0b10100010 : self.mult,
                         0b00000001 : self.hlt,
                         0b01000101 : self.push,
-                        0b01000110 : self.pop}
+                        0b01000110 : self.pop,
+                        0b01010000 : self.call, 
+                        0b00010001 : self.ret,
+                        0b10100000 : self.add}
 
     def load(self):
         """Load a program into memory."""
 
         address = 0
 
-        file = open('examples/stack.ls8',  "r")
+        file = open('examples/call.ls8',  "r")
         for line in file.readlines():
             #load a line into memory (not including comments)
             try:
@@ -56,6 +60,24 @@ class CPU:
     def pop(self, op_a, op_b):
         self.reg[op_a] = self.ram[self.reg[self.sp]]
         self.reg[self.sp] += 1
+
+    # Sets the PC to the register value
+    def call(self, op_a, op_b):
+        # address of instruction after call is pushed on to the stack
+        self.reg[self.sp] -= 1
+        self.ram[self.reg[self.sp]] = self.pc + 2
+        # set PC to value stored in given register
+        self.pc = self.reg[op_a]
+        return True
+    
+    def ret(self, op_a, op_b):
+        # pop value from stack into register op_a 
+        self.pop(op_a, 0)
+        self.pc = self.reg[op_a]
+        return True
+
+    def add(self, op_a, op_b):
+        self.reg[op_a] = self.reg[op_a] + self.reg[op_b]
 
     # accept memory address to read read and return the value stored there
     def ram_read(self, address):
@@ -105,11 +127,12 @@ class CPU:
             op_a = self.ram[self.pc + 1]
             op_b = self.ram[self.pc + 2]
 
-            self.op_table[self.ir](op_a, op_b)
+            willJump = self.op_table[self.ir](op_a, op_b)
 
             #self.ir is current address, shift right by 6 elements to find
             #amount of arguments that this function takes
-            self.pc += (self.ir >> 6) + 1; 
+            if not willJump:
+                self.pc += (self.ir >> 6) + 1; 
         
 
 
