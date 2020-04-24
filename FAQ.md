@@ -437,10 +437,10 @@ Packing the numbers 3, 0, 2, and 1 into a single byte:
   ||  Two
   vv  vv
 0b11001001
-    ^^  ^^
-    ||  One
-    ||
-    Zero
+	^^  ^^
+	||  One
+	||
+	Zero
 ```
 
 This technique is normally only used in high-performance situations where you
@@ -449,7 +449,7 @@ absolutely must save space or bandwidth.
 For example, if we wanted to extract these 3 bits from this number:
 
 ```
-    vvv
+	vvv
 0b10110101
 ```
 
@@ -459,7 +459,7 @@ extract the 6?
 First, we can shift right by 3:
 
 ```
-       vvv
+	   vvv
 0b00010110
 ```
 
@@ -467,11 +467,11 @@ Then we can bitwise-AND with the mask `0b111` to filter out just the bits we
 want:
 
 ```
-         vvv
+		 vvv
   0b00010110   <-- Right-shifted original number
 & 0b00000111   <-- AND mask
 ------------
-         110
+		 110
 ```
 
 And there's our 6!
@@ -480,7 +480,7 @@ On the flip side, what if we wanted to set these bits to the value 2 (`0b010`)?
 Right now the three bits have the value 7 (`0b111`):
 
 ```
-    vvv
+	vvv
 0b10111101
 ```
 
@@ -500,24 +500,24 @@ Secondly, let's use a bitwise-AND on the original number to mask out those bits
 and set them all to zero:
 
 ```
-      vvv
+	  vvv
   0b10111101   <-- original number
 & 0b11000111   <-- AND mask
 ------------
   0b10000101
-      ^^^
+	  ^^^
   These three bits set to 0, others unchanged
 ```
 
 Lastly, let's bitwise-OR the shifted value with the result from the previous step:
 
 ```
-      vvv
+	  vvv
   0b10000101   <-- masked-out original number from previous step
 | 0b00010000   <-- our left-shifted 2
 ------------
   0b10010101
-      ^^^
+	  ^^^
   Now these three bits set to 2, others unchanged
 ```
 
@@ -779,14 +779,14 @@ Unsigned, binary on the left, decimal on the right:
 Signed (same on the right, but in sorted numeric order):
 
 ```
-111  -1          010   2
-110  -2          011   3
-101  -3          001   1
-100  -4          000   0
-011   3          111  -1
-010   2          110  -2
-001   1          101  -3
-000   0          100  -4
+111  -1		  010   2
+110  -2		  011   3
+101  -3		  001   1
+100  -4		  000   0
+011   3		  111  -1
+010   2		  110  -2
+001   1		  101  -3
+000   0		  100  -4
 ```
 
 Notice how the bit pattern for `7` (unsigned) is `111`, which is the same bit
@@ -844,12 +844,12 @@ it's not there, it looks in the next level again for however many levels of
 cache your CPU has. Eventually if it can't be found in any level, it is obtained
 from RAM.
 
-| Level |    Capacity  | Lookup Time (nanoseconds) |
+| Level |	Capacity  | Lookup Time (nanoseconds) |
 |:-----:|:------------:|:-------------------------:|
-|  L1   |    2-8 KB    |          ~1 ns            |
-|  L2   |  256-512 KB  |          ~3 ns            |
-|  L3   | 1024-8192 KB |          ~12 ns           |
-|  RAM  |  8-32 **GB** |          ~100 ns          |
+|  L1   |	2-8 KB	|		  ~1 ns			|
+|  L2   |  256-512 KB  |		  ~3 ns			|
+|  L3   | 1024-8192 KB |		  ~12 ns		   |
+|  RAM  |  8-32 **GB** |		  ~100 ns		  |
 
 > Capacities and speeds are examples only. Actual number vary.
 

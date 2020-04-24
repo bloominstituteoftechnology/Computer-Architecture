@@ -46,27 +46,27 @@ The LS-8 has 8-bit addressing, so can address 256 bytes of RAM total.
 Memory map:
 
 ```
-      top of RAM
+	  top of RAM
 +-----------------------+
-| FF  I7 vector         |    Interrupt vector table
-| FE  I6 vector         |
-| FD  I5 vector         |
-| FC  I4 vector         |
-| FB  I3 vector         |
-| FA  I2 vector         |
-| F9  I1 vector         |
-| F8  I0 vector         |
-| F7  Reserved          |
-| F6  Reserved          |
-| F5  Reserved          |
-| F4  Key pressed       |    Holds the most recent key pressed on the keyboard
-| F3  Start of Stack    |
-| F2  [more stack]      |    Stack grows down
-| ...                   |
-| 01  [more program]    |
-| 00  Program entry     |    Program loaded upward in memory starting at 0
+| FF  I7 vector		 |	Interrupt vector table
+| FE  I6 vector		 |
+| FD  I5 vector		 |
+| FC  I4 vector		 |
+| FB  I3 vector		 |
+| FA  I2 vector		 |
+| F9  I1 vector		 |
+| F8  I0 vector		 |
+| F7  Reserved		  |
+| F6  Reserved		  |
+| F5  Reserved		  |
+| F4  Key pressed	   |	Holds the most recent key pressed on the keyboard
+| F3  Start of Stack	|
+| F2  [more stack]	  |	Stack grows down
+| ...				   |
+| 01  [more program]	|
+| 00  Program entry	 |	Program loaded upward in memory starting at 0
 +-----------------------+
-    bottom of RAM
+	bottom of RAM
 ```
 
 ## Stack
@@ -286,7 +286,7 @@ Halt the CPU (and exit the emulator).
 
 Machine code:
 ```
-00000001 
+00000001
 01
 ```
 
