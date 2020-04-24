@@ -11,6 +11,7 @@ SP = 7 # Stack Pointer Index
 class CPU:
     """Main CPU class."""
     
+    # ------------------==-=== Constructor ===-==------------------
 
     def __init__(self):
         """Construct a new CPU."""
@@ -63,7 +64,6 @@ class CPU:
     
     def ram_write(self, MAR, MDR):
         self.ram[MAR] = MDR
-        
         
     # ------------------==-=== Helper Methods ===-==------------------
      
@@ -132,7 +132,25 @@ class CPU:
         # Set the PC
         self.pc = return_addr
         
+    def handle_jeq(self, reg_a):
+        if self.flag & 0b1 == 1:
+            self.pc = self.register[reg_a]
+        else:
+            self.pc += 2
+    
+    def handle_jmp(self, reg_a):
+        self.pc = self.register[reg_a]
+    
+    def handle_jne(self, reg_a):
+        if self.flag & 0b1 == 0:
+            self.pc = self.register[reg_a]
+        else:
+            self.pc += 2
+        
     # ------------------==-=== ALU Op Methods ===-==------------------
+
+    def alu_handle_add(self, reg_a, reg_b):
+        self.register[reg_a] += self.register[reg_b]
 
     def alu_handle_cmp(self, reg_a, reg_b):
         if self.register[reg_a] == self.register[reg_b]:
@@ -141,12 +159,9 @@ class CPU:
             self.flag = 0b10
         else:
             self.flags = 0b100
-
+        
     def alu_handle_mul(self, reg_a, reg_b):
         self.register[reg_a] *= self.register[reg_b]
-        
-    def alu_handle_add(self, reg_a, reg_b):
-        self.register[reg_a] += self.register[reg_b]
         
     def alu_handle_sub(self, reg_a, reg_b):
         self.register[reg_a] -= self.register[reg_b]
@@ -170,7 +185,6 @@ class CPU:
                 operand_b = self.ram_read(self.pc + 2)
                 
             if use_alu:
-                # self.alu(inst, operand_a, operand_b)
                 self.alu_helper(inst, operand_a, operand_b)
             
             elif inst in self.branchtable:
