@@ -7,33 +7,58 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.ram = [0] * 256
+        self.reg = [0] * 8 
+        self.pc = 0 # Program Counter, address of the currently executing instruction
+        self.ir = 0 # Instruction Register, contains a copy of the currently executing instruction
+        self.op_table = {0b10000010 : self.ldi, 
+                        0b01000111 : self.prn, 
+                        0b10100010 : self.mult,
+                        0b00000001 : self.hlt}
 
     def load(self):
         """Load a program into memory."""
 
         address = 0
 
-        # For now, we've just hardcoded a program:
+        file = open('examples/mult.ls8',  "r")
+        i = 0
+        for line in file.readlines():
+            #load a line into memory (not including comments)
+            try:
+                x = line[:line.index("#")]
+            except ValueError:
+                x = line
+           
+            try: 
+                #convert binary to decimal
+                y = int(x, 2)
+                self.ram[i] = y
+            except ValueError:
+                continue
+            i+=1
+    
+    def ldi(self, op_a, op_b):
+        self.reg[op_a] = op_b
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+    def mult(self, op_a, op_b):
+        self.reg[op_a] = self.reg[op_a] * self.reg[op_b]
 
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+    # accept memory address to read read and return the value stored there
+    def ram_read(self, address):
+        return self.ram[address]
+    
+    def ram_write(self, value, address):
+        self.ram[address] = value
+    
+    def prn(self, op_a, op_b):
+        print(self.reg[op_a])
 
+    def hlt(self, op_a, op_b):
+        sys.exit()
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
-
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
         #elif op == "SUB": etc
@@ -45,7 +70,6 @@ class CPU:
         Handy function to print out the CPU state. You might want to call this
         from run() if you need help debugging.
         """
-
         print(f"TRACE: %02X | %02X %02X %02X |" % (
             self.pc,
             #self.fl,
@@ -62,4 +86,20 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        #internal register
+        while True:
+            self.ir = self.ram[self.pc]
+            op_a = self.ram[self.pc + 1]
+            op_b = self.ram[self.pc + 2]
+
+            self.op_table[self.ir](op_a, op_b)
+
+            #self.ir is current address, shift right by 6 elements to find
+            #amount of arguments that this function takes
+            self.pc += (self.ir >> 6) + 1; 
+        
+
+
+            
+
+
