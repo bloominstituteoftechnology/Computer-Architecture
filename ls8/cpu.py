@@ -97,7 +97,6 @@ class CPU:
         if params == 0:
             self.branchtable[inst]()
         if params == 1:
-            # print(params)
             # pass op_a into dispatch
             self.branchtable[inst](op_a)
         if params == 2:
@@ -142,15 +141,12 @@ class CPU:
         # Compute return address
         self.ir[SP] -= 1
         return_addr = self.ir[SP]
-        
-        # Push on the stack
+        # 
         self.ram_write(return_addr, self.pc + 2)
         
-        # Set the PC to the vaue in the given register
         reg_num = self.ram_read(op_a)
         dest_addr = self.ir[reg_num]
         self.pc = dest_addr
-        # exit()
 
     def handle_ret(self):
         # Pop return address from top of stack
@@ -187,6 +183,4 @@ class CPU:
                 pass
             else:
                 self.pc += (params + 1)
-            # print(self.pc)
-            # print(inst)
             self.trace()
