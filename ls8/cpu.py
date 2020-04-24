@@ -9,20 +9,23 @@ class CPU:
         """Construct a new CPU."""
         self.ram = [0] * 256
         self.reg = [0] * 8 
+        self.sp = 7
+        self.reg[self.sp] = 0xF4 # Stack pointer starts at F4 or 244 in RAM
         self.pc = 0 # Program Counter, address of the currently executing instruction
         self.ir = 0 # Instruction Register, contains a copy of the currently executing instruction
         self.op_table = {0b10000010 : self.ldi, 
                         0b01000111 : self.prn, 
                         0b10100010 : self.mult,
-                        0b00000001 : self.hlt}
+                        0b00000001 : self.hlt,
+                        0b01000101 : self.push,
+                        0b01000110 : self.pop}
 
     def load(self):
         """Load a program into memory."""
 
         address = 0
 
-        file = open('examples/mult.ls8',  "r")
-        i = 0
+        file = open('examples/stack.ls8',  "r")
         for line in file.readlines():
             #load a line into memory (not including comments)
             try:
@@ -33,16 +36,26 @@ class CPU:
             try: 
                 #convert binary to decimal
                 y = int(x, 2)
-                self.ram[i] = y
+                self.ram[address] = y
             except ValueError:
                 continue
-            i+=1
+            address+=1
     
     def ldi(self, op_a, op_b):
         self.reg[op_a] = op_b
 
     def mult(self, op_a, op_b):
         self.reg[op_a] = self.reg[op_a] * self.reg[op_b]
+    
+    # Push the value in the given register on the stack.
+    def push(self, op_a, op_b):        
+        self.reg[self.sp] -= 1
+        self.ram[self.reg[self.sp]] = self.reg[op_a]
+    
+    # Pop the value at the top of the stack into the given register.
+    def pop(self, op_a, op_b):
+        self.reg[op_a] = self.ram[self.reg[self.sp]]
+        self.reg[self.sp] += 1
 
     # accept memory address to read read and return the value stored there
     def ram_read(self, address):
