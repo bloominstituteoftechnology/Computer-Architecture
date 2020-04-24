@@ -22,7 +22,8 @@ class CPU:
         self.configure_branchtable()
         self.configure_alu_branchtable()
         
-        
+    # ------------------==-=== Init Methods ===-==------------------
+    
     def configure_branchtable(self):
         self.branchtable = {}
         for key in inst_dict:
@@ -54,6 +55,7 @@ class CPU:
         
                 address += 1
             
+    # ------------------==-=== RAM Methods ===-==------------------
     
     def ram_read(self, MAR):
         return self.ram[MAR]
