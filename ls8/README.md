@@ -31,19 +31,19 @@ then prints it out:
 The binary numeric value on the left in the `print8.ls8` code above is either:
 
 * the machine code value of the instruction (e.g. `10000010` for `LDI`), also
-  known as the _opcode_
+    known as the _opcode_
 
 or
 
 * one of the opcode's arguments (e.g. `00000000` for `R0` or `00001000` for the
-  value `8`), also known as the _operands_.
+    value `8`), also known as the _operands_.
 
 This code above requires the implementation of three instructions:
 
 * `LDI`: load "immediate", store a value in a register, or "set this register to
-  this value".
+    this value".
 * `PRN`: a pseudo-instruction that prints the numeric value stored in a
-  register.
+    register.
 * `HLT`: halt the CPU and exit the emulator.
 
 See [the LS-8 spec](../LS8-spec.md) for more details.
@@ -60,7 +60,11 @@ but you'll have to implement those three above instructions first!
 ## Step 0: IMPORTANT: inventory what is here!
 
 * Make a list of files here.
+    * The files are:
+        * `cpu.py`
+        * `ls8.py`
 * Write a short 3-10-word description of what each file does.
+    * The CPU file is our CPU. It's where all the magic is happening essentially
 * Note what has been implemented, and what hasn't.
 * Read this whole file.
 * Skim the spec.
@@ -264,25 +268,25 @@ OP2 = 0b11110000
 
 class Foo:
 
-    def __init__(self):
-        # Set up the branch table
-        self.branchtable = {}
-        self.branchtable[OP1] = self.handle_op1
-        self.branchtable[OP2] = self.handle_op2
+        def __init__(self):
+                # Set up the branch table
+                self.branchtable = {}
+                self.branchtable[OP1] = self.handle_op1
+                self.branchtable[OP2] = self.handle_op2
 
-    def handle_op1(self, a):
-        print("op 1: " + a)
+        def handle_op1(self, a):
+                print("op 1: " + a)
 
-    def handle_op2(self, a):
-        print("op 2: " + a)
+        def handle_op2(self, a):
+                print("op 2: " + a)
 
-    def run(self):
-        # Example calls into the branch table
-        ir = OP1
-        self.branchtable[ir]("foo")
+        def run(self):
+                # Example calls into the branch table
+                ir = OP1
+                self.branchtable[ir]("foo")
 
-        ir = OP2
-        self.branchtable[ir]("bar")
+                ir = OP2
+                self.branchtable[ir]("bar")
 
 c = Foo()
 c.run()
@@ -296,11 +300,11 @@ a high address) and grows _downward_ as things are pushed on. The LS-8 is no
 exception to this.
 
 Implement a system stack per the spec. Add `PUSH` and `POP` instructions. Read
-  the beginning of the spec to see which register is the stack pointer. 
-  
+    the beginning of the spec to see which register is the stack pointer. 
+    
 * Values themselves should be saved in the ***portion of RAM*** _that is allocated for the stack_. 
-  -  Use the stack pointer to modify the correct block of memory. 
-  - Make sure you update the stack pointer appropriately as you `PUSH` and `POP` items to and from the stack.
+    -  Use the stack pointer to modify the correct block of memory. 
+    - Make sure you update the stack pointer appropriately as you `PUSH` and `POP` items to and from the stack.
 
 If you run `python3 ls8.py examples/stack.ls8` you should see the output:
 
@@ -327,18 +331,18 @@ implement the stack in step 10, first. Then, add subroutine instructions `CALL`
 and `RET`.
 
 * For `CALL`, you will likely have to modify your handler call in `cpu_run()`.
-  The problem is that some instructions want to execute and move to the next
-  instruction like normal, but others, like `CALL` and `JMP` want to go to a
-  specific address.
+    The problem is that some instructions want to execute and move to the next
+    instruction like normal, but others, like `CALL` and `JMP` want to go to a
+    specific address.
 
-  > Note: `CALL` is very similar to the `JMP` instruction. However, there is one
-  > key difference between them. Can you find it in the specs? 
+    > Note: `CALL` is very similar to the `JMP` instruction. However, there is one
+    > key difference between them. Can you find it in the specs? 
 
-  * In **any** case where the instruction handler sets the `PC` directly, you
-    _don't_ want to advance the PC to the next instruction. So you'll have to
-    set up a special case for those types of instructions. This can be a flag
-    you explicitly set per-instruction... but can also be computed from the
-    value in `IR`. Check out the spec for more.
+    * In **any** case where the instruction handler sets the `PC` directly, you
+        _don't_ want to advance the PC to the next instruction. So you'll have to
+        set up a special case for those types of instructions. This can be a flag
+        you explicitly set per-instruction... but can also be computed from the
+        value in `IR`. Check out the spec for more.
 
 If you run `python3 ls8.py examples/call.ls8` you should see the output:
 
@@ -434,10 +438,10 @@ Step through each bit of `masked_interrupts` and see which interrupts are set.
 
 ```python
 for i in range(8):
-  # Right shift interrupts down by i, then mask with 1 to see if that bit was set
-  interrupt_happened = ((masked_interrupts >> i) & 1) == 1
+    # Right shift interrupts down by i, then mask with 1 to see if that bit was set
+    interrupt_happened = ((masked_interrupts >> i) & 1) == 1
 
-  # ...
+    # ...
 ```
 
 (If the no interrupt bits are set, then stop processing interrupts and continue

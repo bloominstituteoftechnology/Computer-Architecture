@@ -57,11 +57,16 @@ class CPU:
 
     def alu(self, op, reg_a, reg_b):
         
+        opcodes = {
+            0b10100000: "ADD",
+            0b10100010: "MULT"
+        }
+        
         """ALU operations."""
 
-        if op == "ADD":
+        if opcodes[op] == "ADD":
             self.ir[reg_a] += self.ir[reg_b]
-        elif op == "MULT":
+        elif opcodes[op] == "MULT":
             self.ir[reg_a] *= self.ir[reg_b]
         #elif op == "SUB": etc
         else:
@@ -92,6 +97,7 @@ class CPU:
         if params == 0:
             self.branchtable[inst]()
         if params == 1:
+            # print(params)
             # pass op_a into dispatch
             self.branchtable[inst](op_a)
         if params == 2:
@@ -134,25 +140,25 @@ class CPU:
         
     def handle_call(self, op_a):
         # Compute return address
-        return_addr = op_a
+        self.ir[SP] -= 1
+        return_addr = self.ir[SP]
         
         # Push on the stack
-        self.ir[SP] -= 1
-        self.ram_write(return_addr, SP)
+        self.ram_write(return_addr, self.pc + 2)
         
         # Set the PC to the vaue in the given register
         reg_num = self.ram_read(op_a)
         dest_addr = self.ir[reg_num]
-        
-        pc = dest_addr
+        self.pc = dest_addr
+        # exit()
 
     def handle_ret(self):
         # Pop return address from top of stack
-        return_addr = self.ram_read(SP)
+        return_addr = self.ram_read(self.ir[SP])
         self.ir[SP] += 1
         
         # Set the PC
-        pc = self.pc + 2
+        self.pc = return_addr
 
 
     def run(self):
@@ -160,15 +166,27 @@ class CPU:
         while True:
             inst = self.ram_read(self.pc)
             params = (inst & 11000000) >> 6
+            use_alu = ((inst & 0b00100000) >> 5)
+            set_pc = ((inst & 0b00010000) >> 4)
             if params >= 1:
                 operand_a = self.ram_read(self.pc + 1)
             if params >= 2:
                 operand_b = self.ram_read(self.pc + 2)
+                
+            if use_alu:
+                self.alu(inst, operand_a, operand_b)
             
-            if inst in self.branchtable:
+            elif inst in self.branchtable:
                 self.operand_helper(inst, operand_a, operand_b)
             else:
-                print("Unknown Instruction: ", hex(inst))
+                print("Unknown Instruction: ", hex(inst), bin(inst))
                 exit()
-            self.pc += (params + 1)    
+
+                
+            if set_pc:
+                pass
+            else:
+                self.pc += (params + 1)
+            # print(self.pc)
+            # print(inst)
             self.trace()
