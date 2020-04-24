@@ -75,10 +75,8 @@ class CPU:
 	def ram_write(self, mar, mdr):
 		self.ram[mar] = mdr
 
-	def load(self):
+	def load(self, filename):
 		"""Load a program into memory."""
-
-		filename = sys.argv[1]
 		with open(filename, 'r') as f:
 			lines = f.read()
 		cleaned_lines = re.findall(r'^[01]+', lines, flags=re.MULTILINE)
@@ -249,14 +247,10 @@ class CPU:
 			if ir & 0b10000000:
 				operand_2 = self.ram_read(self.pc + 2)
 
-			try:
-				if self.debug:
-					print(f'Instruction {self.ops[ir].__name__} called with operands {operand_1:08b}, {operand_2:08b}')
-				# Call the operation based on the lower four bits
-				self.ops[ir](self, operand_1, operand_2)
-			except (Exception, KeyboardInterrupt):
-				self.trace()
-				raise
+			if self.debug:
+				print(f'Instruction {self.ops[ir].__name__} called with operands {operand_1:08b}, {operand_2:08b}')
+			# Call the operation based on the lower four bits
+			self.ops[ir](self, operand_1, operand_2)
 
 			# If the fourth bit is *not* set, increment the PC
 			# If the fourth bit *is* set, the operation sets the PC
