@@ -105,7 +105,7 @@ class CPU:
         value = self.register[reg_num]
         address = self.register[SP]
         self.ram_write(address, value)
-    
+
     def handle_pop(self, op_a):
         reg_num = op_a
         address = self.register[SP]
