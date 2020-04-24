@@ -2,9 +2,15 @@ inst_dict = {
     "HLT": 0x1,
     "LDI": 0x82,
     "PRN": 0x47,
-    "MUL": 0xA2,
     "PUSH": 0x45,
     "POP": 0x46,
     "CALL": 0x50,
-    "RET": 0x11
+    "RET": 0x11,
+}
+
+alu_dict = {
+    "CMP": 0xA7,
+    "MUL": 0xA2,
+    "SUB": 0xA1,
+    "ADD": 0xA0
 }
