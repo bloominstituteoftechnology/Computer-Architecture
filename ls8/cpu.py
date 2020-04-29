@@ -6,6 +6,8 @@ HLT = 0x01
 LDI = 0x82
 PRN = 0x47
 MUL = 0xA2
+POP = 0x46
+PUSH = 0x45
 
 HALTED = 0x80
 
@@ -23,7 +25,9 @@ class CPU:
             HLT: self.handle_hlt,
             LDI: self.handle_ldi,
             PRN: self.handle_prn,
-            MUL: self.handle_mul
+            MUL: self.handle_mul,
+            POP: self.handle_pop,
+            PUSH: self.handle_push
         }
     
     def handle_hlt(self):
@@ -37,6 +41,14 @@ class CPU:
     
     def handle_mul(self, register_a, register_b):
         self.reg[register_a] = self.reg[register_a] * self.reg[register_b]
+    
+    def handle_pop(self, register):
+        self.reg[register] = self.ram_read(self.reg[7])
+        self.reg[7] += 1
+
+    def handle_push(self, register):
+        self.reg[7] -= 1
+        self.ram_write(self.reg[7], self.reg[register])
 
     def ram_read(self, mar):
         return self.ram[mar]
