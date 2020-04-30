@@ -8,6 +8,9 @@ PRN = 0x47
 MUL = 0xA2
 POP = 0x46
 PUSH = 0x45
+CALL = 0x50
+RET = 0x11
+ADD = 0xA0
 
 HALTED = 0x80
 
@@ -27,7 +30,10 @@ class CPU:
             PRN: self.handle_prn,
             MUL: self.handle_mul,
             POP: self.handle_pop,
-            PUSH: self.handle_push
+            PUSH: self.handle_push,
+            CALL: self.handle_call,
+            RET: self.handle_ret,
+            ADD: self.handle_add
         }
     
     def handle_hlt(self):
@@ -49,6 +55,18 @@ class CPU:
     def handle_push(self, register):
         self.reg[7] -= 1
         self.ram_write(self.reg[7], self.reg[register])
+    
+    def handle_call(self, register):
+        self.reg[7] -= 1
+        self.ram_write(self.reg[7], self.pc + 2)
+        self.pc = self.reg[register]
+
+    def handle_ret(self):
+        self.pc = self.ram_read(self.reg[7])
+        self.reg[7] += 1
+    
+    def handle_add(self, register_a, register_b):
+        self.alu('ADD', register_a, register_b)
 
     def ram_read(self, mar):
         return self.ram[mar]
@@ -115,6 +133,7 @@ class CPU:
         while not self.fl & HALTED:
             ir = self.ram_read(self.pc)
             num_operands = (ir & 0xC0) >> 6
+            sets_pc = (ir & 0x10) != 0
             
             if num_operands == 0:
                 self.branch_table[ir]()
@@ -125,6 +144,7 @@ class CPU:
             else:
                 print('Invalid instruction given: invalid number of operands!')
                 break
-
-            self.pc += num_operands + 1
+            
+            if not sets_pc:
+                self.pc += num_operands + 1
 
