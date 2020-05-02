@@ -2,17 +2,24 @@
 
 import sys
 
-HLT = 0x01
-LDI = 0x82
-PRN = 0x47
-MUL = 0xA2
-POP = 0x46
-PUSH = 0x45
-CALL = 0x50
-RET = 0x11
-ADD = 0xA0
+HLT     = 0x01
+RET     = 0x11
+PUSH    = 0x45
+POP     = 0x46
+PRN     = 0x47
+CALL    = 0x50
+JMP     = 0x54
+JEQ     = 0x55
+JNE     = 0x56
+LDI     = 0x82
+ADD     = 0xA0
+MUL     = 0xA2
+CMP     = 0xA7
 
 HALTED = 0x80
+LESS_THAN = 0x04
+GREATER_THAN = 0x02
+EQUAL = 0x01
 
 class CPU:
     """Main CPU class."""
@@ -33,7 +40,11 @@ class CPU:
             PUSH: self.handle_push,
             CALL: self.handle_call,
             RET: self.handle_ret,
-            ADD: self.handle_add
+            ADD: self.handle_add,
+            CMP: self.handle_cmp,
+            JMP: self.handle_jmp,
+            JEQ: self.handle_jeq,
+            JNE: self.handle_jne
         }
     
     def handle_hlt(self):
@@ -67,6 +78,24 @@ class CPU:
     
     def handle_add(self, register_a, register_b):
         self.alu('ADD', register_a, register_b)
+    
+    def handle_cmp(self, register_a, register_b):
+        self.alu('CMP', register_a, register_b)
+    
+    def handle_jmp(self, register):
+        self.pc = self.reg[register]
+    
+    def handle_jeq(self, register):
+        if self.fl & EQUAL:
+            self.pc = self.reg[register]
+        else:
+            self.pc += 2
+
+    def handle_jne(self, register):
+        if not self.fl & EQUAL:
+            self.pc = self.reg[register]
+        else:
+            self.pc += 2
 
     def ram_read(self, mar):
         return self.ram[mar]
@@ -104,6 +133,13 @@ class CPU:
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
+        elif op == "CMP":
+            if self.reg[reg_a] < self.reg[reg_b]:
+                self.fl |= 0x04
+            elif self.reg[reg_a] > self.reg[reg_b]:
+                self.fl |= 0x02
+            else:
+                self.fl |= 0x01
         #elif op == "SUB": etc
         else:
             raise Exception("Unsupported ALU operation")
@@ -114,9 +150,9 @@ class CPU:
         from run() if you need help debugging.
         """
 
-        print(f"TRACE: %02X | %02X %02X %02X |" % (
+        print(f"TRACE: %02X | %02X | %02X %02X %02X |" % (
             self.pc,
-            #self.fl,
+            self.fl,
             #self.ie,
             self.ram_read(self.pc),
             self.ram_read(self.pc + 1),
