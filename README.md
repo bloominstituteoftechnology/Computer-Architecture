@@ -2,7 +2,7 @@
 
 ## Project
 
-* [Implement the LS-8 Emulator](ls8/)
+- [Implement the LS-8 Emulator](ls8/)
 
 ## Task List: add this to the first comment of your Pull Request
 
