@@ -48,6 +48,8 @@ while running:# this is a processor
     #     num = memory[pc +1]
     #     print(num)
     #     pc +=2
+
+#! SAVE
     elif command == SAVE:
         num = memory[pc + 1]
         reg = memory[pc + 2]
@@ -60,6 +62,7 @@ while running:# this is a processor
         print(register[reg])
         pc += 2
 
+#! ADD
     elif command == ADD:
         reg_a = memory[pc + 1]
         reg_b = memory[pc + 2]
