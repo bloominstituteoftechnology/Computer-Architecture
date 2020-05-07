@@ -9,7 +9,7 @@ PRINT_REGISTER = 5
 ADD            = 6
 
 # sample program that prints artems
-print_artem_program = [
+print_artem_program = [ 
     PRINT_ARTEM,
     PRINT_ARTEM,
     PRINT_ARTEM,

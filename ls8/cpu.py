@@ -1,13 +1,38 @@
 """CPU functionality."""
  
 import sys
+LDI = 0b10000010 
+PRN = 0b01000111 
+HLT = 0b00000001
+MUL = 0b10100010
 
+PUSH = 0b01000101   
+POP = 0b01000110    
+CALL = 0b01010000
+RET = 0b00010001
+ADD = 0b10100000
 class CPU:
     """Main CPU class."""
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        # construct RAM + REG + PC 
+        self.ram = [0] * 256
+        self.reg = [0] * 8
+        self.pc = 0       # program counter is the address of currently executing instructions 
+        self.fl = 0
+        self.bt = {        
+            LDI: self.op_ldi,
+            PRN: self.op_prn,
+            HLT: self.op_hlt,
+            ADD: self.op_add,
+            MUL: self.op_mul,
+            POP: self.op_pop,
+            PUSH: self.op_push,
+            CALL: self.op_call,
+            RET: self.op_ret,
+            
+        }
 
     def load(self):
         """Load a program into memory."""
