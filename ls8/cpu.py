@@ -34,6 +34,15 @@ class CPU:
             
         }
 
+    def ram_read(self, mar):
+        #mar = memory address register // mdr = memory data register 
+        #read the address and write out the number (data) 
+        mdr = self.ram[mar]
+        return mdr
+    
+    def ram_write(self, mdr, mar):
+        self.ram[mar] = mdr
+
     def load(self):
         """Load a program into memory."""
 
