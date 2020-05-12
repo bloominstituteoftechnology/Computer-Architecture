@@ -7,79 +7,50 @@ PRINT_NUM      = 3
 SAVE           = 4
 PRINT_REGISTER = 5
 ADD            = 6
-
-# sample program that prints artems
-print_artem_program = [ 
-    PRINT_ARTEM,
-    PRINT_ARTEM,
-    PRINT_ARTEM,
-    PRINT_ARTEM,
-    HALT,
-]
-
-# sample program that prints some numbers
-print_some_nums = [
-    PRINT_NUM,
-    15,
-    PRINT_NUM,
-    15,
-    PRINT_NUM,
-    37,
-    PRINT_ARTEM,
-    HALT
-]
-
-# sample program that saves and prints numbers from registers
-save_num_to_reg = [
-    SAVE, # SAVE, VAL, REG_NUM
-    65, 
-    2,
-    PRINT_REGISTER,
-    2,
-    SAVE, # SAVE, VAL, REG_NUM
-    14568292, 
-    6,
-    PRINT_REGISTER,
-    2,
-    PRINT_REGISTER,
-    6,
-    HALT
-]
-
-# sample program that adds to register values together
-add_numbers = [
-    SAVE, # SAVE number 12 to reg 1
-    12,
-    1,
-    SAVE, # SAVE number 45 to reg 2
-    45,
-    2,
-    ADD, # Reg1 += Reg2  (we add the two values in the two registers, and store the result in the first register)
-    1,
-    2,
-    PRINT_REGISTER,
-    1,
-    SAVE,
-    10,
-    2,
-    ADD,
-    1,
-    2,
-    PRINT_REGISTER,
-    1,
-    HALT,
-]
-
-# this is where we "load" a program
-memory = add_numbers
+POP            = 7
+PUSH           = 8
 
 
+# this is where we "initialize the memory"
+memory = [0] * 256 
 
 # ALL THE CODE BELOW IS THE "COMPUTER"
 running = True
 pc = 0
 registers = [0] * 8
+SP = 7 # register location that holds top of stack address
+# store the top of memory into Register 7
+registers[SP] = len(memory) - 1
 
+# Read from file, and load into memory
+# read the filename from command line arguments
+# open the file, and load each line into memory
+# lets try not to crash
+def load_program_into_memory():
+    address = 0
+    # get the filename from arguments here
+    print(sys.argv)
+    if len(sys.argv) != 2:
+        print("Need proper file name passed")
+        sys.exit(1)
+
+    filename = sys.argv[1]
+    with open(filename) as f:
+        for line in f:
+            # print(line)
+            if line == '':
+                continue
+            comment_split = line.split('#')
+            # print(comment_split) # [everything before #, everything after #]
+
+            num = comment_split[0].strip()
+
+            memory[address] = int(num)
+            address += 1
+
+
+
+load_program_into_memory()
 while running:
     # lets receive some instructions, and execute them
     command = memory[pc]
@@ -128,6 +99,28 @@ while running:
         val2 = registers[register2]
         registers[register1] = val1 + val2
         pc += 3
+    elif command == PUSH:
+        # PUSH
+        # rrrrrrrr
+        register = memory[pc + 1]
+        # decrement the Stack Pointer (SP)
+        registers[SP] -= 1
+        # read the next value for register location
+        register_value = registers[register]
+        # take the value in that register and add to stack
+        memory[registers[SP]] = register_value
+        pc += 2
+    elif command == POP:
+        # POP Rrrrrrrr
+        # POP value of stack at location SP
+        value = memory[registers[SP]]
+        register = memory[pc + 1]
+        # store the value into register given
+        registers[register] = value
+        # increment the Stack Pointer (SP)
+        registers[SP] += 1
+        pc += 2
+
     else:
     # if command is non recognizable
         print(f"Unknown instruction {command}")

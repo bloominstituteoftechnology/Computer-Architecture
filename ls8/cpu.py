@@ -10,7 +10,7 @@ PUSH = 0b01000101  # push instraction on to the stack
 POP = 0b01000110   # instraction in to the stack 
 CALL = 0b01010000 # jump to a subsroutine address
 RET = 0b00010001 # go to return address after subroutine is done
-# ADD = 0b10100000
+ADD = 0b10100000
 class CPU:
     """Main CPU class."""
 
@@ -25,12 +25,12 @@ class CPU:
             LDI: self.op_ldi,
             PRN: self.op_prn,
             HLT: self.op_hlt,
-            # ADD: self.op_add,
-            # MUL: self.op_mul,
-            # POP: self.op_pop,
-            # PUSH: self.op_push,
-            # CALL: self.op_call,
-            # RET: self.op_ret,
+            ADD: self.op_add,
+            MUL: self.op_mul,
+            POP: self.op_pop,
+            PUSH: self.op_push,
+            CALL: self.op_call,
+            RET: self.op_ret,
             
         }
         self.lines = 0
@@ -101,17 +101,15 @@ class CPU:
             print("File not found")
             sys.exit(2)
 
-        
-        
-
-        
-
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
-
-        if op == "ADD":
+        if op == MUL:
+            self.register[reg_a] *= self.register[reg_b]
+            self.register[reg_a] &= 0xFF
+        elif op == ADD:
             self.reg[reg_a] += self.reg[reg_b]
+            self.register[reg_a] &= 0xFF
         #elif op == "SUB": etc
         else:
             raise Exception("Unsupported ALU operation")
