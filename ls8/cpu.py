@@ -1,74 +1,48 @@
-"""CPU functionality."""
- 
 import sys
-LDI = 0b10000010 # set a specific register to specific value 
-PRN = 0b01000111 # print number
-HLT = 0b00000001 # halt the Program
-MUL = 0b10100010 # multiply two registers together and store a result in register A
 
-PUSH = 0b01000101  # push instraction on to the stack
-POP = 0b01000110   # instraction in to the stack 
-CALL = 0b01010000 # jump to a subsroutine address
-RET = 0b00010001 # go to return address after subroutine is done
+LDI = 0b10000010 
+PRN = 0b01000111 
+HLT = 0b00000001
+MUL = 0b10100010
 ADD = 0b10100000
+
+
 class CPU:
     """Main CPU class."""
 
+
     def __init__(self):
         """Construct a new CPU."""
-        #! construct RAM + REG + PC 
+        # construct RAM + REG + PC 
         self.ram = [0] * 256
-        self.register = [0] * 8
+        self.reg = [0] * 8
         self.pc = 0       # program counter is the address of currently executing instructions 
-        self.fl = 0 #flags
+        self.fl = 0
         self.bt = {        
             LDI: self.op_ldi,
             PRN: self.op_prn,
             HLT: self.op_hlt,
             ADD: self.op_add,
             MUL: self.op_mul,
-            POP: self.op_pop,
-            PUSH: self.op_push,
-            CALL: self.op_call,
-            RET: self.op_ret,
-            
+           
         }
-        self.lines = 0
-    def trace(self):
-        """
-        Handy function to print out the CPU state. You might want to call this
-        from run() if you need help debugging.
-        """
-        print(f"TRACE: %02X | %02X %02X %02X |" % (
-            self.pc,
-            #self.fl,
-            #self.ie,
-            self.ram_read(self.pc),
-            self.ram_read(self.pc + 1),
-            self.ram_read(self.pc + 2)
-        ), end='')
-        for i in range(8):
-            print(" %02X" % self.register[i], end='')
-        print()
 
+    def op_ldi(self, operand_a, operand_b):
+        self.reg[operand_a] = operand_b
 
-    #! instruction handlers
-    def op_hlt(self): #! HLT
+    def op_prn(self, operand_a, operand_b):
+        print(self.reg[operand_a])
+
+    def op_hlt(self, operand_a, operand_b):
         sys.exit(0)
 
-    def op_prn(self):
-        reg = self.ram_read(self.pc + 1) #! PRN
-        num = self.register[reg]
-        print(num)
-        self.pc += 2
+    def op_add(self):
+        self.alu("ADD", self.ram_read(self.pc + 1), self.ram_read(self.pc+2))
 
+    def op_mul(self, operand_a, operand_b):
+        self.alu("MUL", operand_a, operand_b)
 
-    def op_ldi(self):
-        reg = self.ram_read(self.pc + 1) #! LDI
-        num = self.ram_read(self.pc + 2)
-        self.register[reg] = num
-        self.pc += 3
-
+    
     def ram_read(self, mar):
         #mar = memory address register // mdr = memory data register 
         #read the address and write out the number (data) 
@@ -78,64 +52,78 @@ class CPU:
     def ram_write(self, mdr, mar):
         self.ram[mar] = mdr
 
+
     def load(self, filename):
         """Load a program into memory."""
-        try:
+        try: 
             address = 0
+            #open the file
             with open(sys.argv[1]) as f:
-                for line in f:
-                    # print(line)
+                # read every line 
+                for line in f: 
+                    # parse out comments 
                     comment_split = line.strip().split("#")
-                    # print(comment_split) # [everything before #, everything after #]
-                    value = comment_split[0].strip()
-                    # print(value, type(value))
-                    if value == '':
-                        continue
-                    self.lines += 1
+                    #c cast number string to int 
+                    value = comment_split[0].strip() 
+                    # ignore blank lines 
+                    if value == "":
+                        continue 
                     instruction = int(value, 2)
-                    # populate a memory array
-                    self.ram[address] = instruction# changing the command to int because it binary to change to the base 10 int
+                    # populate memory array 
+                    self.ram[address] = instruction 
                     address += 1
-        
-        except FileNotFoundError:
-            print("File not found")
+        except: 
+            print("File Not Fount !")
             sys.exit(2)
+
+
 
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
-        if op == MUL:
-            self.register[reg_a] *= self.register[reg_b]
-            self.register[reg_a] &= 0xFF
-        elif op == ADD:
+
+        if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
-            self.register[reg_a] &= 0xFF
-        #elif op == "SUB": etc
+        ## ADDING MULTIPLICATION
+        elif op == "MUL":
+            self.reg[reg_a] *= self.reg[reg_b]       
         else:
             raise Exception("Unsupported ALU operation")
 
-    # def trace(self):
-    #     """
-    #     Handy function to print out the CPU state. You might want to call this
-    #     from run() if you need help debugging.
-    #     """
+    def trace(self):
+        """
+        Handy function to print out the CPU state. You might want to call this
+        from run() if you need help debugging.
+        """
 
-    #     print(f"TRACE: %02X | %02X %02X %02X |" % (
-    #         self.pc,
-    #         #self.fl,
-    #         #self.ie,
-    #         self.ram_read(self.pc),
-    #         self.ram_read(self.pc + 1),
-    #         self.ram_read(self.pc + 2)
-    #     ), end='')
+        print(f"TRACE: %02X | %02X %02X %02X |" % (
+            self.pc,
+            self.fl,
+            #self.ie,
+            self.ram_read(self.pc),
+            self.ram_read(self.pc + 1),
+            # self.ram_read(self.pc + 2)
+        ), end='')
 
-    #     for i in range(8):
-    #         print(" %02X" % self.reg[i], end='')
+        for i in range(8):
+            print(" %02X" % self.reg[i], end='')
 
-    #     print()
+        print()
+
+
 
     def run(self):
-        """Run the CPU."""
-        for _ in range(self.lines):
-            ir = self.ram_read(self.pc)
-            self.bt[ir]()
+        """Run the CPU."""    
+        while True: 
+            instruction = self.ram[self.pc]
+            operand_a = self.ram_read(self.pc + 1)
+            operand_b = self.ram_read(self.pc + 2)
+            instruction_length = (instruction >> 6) + 1
+            instruction_set_pc = ((instruction >> 4) & 0b1 )== 1
+            
+            if instruction in self.bt:
+                self.bt[instruction](operand_a, operand_b)
+            #check if opcode instructions sets the pc
+            # If not, increment pc by instruction length
+            if instruction_set_pc != 1:
+                self.pc += instruction_length
