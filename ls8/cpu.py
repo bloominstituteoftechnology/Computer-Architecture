@@ -5,8 +5,12 @@ PRN = 0b01000111
 HLT = 0b00000001
 MUL = 0b10100010
 ADD = 0b10100000
+SP = 7 
 
-
+PUSH = 0b01000101   
+POP = 0b01000110    
+CALL = 0b01010000
+RET = 0b00010001
 class CPU:
     """Main CPU class."""
 
@@ -24,7 +28,11 @@ class CPU:
             HLT: self.op_hlt,
             ADD: self.op_add,
             MUL: self.op_mul,
-           
+            POP: self.op_pop,
+            PUSH: self.op_push,
+            CALL: self.op_call,
+            RET: self.op_ret
+            
         }
 
     def op_ldi(self, operand_a, operand_b):
@@ -42,7 +50,20 @@ class CPU:
     def op_mul(self, operand_a, operand_b):
         self.alu("MUL", operand_a, operand_b)
 
+    def op_pop(self, operand_a, operand_b):
+        self.reg[operand_a] = self.pop_val()
+
+    def op_push(self, operand_a, operand_b):
+        self.push_val(self.reg[operand_a])
+
+    def op_call(self, operand_a, operand_b):
+        self.push_val(self.pc + 2)
+        self.pc = self.reg[operand_a]
     
+    def op_ret(self):
+        self.pc = self.ram[self.reg[SP]]
+        self.reg[SP] += 1
+
     def ram_read(self, mar):
         #mar = memory address register // mdr = memory data register 
         #read the address and write out the number (data) 
@@ -52,6 +73,14 @@ class CPU:
     def ram_write(self, mdr, mar):
         self.ram[mar] = mdr
 
+    def push_val(self, val):
+        self.reg[SP] -= 1
+        self.ram_write(val, self.reg[SP])
+
+    def pop_val(self):
+        val = self.ram_read(self.reg[SP])
+        self.reg[SP] += 1
+        return val
 
     def load(self, filename):
         """Load a program into memory."""
@@ -73,7 +102,7 @@ class CPU:
                     self.ram[address] = instruction 
                     address += 1
         except: 
-            print("File Not Fount !")
+            print("File Not Found !")
             sys.exit(2)
 
 
