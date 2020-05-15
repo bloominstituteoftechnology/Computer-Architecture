@@ -14,6 +14,10 @@ class CPU:
         # memory storage for ram
         self.ram = [0] * 256
 
+        self.ir = 0
+        # last regiester
+        self.sp = 7
+
     # accepts address to read and returns value stored
     def ram_read(self, mar):
         # mar contains address that is being read or written to
@@ -61,6 +65,28 @@ class CPU:
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
         # elif op == "SUB": etc
+        if op == 'OR':
+            if reg_a == 1 and reg_b == 0:
+                return True
+            elif reg_a == 0 and reg_b == 1:
+                return True
+            elif reg_a == 1 and reg_b == 1:
+                return True
+            else:
+                return False
+        if op == 'XOR':
+            if reg_a == 1 and reg_b == 0:
+                return True
+            if reg_a == 0 and reg_b == 1:
+                return True
+            else:
+                return False
+        if op == 'NOR':
+            if reg_a == 0 and reg_b == 0:
+                return True
+            else:
+                return False
+
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -90,6 +116,8 @@ class CPU:
         LDI = 0b10000010
         PRN = 0b01000111
         MUL = 0b10100010
+        PUSH = 0b01000101
+        POP = 0b01000110
         running = True
 
         while running:
@@ -109,6 +137,30 @@ class CPU:
             elif instruction == MUL:
                 print(self.reg[reg_a] * self.reg[reg_b])
                 self.pc += 3
+
+            elif instruction == PUSH:
+                # choose register
+                reg = self.ram[self.pc+1]
+                # get value from register
+                val = self.reg[reg]
+                # decrement memory address by one
+                self.reg[self.sp] -= 1
+                # vave value from register into memory
+                self.ram[self.reg[self.sp]] = val
+                # increment pc by 2
+                self.pc += 2
+
+            elif instruction == POP:
+                # reg holding sp
+                reg = self.ram[self.pc+1]
+                # value from place in memory
+                val = self.ram[self.reg[self.sp]]
+                # save value into register we arelooking at
+                self.reg[reg] = val
+                # increment pointer
+                self.reg[self.sp] += 1
+                # increment pc by 2
+                self.pc += 2
             else:
                 print(f'this instruction is not valid: {hex(instruction)}')
                 running = False
