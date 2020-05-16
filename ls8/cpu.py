@@ -101,14 +101,20 @@ class CPU:
         MUL = 0b10100010
         CALL = 0b01010000 
         RET = 0b00010001
+        CMP = 0b10100111
+        JMP = 0b01010100
+        JNE = 0b01010110
+        JEQ = 0b01010101
 
         running = True
         ir = None
+        
 
         while running:
             command = self.ram_read(self.pc)
             reg_a = self.ram_read(self.pc + 1)
             reg_b = self.ram_read(self.pc + 2)
+            flag = 0b00000000
 
             if command == HLT:
                 running = False
@@ -157,6 +163,31 @@ class CPU:
                 ret_address = self.reg[7]
                 self.pc = self.ram_read(ret_address)
                 self.reg[7] += 1
+            elif command == CMP:
+                if reg_a == reg_b:
+                    flag = 0b00000100
+                elif reg_a > reg_b:
+                    flag == 0b00000010
+                if reg_a == reg_b:
+                    flag = 0b00000001
+                self.pc += 3
+                print(flag)
+            elif command == JMP:
+                reg = self.ram[self.pc + 1]
+                self.pc = self.reg[reg]
+                pass
+            elif command == JEQ:
+                reg = self.ram[self.pc + 1]
+                if flag > 0:
+                    self.pc = self.reg[reg]
+                else:
+                    self.pc += 2
+            elif command == JNE:
+                reg = self.ram[self.pc + 1]
+                if flag == 0:
+                    self.pc = self.reg[reg]
+                else:
+                    self.pc += 2
             else:
                 #If command is non recognizable
                 print(f"Unknown command")
