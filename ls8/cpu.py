@@ -2,9 +2,9 @@
 
 import sys
 
-LDI = 0
-HLT = 1
-PRN = 3
+# LDI = 0
+# HLT = 1
+# PRN = 3
 
 
 class CPU:
@@ -14,6 +14,7 @@ class CPU:
         self.ram = [0] * 256
         self.reg = [0] * 8
         self.pc = 0
+        self.sp = 7
         self.init_value = 0
 
         
@@ -25,14 +26,15 @@ class CPU:
         with open(sys.argv[1]) as f:
             for line in f:
                 # print(line)
-                if line == '':
-                    continue
-                comment_split = line.split('#')
+                #Ignore comments
+                comment_split = line.strip().split("#")
+                value = comment_split[0].strip()
                 # print(comment_split) # [everything before #, everything after #]
+                if value == '':
+                    continue
+                instruction = int(value, 2)#Passing in the value 2 turns the info into bianary 
 
-                num = comment_split[0].strip()
-
-                self.ram[address] = int(num)
+                self.ram[address] = instruction
                 address += 1
 
 
@@ -56,13 +58,14 @@ class CPU:
 
     def ram_write(self, MDR, MAR):
         self.ram[MAR] = MDR
-
+    
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
-        #elif op == "SUB": etc
+        elif op == "MUL":
+            self.reg[reg_a] *= self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -92,6 +95,12 @@ class CPU:
         LDI = 0b10000010
         PRN = 0b01000111
         MUL = 0b10100010
+        PUSH = 0b01000101
+        POP = 0b01000110
+        ADD = 0b10100000
+        MUL = 0b10100010
+        CALL = 0b01010000 
+        RET = 0b00010001
 
         running = True
         ir = None
@@ -111,9 +120,45 @@ class CPU:
             elif command == PRN:
                 print(self.reg[reg_a])
                 self.pc += 2
-
+            elif command == PUSH:
+                #Select register
+                reg = self.ram[self.pc+1]
+                #Grab value from register
+                val = self.reg[reg]
+                # decrement memory address by one
+                self.reg[self.sp] -= 1
+                #Save value from register into memory
+                self.ram[self.reg[self.sp]] = val
+                #Increment pc
+                self.pc += 2
+            elif command == POP:
+                #Register holding sp
+                reg = self.ram[self.pc+1]
+                #Value from place in memory
+                val = self.ram[self.reg[self.sp]]
+                #Save value into register we are currently using
+                self.reg[reg] = val
+                #Increment the pointer
+                self.reg[self.sp] += 1
+                #Increment pc by 2
+                self.pc += 2
+            elif command == ADD:
+                self.alu("ADD", reg_a, reg_b)
+                self.pc += 3
+            elif command == MUL:
+                self.alu("MUL", reg_a, reg_b)
+                self.pc += 3
+            elif command == CALL:
+                call_address = self.pc + 2
+                self.reg[7] -= 1
+                self.ram_write(call_address, self.reg[7])
+                self.pc = self.reg[reg_a]
+            elif command == RET:
+                ret_address = self.reg[7]
+                self.pc = self.ram_read(ret_address)
+                self.reg[7] += 1
             else:
                 #If command is non recognizable
-                print(f"Unknown instruction")
+                print(f"Unknown command")
                 running = False
                 #Lets Crash :(
