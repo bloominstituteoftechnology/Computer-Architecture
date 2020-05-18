@@ -76,19 +76,20 @@ class CPU:
             # halt
             if self.ram[self.pc] == 0b00000001:
                 halted = True
-                break
 
             # print
             elif self.ram[self.pc] == 0b01000111:
                 self.pc += 1
-                print(self.reg[self.ram[self.pc]])
+                index = self.ram[self.pc]
+                print(self.reg[index])
                 self.pc += 1
 
             # load into reg
             elif self.ram[self.pc] == 0b10000010:
                 self.pc += 1
-                self.reg[self.ram[self.pc]] = self.ram[self.pc + 1]
-                self.pc += 1
+                index = self.ram[self.pc]
+                self.reg[index] = self.ram[self.pc + 1]
+                self.pc += 2
 
 
 
