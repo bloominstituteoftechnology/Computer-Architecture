@@ -16,6 +16,7 @@ class CPU:
         self.pc = 0
         self.sp = 7
         self.init_value = 0
+        self.flag = 0b00000000
 
         
     def load(self, program):
@@ -114,7 +115,6 @@ class CPU:
             command = self.ram_read(self.pc)
             reg_a = self.ram_read(self.pc + 1)
             reg_b = self.ram_read(self.pc + 2)
-            flag = 0b00000000
 
             if command == HLT:
                 running = False
@@ -164,27 +164,26 @@ class CPU:
                 self.pc = self.ram_read(ret_address)
                 self.reg[7] += 1
             elif command == CMP:
-                if reg_a == reg_b:
-                    flag = 0b00000100
-                elif reg_a > reg_b:
-                    flag == 0b00000010
-                if reg_a == reg_b:
-                    flag = 0b00000001
+                if self.reg[reg_a] < self.reg[reg_b]:
+                    self.flag = 0b00000100
+                elif self.reg[reg_a]  > self.reg[reg_b]:
+                    self.flag = 0b00000010
+                if self.reg[reg_a]  == self.reg[reg_b]:
+                    self.flag = 0b00000001
                 self.pc += 3
-                print(flag)
             elif command == JMP:
                 reg = self.ram[self.pc + 1]
                 self.pc = self.reg[reg]
                 pass
             elif command == JEQ:
                 reg = self.ram[self.pc + 1]
-                if flag > 0:
+                if self.flag == 0b00000001:
                     self.pc = self.reg[reg]
                 else:
                     self.pc += 2
             elif command == JNE:
                 reg = self.ram[self.pc + 1]
-                if flag == 0:
+                if self.flag != 0b00000001:
                     self.pc = self.reg[reg]
                 else:
                     self.pc += 2
