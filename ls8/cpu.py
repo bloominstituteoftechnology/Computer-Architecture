@@ -23,7 +23,7 @@ class CPU:
     def load(self):
         """Load a program into memory."""
 
-        if not sys.argv[1]:
+        if len(sys.argv) < 2:
             print("No program specified. Please specify a program.")
             sys.exit(1)
 
