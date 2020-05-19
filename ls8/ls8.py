@@ -7,5 +7,7 @@ from cpu import *
 
 cpu = CPU()
 
+raise Exception
 cpu.load()
 cpu.run()
+

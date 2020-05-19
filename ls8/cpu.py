@@ -8,12 +8,12 @@ class CPU:
     def __init__(self):
         """Construct a new CPU."""
         self.register = {k:0 for k in range(0,8)}
-        self.register["R7"] = 0xF4
+        self.register[7] = 0xF4
         self.pc = 0
         self.fl = None
         self.ram = [0]*256
 
-        self.alu_ops = {
+        self.id_to_alu_ops = {
             '0000':'ADD',
             '0001':'SUB',
             '0010':'MUL',
@@ -92,19 +92,27 @@ class CPU:
         halted = False
 
         while not halted:
-            current_instruct = self.ram[self.pc]
-            self.trace()
+            current_instruct = self.ram_read(self.pc)
             decoded = self.decode(current_instruct)
+            self.pc += 1
             if decoded is None:
                 halted = True
             else:
-                for c in range(0,decoded['num_operands']):
-                    print
-
+                if decoded['id'] == 0b0010: # LDI
+                    register = self.ram_read(self.pc)
+                    self.pc += 1
+                    value = self.ram_read(self.pc)
+                    self.pc += 1
+                    self.register[register] = value
+                elif decoded['id'] == 0b0111: # PRN
+                    register = self.ram_read(self.pc)
+                    self.pc += 1
+                    print(self.register[register])
             
 
     def decode(self, instruction):
-        if instruction == 0b00000001:
+        instruction = bin(instruction)[2:].zfill(8)
+        if instruction == "00000001":
             return None
         else:
             output = {
@@ -113,11 +121,9 @@ class CPU:
                 'sets_pc':False,
                 'id':0
             }
-
-            instruction = bin()[2:]
-            output['num_operands'] = int(instruction[:1])+1
-            output['is_alu'] = bool(instruction[2])
-            output['sets_pc'] = bool(instruction[3])
-            output['id'] = instruction[3:]
+            output['num_operands'] = int(instruction[:1],2)+1
+            output['is_alu'] = bool(int(instruction[2],2))
+            output['sets_pc'] = bool(int(instruction[3],2))
+            output['id'] = int(instruction[4:], 2)
             return output
         
