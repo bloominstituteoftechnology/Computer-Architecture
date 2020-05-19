@@ -10,6 +10,7 @@ class CPU:
         """Construct a new CPU."""
         # Initialize Register
         self.reg = [0] * 8
+        self.reg[7] = 0xF4
 
         # Initialize Memory
         self.ram = [0] * 256
@@ -29,12 +30,20 @@ class CPU:
 
         self.halt = False
 
+        # Initialize pc_override for when pc is manually set by function
+
+        self.pc_override = False
+
         # Initialize branch_table
         self.branch_table = {}
         self.branch_table[0b10000010] = self.LDI
         self.branch_table[0b01000111] = self.PRN
         self.branch_table[0b00000001] = self.HLT
-        self.branch_table[0b10100010] = self.MUL
+        
+        
+        #Initialize alu_table
+        self.alu_table = {}
+        self.alu_table[0b10100010] = "MUL"
 
 
     def load(self, program):
@@ -52,7 +61,10 @@ class CPU:
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
-        #elif op == "SUB": etc
+        elif op == "SUB": 
+            self.reg[reg_a] += self.reg[reg_b]
+        elif op == "MUL":
+            self.reg[reg_a] *= self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -103,21 +115,41 @@ class CPU:
             self.operand_a = self.ram_read(self.pc+1)
             self.operand_b = self.ram_read(self.pc+2)
 
-            self.branch_table[self.ir]()
+            # reset pc_override to check if PC needs to be adjusted 
+            self.pc_override = False
+
+            # Determine if alu operation or branch_table operation
+            bit_5 = (self.ir & 2 ** 5) >> 5
+
+            if bit_5:
+                op = self.alu_table[self.ir]
+                self.alu(op, self.operand_a, self.operand_b)
+            
+            if not bit_5:
+                self.branch_table[self.ir]()
+
+            if not self.pc_override:
+                bit_6 = (self.ir & 2 ** 6) >> 6
+                bit_7 = (self.ir & 2 ** 7) >> 7
+
+                if bit_6: 
+                    self.pc += 2
+                if bit_7:
+                    self.pc += 3
+        sys.exit()
+                
 
     def LDI(self):
         """
         Set register to this value
         """
         self.reg[self.operand_a] = self.operand_b
-        self.pc += 3
 
     def PRN(self):
         """
         Prints numeric value stored at register address
         """
         print(self.reg[self.operand_a])
-        self.pc += 2
 
     def HLT(self):
         """
@@ -125,9 +157,8 @@ class CPU:
         """
         self.halt = True
     
-    def MUL(self):
+
+    def ADD(self):
         """
-        Multiplies two numbers together.
+        Adds two numbers together
         """
-        self.reg[self.operand_a] *= self.reg[self.operand_b]
-        self.pc += 3
