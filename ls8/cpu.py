@@ -7,7 +7,28 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.register = {k:0 for k in range(0,8)}
+        self.register["R7"] = 0xF4
+        self.pc = 0
+        self.fl = None
+        self.ram = [0]*256
+
+        self.alu_ops = {
+            '0000':'ADD',
+            '0001':'SUB',
+            '0010':'MUL',
+            '0011':'DIV',
+            '0100':'MOD',
+            '0101':'INC',
+            '0110':'DEC',
+            '0111':'CMP',
+            '1000':'AND',
+            '1001':'NOT',
+            '1010':'OR',
+            '1011':'XOR',
+            '1100':'SHL',
+            '1101':'SHR'
+        }
 
     def load(self):
         """Load a program into memory."""
@@ -56,10 +77,47 @@ class CPU:
         ), end='')
 
         for i in range(8):
-            print(" %02X" % self.reg[i], end='')
+            print(" %02X" % self.register[i], end='')
 
         print()
 
+    def ram_read(self, position):
+        return self.ram[position]
+
+    def ram_write(self, position, value):
+        self.ram[position] = value
+
     def run(self):
         """Run the CPU."""
-        pass
+        halted = False
+
+        while not halted:
+            current_instruct = self.ram[self.pc]
+            self.trace()
+            decoded = self.decode(current_instruct)
+            if decoded is None:
+                halted = True
+            else:
+                for c in range(0,decoded['num_operands']):
+                    print
+
+            
+
+    def decode(self, instruction):
+        if instruction == 0b00000001:
+            return None
+        else:
+            output = {
+                'num_operands':None,
+                'is_alu':False,
+                'sets_pc':False,
+                'id':0
+            }
+
+            instruction = bin()[2:]
+            output['num_operands'] = int(instruction[:1])+1
+            output['is_alu'] = bool(instruction[2])
+            output['sets_pc'] = bool(instruction[3])
+            output['id'] = instruction[3:]
+            return output
+        
