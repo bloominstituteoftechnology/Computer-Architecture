@@ -39,18 +39,26 @@ class CPU:
         self.branch_table[0b10000010] = self.LDI
         self.branch_table[0b01000111] = self.PRN
         self.branch_table[0b00000001] = self.HLT
+        self.branch_table[0b01000101] = self.PUSH
+        self.branch_table[0b01000110] = self.POP
+        self.branch_table[0b01010000] = self.CALL
+        self.branch_table[0b00010001] = self.RET
+
         
         
         #Initialize alu_table
         self.alu_table = {}
         self.alu_table[0b10100010] = "MUL"
+        self.alu_table[0b10100000] = "ADD"
+        self.alu_table[0b10101000] = "AND"
+        self.alu_table[0b10100111] = "CMP"
+
 
 
     def load(self, program):
         """Load a program into memory."""
 
         address = 0
-
 
         for instruction in program:
             self.ram_write(address, instruction)
@@ -65,6 +73,16 @@ class CPU:
             self.reg[reg_a] += self.reg[reg_b]
         elif op == "MUL":
             self.reg[reg_a] *= self.reg[reg_b]
+        elif op == "AND":
+            self.reg[reg_a] &= self.reg[reg_b]
+        elif op == "CMP":
+            if reg_a == reg_b:
+                self.fl = 0b00000001
+            elif reg_a > reg_b:
+                self.fl = 0b00000010
+            else:
+                self.fl = 0b00000100
+
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -93,7 +111,8 @@ class CPU:
         Function that reads from memory. Takes in the address to read.
         Returns the value stored at that address in the RAM.
         """
-        self.mdr = self.ram[address]
+        self.mar = address
+        self.mdr = self.ram[self.mar]
 
         return self.mdr
 
@@ -102,18 +121,18 @@ class CPU:
         Function that writes to memory. Takes in the value to write,
         the address to write to. Saves value at the given address.
         """
-
-        self.ram[address] = value
-        self.mdr = self.ram[address]
+        self.mar = address
+        self.ram[self.mar] = value
+        self.mdr = self.ram[self.mar]
 
     def run(self):
         """Run the CPU."""
 
         while not self.halt:         
-            self.mar = self.pc
-            self.ir = self.ram_read(self.mar)
-            self.operand_a = self.ram_read(self.pc+1)
-            self.operand_b = self.ram_read(self.pc+2)
+            self.ir = self.ram_read(self.pc)
+            self.operand_a = self.ram_read(self.pc + 1)
+            self.operand_b = self.ram_read(self.pc + 2) 
+            self.trace()
 
             # reset pc_override to check if PC needs to be adjusted 
             self.pc_override = False
@@ -156,9 +175,36 @@ class CPU:
         Sets halt value to true
         """
         self.halt = True
-    
 
-    def ADD(self):
+    def PUSH(self):
         """
-        Adds two numbers together
+        Pushes value at given register on to computer stack
         """
+        self.reg[7] -= 1
+        value = self.reg[self.operand_a]
+        self.ram_write(self.reg[7], value)
+    
+    def POP(self):
+        """
+        Pops value at current stack pointer off the stack 
+        and stores it at the given register
+        """
+        value = self.ram_read(self.reg[7])
+        self.reg[self.operand_a] = value
+        self.reg[7] += 1
+
+    def CALL(self):
+        """
+        Calls a subroutine (function) stored at the address in the register.
+        
+        The address of the instruction directly after CALL is pushed onto the stack. 
+        The PC is set to the address stored in the given register.
+        """
+        pass
+
+    def RET(self):
+        """
+        Returns from subroutine.
+        Pop the value from the top of the stack and store it in the PC.
+        """
+        pass
