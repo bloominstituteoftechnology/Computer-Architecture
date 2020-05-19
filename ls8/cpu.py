@@ -176,21 +176,25 @@ class CPU:
         """
         self.halt = True
 
-    def PUSH(self):
+    def PUSH(self, value=None):
         """
         Pushes value at given register on to computer stack
         """
         self.reg[7] -= 1
-        value = self.reg[self.operand_a]
+        if value is None:
+            value = self.reg[self.operand_a]
         self.ram_write(self.reg[7], value)
     
-    def POP(self):
+    def POP(self, register=True):
         """
         Pops value at current stack pointer off the stack 
         and stores it at the given register
         """
         value = self.ram_read(self.reg[7])
-        self.reg[self.operand_a] = value
+        if register:
+            self.reg[self.operand_a] = value
+        else:
+            return value
         self.reg[7] += 1
 
     def CALL(self):
@@ -200,11 +204,13 @@ class CPU:
         The address of the instruction directly after CALL is pushed onto the stack. 
         The PC is set to the address stored in the given register.
         """
-        pass
+        self.pc_override = True
+        self.PUSH(self.pc + 2)
+        self.pc = self.reg[self.operand_a]
 
     def RET(self):
         """
         Returns from subroutine.
         Pop the value from the top of the stack and store it in the PC.
         """
-        pass
+        self.pc = self.POP(register=False)
