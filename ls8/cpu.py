@@ -30,25 +30,25 @@ class CPU:
             '1101':'SHR'
         }
 
-    def load(self):
+    def load(self, filename='./examples/print8.ls8'):
+        
         """Load a program into memory."""
 
         address = 0
 
         # For now, we've just hardcoded a program:
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+        if len(sys.argv) > 1:
+            filename = './examples/'+sys.argv[1]
 
-        for instruction in program:
-            self.ram[address] = instruction
+        program = open(filename)
+
+        for line in program:
+            string_val = line.split("#")[0].strip()
+            if string_val == '':
+                continue
+            v = int(string_val, 2)
+            self.ram[address] = v
             address += 1
 
 
@@ -56,8 +56,12 @@ class CPU:
         """ALU operations."""
 
         if op == "ADD":
-            self.reg[reg_a] += self.reg[reg_b]
-        #elif op == "SUB": etc
+            self.register[reg_a] += self.register[reg_b]
+        elif op == "SUB":
+            pass
+        elif op == "MUL":
+            self.register[reg_a] *= self.register[reg_b]
+
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -95,8 +99,33 @@ class CPU:
             current_instruct = self.ram_read(self.pc)
             decoded = self.decode(current_instruct)
             self.pc += 1
+
+            # If decoded is none, then we know we hit a halt
             if decoded is None:
                 halted = True
+
+            # If the decoded instruction is for the alu
+            elif decoded['is_alu']:
+                # First get the id of the operation
+                id_ = bin(decoded['id'])[2:].zfill(4)
+                # Then using the id to alu ops dict, determine
+                # the actual operation
+                op = self.id_to_alu_ops[id_]
+                # Initialize reg_a and reg_b to default None
+                reg_a, reg_b = None,None
+                # Will always have to read reg_a from ram
+                reg_a = self.ram_read(self.pc)
+                # Increment the counter
+                self.pc += 1
+                # If the number of operands is two, read reg_b
+                if decoded['num_operands'] == 2:
+                    reg_b = self.ram_read(self.pc)
+                    self.pc += 1
+
+                # Call the ALU to execute the op on the registers
+                self.alu(op, reg_a, reg_b)
+
+            # If the decoded instruction is not for the ALU
             else:
                 if decoded['id'] == 0b0010: # LDI
                     register = self.ram_read(self.pc)
@@ -108,6 +137,8 @@ class CPU:
                     register = self.ram_read(self.pc)
                     self.pc += 1
                     print(self.register[register])
+        
+        sys.exit(1)
             
 
     def decode(self, instruction):
