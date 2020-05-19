@@ -5,6 +5,10 @@
 import sys
 from cpu import *
 
+
+
+register = [0] * 8
+
 cpu = CPU()
 
 cpu.load()
