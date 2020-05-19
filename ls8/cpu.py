@@ -60,9 +60,13 @@ class CPU:
 
     def ram_read(self, mar):
         mdr = self.ram[mar]
+        # Memory Address Register
+        # The MAR contains the address that is being read or written to.
         return mdr
 
     def ram_write(self, mdr, mar):
+        # Memory Data Register
+        # The MDR contains the data that was read or the data to write. 
         self.ram[mar] = mdr
 
 
