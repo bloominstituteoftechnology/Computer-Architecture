@@ -7,12 +7,49 @@ import sys
 
 class CPU:
     """Main CPU class."""
-
     def __init__(self):
-        """Construct a new CPU."""
+        """Construct a new CPU."""   
         self.ram = [0] * 256
         self.reg = [0, 0, 0, 0, 0, 0, 0, 0xF4]
         self.pc = 0
+        self.sp = 7
+        self.branchtable = {}
+        # self.branchtable["POP"] = self.pop
+        self.branchtable["PUSH"] = self.push
+        self.branchtable["LDI"] = self.ldi
+        self.branchtable["MULT"] = self.mult
+        self.branchtable["PRN"] = self.prn 
+
+    def push(self):
+        # Decrement the SP
+        self.reg[self.sp] -= 1
+        # Get register number
+        index = self.ram[self.pc + 1]
+        # Get value out of register
+        val = self.reg[index]
+        # Store value in memory at SP
+        self.ram[self.reg[self.sp]] = val
+        self.pc += 1
+
+    def prn(self):
+        self.pc += 1
+        index = self.ram[self.pc]
+        print(self.reg[index])
+        self.pc += 1
+
+    def mult(self):
+        self.pc += 1
+        operand1 = self.reg[self.ram[self.pc]]
+        self.pc += 1
+        operand2 = self.reg[self.ram[self.pc]]
+        self.reg[self.ram[self.pc - 1]] = operand1 * operand2
+        self.pc += 1
+
+    def ldi(self):
+        self.pc += 1
+        index = self.ram[self.pc]
+        self.reg[index] = self.ram[self.pc + 1]
+        self.pc += 2
 
     def ram_read(self, address):
         return self.ram[address]
@@ -78,27 +115,19 @@ class CPU:
 
             # load into reg
             elif self.ram[self.pc] == 0b10000010:
-                self.pc += 1
-                index = self.ram[self.pc]
-                self.reg[index] = self.ram[self.pc + 1]
-                self.pc += 2
+                self.branchtable["LDI"]()
 
+            # push
+            elif self.ram[self.pc] == 0b01000101:
+                self.branchtable["PUSH"]()
+                
             # multiply
             elif self.ram[self.pc] == 0b10100010:
-                self.pc += 1
-                operand1 = self.reg[self.ram[self.pc]]
-                self.pc += 1
-                operand2 = self.reg[self.ram[self.pc]]
-                self.reg[self.ram[self.pc - 1]] = operand1 * operand2
-                self.pc += 1
+                self.branchtable["MULT"]()
 
             # print
             elif self.ram[self.pc] == 0b01000111:
-                self.pc += 1
-                index = self.ram[self.pc]
-                print(self.reg[index])
-                self.pc += 1
-
-
+                self.branchtable["PRN"]()
+                
 
 
