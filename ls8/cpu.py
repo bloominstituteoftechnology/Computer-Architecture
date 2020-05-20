@@ -1,6 +1,7 @@
 """CPU functionality."""
 
 import sys
+SP = 7
 
 class CPU:
     """Main CPU class."""
@@ -10,7 +11,7 @@ class CPU:
         self.pc = 0
         self.reg = [0] * 8 
         self.ram = [0] * 256 
-
+        self.reg[SP] = 0XF4
 
     def ram_read(self, mar):
         return self.ram[mar]
@@ -93,6 +94,8 @@ class CPU:
         LDI = 0b10000010
         PRN = 0b01000111
         MUL = 0b10100010
+        PUSH = 0b01000101
+        POP = 0b01000110
 
         running = True
 
@@ -118,6 +121,18 @@ class CPU:
                 self.reg[opr_a] = product
                 self.pc += 3
 
+            elif instruction == PUSH:
+                data = self.reg[opr_a]
+                self.reg[SP] -= 1 
+                self.ram_write(self.reg[SP], data)
+                self.pc += 2
+
+            elif instruction == POP:
+                value = self.ram_read(self.reg[SP])
+                self.reg[SP] += 1
+                self.reg[opr_a] = value
+                self.pc += 2 
+                
             else:
                 print(f"bad input: {instruction}")
                 running = False
