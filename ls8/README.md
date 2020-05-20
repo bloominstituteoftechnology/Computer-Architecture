@@ -60,6 +60,10 @@ but you'll have to implement those three above instructions first!
 ## Step 0: IMPORTANT: inventory what is here!
 
 * Make a list of files here.
+cpu.py - where cpu is implemented (not yet implemented)
+ls8.py - where emulator will be stored
+asm folder - where programs are stored
+
 * Write a short 3-10-word description of what each file does.
 * Note what has been implemented, and what hasn't.
 * Read this whole file.
