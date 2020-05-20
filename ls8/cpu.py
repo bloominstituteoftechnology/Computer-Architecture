@@ -62,8 +62,11 @@ class CPU:
         self.pc += 1
 
     def pop(self):
+        # copy value from current SP
         val = self.ram[self.reg[self.sp]]
+        # insert value into given register
         self.reg[self.ram[self.pc + 1]] = val
+        # increment SP by 1
         self.reg[self.sp] += 1
         self.pc += 2
 
