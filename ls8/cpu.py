@@ -4,6 +4,12 @@ import sys
 
 
 
+OP1 = 0b00000001
+OP2 = 0b10000010
+OP3 = 0b01000101
+OP4 = 0b10100010
+OP5 = 0b01000111
+OP6 = 0b01000110
 
 class CPU:
     """Main CPU class."""
@@ -14,11 +20,21 @@ class CPU:
         self.pc = 0
         self.sp = 7
         self.branchtable = {}
-        # self.branchtable["POP"] = self.pop
-        self.branchtable["PUSH"] = self.push
-        self.branchtable["LDI"] = self.ldi
-        self.branchtable["MULT"] = self.mult
-        self.branchtable["PRN"] = self.prn 
+        self.branchtable[OP1] = self.halt
+        self.branchtable[OP2] = self.ldi
+        self.branchtable[OP3] = self.push
+        self.branchtable[OP4] = self.mult
+        self.branchtable[OP5] = self.prn 
+        self.branchtable[OP6] = self.pop
+
+    def halt(self):
+        sys.exit()
+
+    def ldi(self):
+        self.pc += 1
+        index = self.ram[self.pc]
+        self.reg[index] = self.ram[self.pc + 1]
+        self.pc += 2
 
     def push(self):
         # Decrement the SP
@@ -29,13 +45,7 @@ class CPU:
         val = self.reg[index]
         # Store value in memory at SP
         self.ram[self.reg[self.sp]] = val
-        self.pc += 1
-
-    def prn(self):
-        self.pc += 1
-        index = self.ram[self.pc]
-        print(self.reg[index])
-        self.pc += 1
+        self.pc += 2
 
     def mult(self):
         self.pc += 1
@@ -45,11 +55,18 @@ class CPU:
         self.reg[self.ram[self.pc - 1]] = operand1 * operand2
         self.pc += 1
 
-    def ldi(self):
+    def prn(self):
         self.pc += 1
         index = self.ram[self.pc]
-        self.reg[index] = self.ram[self.pc + 1]
+        print(self.reg[index])
+        self.pc += 1
+
+    def pop(self):
+        val = self.ram[self.reg[self.sp]]
+        self.reg[self.ram[self.pc + 1]] = val
+        self.reg[self.sp] += 1
         self.pc += 2
+
 
     def ram_read(self, address):
         return self.ram[address]
@@ -108,26 +125,8 @@ class CPU:
         """Run the CPU."""
         halted = False
         while not halted:
-            
-            # halt
-            if self.ram[self.pc] == 0b00000001:
-                halted = True
-
-            # load into reg
-            elif self.ram[self.pc] == 0b10000010:
-                self.branchtable["LDI"]()
-
-            # push
-            elif self.ram[self.pc] == 0b01000101:
-                self.branchtable["PUSH"]()
-                
-            # multiply
-            elif self.ram[self.pc] == 0b10100010:
-                self.branchtable["MULT"]()
-
-            # print
-            elif self.ram[self.pc] == 0b01000111:
-                self.branchtable["PRN"]()
+            process = self.ram[self.pc]
+            self.branchtable[process]()
                 
 
 
