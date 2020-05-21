@@ -204,6 +204,7 @@ class CPU:
                 current_time = datetime.now()
                 time_delta = current_time - start_time
                 if time_delta.total_seconds() >= 1:
+                    start_time = datetime.now()
                     self.reg[6] |= 0b00000001
                 if kbhit():
                     self.ram_write(0xF4, ord(getch().decode('ascii')))
