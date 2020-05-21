@@ -137,8 +137,18 @@ class CPU:
                     register = self.ram_read(self.pc)
                     self.pc += 1
                     print(self.register[register])
+                elif decoded['id'] == 0b0110: # POP
+                    register = self.ram_read(self.pc)
+                    self.pc += 1
+                    self.register[register] = self.ram[self.register[7]]
+                    self.register[7] += 1
+                elif decoded['id'] == 0b0101: # PUSH 
+                    register = self.ram_read(self.pc)
+                    self.pc += 1
+                    self.register[7] -= 1
+                    self.ram[self.register[7]] = self.register[register]
         
-        sys.exit(1)
+        sys.exit(0)
             
 
     def decode(self, instruction):
