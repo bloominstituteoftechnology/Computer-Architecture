@@ -96,7 +96,9 @@ class CPU:
         MUL = 0b10100010
         PUSH = 0b01000101
         POP = 0b01000110
-
+        CALL = 0b01010000
+        RET = 0b00010001
+        ADD = 0b10100000
         running = True
 
         while running:
@@ -121,6 +123,11 @@ class CPU:
                 self.reg[opr_a] = product
                 self.pc += 3
 
+            elif instruction == ADD:
+                added = self.reg[opr_a] + self.reg[opr_b]
+                self.reg[opr_a] = added
+                self.pc += 3 
+
             elif instruction == PUSH:
                 data = self.reg[opr_a]
                 self.reg[SP] -= 1 
@@ -132,8 +139,18 @@ class CPU:
                 self.reg[SP] += 1
                 self.reg[opr_a] = value
                 self.pc += 2 
-                
+
+            elif instruction == CALL:
+                #reg2 = self.ram[opr_a]
+                self.reg[SP] -= 1
+                self.ram[self.reg[SP]] = self.pc + 2
+                self.pc = self.reg[opr_a]
+
+            elif instruction == RET:
+                self.pc = self.ram[self.reg[SP]]
+                self.reg[SP] += 1 
+
             else:
-                print(f"bad input: {instruction}")
+                print(f"bad input: {bin(instruction)}")
                 running = False
                 
