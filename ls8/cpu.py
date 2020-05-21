@@ -2,12 +2,30 @@
 
 import sys
 
+HLT = 0b00000001
+LDI = 0b10000010
+PRN = 0b01000111
+
+
 class CPU:
     """Main CPU class."""
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.register = bytearray(8)
+        self.ram = bytearray(32)
+        
+        self.PC = 0
+        self.IR = 0
+        self.MAR = 0
+        self.MDR = 0
+        self.FL = 0
+        
+    def ram_read(self, address):
+        return self.ram[address]
+    
+    def ram_write(self, value, address):
+        self.ram[address] = value
 
     def load(self):
         """Load a program into memory."""
@@ -61,5 +79,21 @@ class CPU:
         print()
 
     def run(self):
-        """Run the CPU."""
-        pass
+        """Run the CPU."""      
+        self.IR = self.ram_read(self.PC)
+        operand_a = self.ram_read(self.PC + 1)
+        operand_b = self.ram_read(self.PC + 2)
+        
+        while self.IR != HLT:
+            if self.IR == LDI:
+                self.register[operand_a] = operand_b
+                self.PC += 3
+            elif self.IR == PRN:
+                print(self.register[operand_a])
+                self.PC += 2
+            else:
+                raise Exception("Unsupported operation.")
+            
+            self.IR = self.ram_read(self.PC)
+            operand_a = self.ram_read(self.PC + 1)
+            operand_b = self.ram_read(self.PC + 2)
