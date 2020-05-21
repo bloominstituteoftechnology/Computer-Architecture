@@ -2,6 +2,7 @@
 
 import sys
 from datetime import datetime
+from  msvcrt import kbhit, getch
 
 class CPU:
     """Main CPU class."""
@@ -34,6 +35,10 @@ class CPU:
 
         self.pc_override = False
 
+        # Intitialize interrupt 
+
+        self.interrupt = True
+
         # Initialize branch_table
         self.branch_table = {}
         self.branch_table[0b10000010] = self.LDI
@@ -55,11 +60,12 @@ class CPU:
         self.branch_table[0b10000011] = self.LD
         self.branch_table[0b00000000] = self.NOP
         self.branch_table[0b01001000] = self.PRA
+        self.branch_table[0b10000100] = self.ST
 
 
         
         
-        #Initialize alu_table
+        # Initialize alu_table
         self.alu_table = {}
         self.alu_table[0b10100010] = "MUL"
         self.alu_table[0b10100000] = "ADD"
@@ -76,7 +82,10 @@ class CPU:
         self.alu_table[0b10100001] = "SUB"
         self.alu_table[0b10101011] = "XOR"
 
-
+        # Initialize Interupt Table
+        self.interrupt_table = {}
+        self.interrupt_table[0b00000001] = 0xF8
+        self.interrupt_table[0b00000010] = 0xF9
 
 
     def load(self, program):
@@ -176,9 +185,10 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-
+        time_delta = 0
+        start_time = datetime.now()
         while not self.halt: 
-            # self.trace()  
+            #self.trace()  
             # print(datetime.now())   
             self.ir = self.ram_read(self.pc)
             self.operand_a = self.ram_read(self.pc + 1)
@@ -190,6 +200,21 @@ class CPU:
             # Determine if alu operation or branch_table operation
             bit_5 = (self.ir & 2 ** 5) >> 5
 
+            if self.interrupt:
+                current_time = datetime.now()
+                time_delta = current_time - start_time
+                if time_delta.total_seconds() >= 1:
+                    self.reg[6] |= 0b00000001
+                if kbhit():
+                    self.ram_write(0xF4, ord(getch().decode('ascii')))
+                    self.reg[6] |= 0b00000010
+                masked_interrupts = self.reg[5] & self.reg[6]
+                for i in range(8): 
+                    interrupt_happened = ((masked_interrupts >> i) & 1) == 1
+                    if interrupt_happened:
+                        self.ir = 0b01010010
+                        
+                        
             if bit_5:
                 op = self.alu_table[self.ir]
                 self.alu(op, self.operand_a, self.operand_b)
@@ -271,7 +296,22 @@ class CPU:
 
         This will set the _n_th bit in the IS register to the value in the given register.
         """
-        pass
+        self.pc_override = True
+        # Disable further interrupts.
+        self.interrupt = False
+        # Clear the bit in the IS register.
+        im_reg = self.reg[5]
+        self.reg[6] = 0
+        # The PC register is pushed on the stack.
+        self.PUSH(self.pc)
+        # The FL register is pushed on the stack.
+        self.PUSH(self.fl)
+        # Registers R0-R6 are pushed on the stack in that order.
+        for i in range(7):
+            self.PUSH(self.reg[i])
+        # Set the PC is set to the handler address. 
+        self.pc = self.ram_read(self.interrupt_table[im_reg])
+
 
     def IRET(self):
         """
@@ -284,7 +324,17 @@ class CPU:
             The return address is popped off the stack and stored in PC.
             Interrupts are re-enabled
         """
-        pass
+        self.pc_override = True
+        # Registers R6-R0 are popped off the stack in that order.
+        for i in range(7):
+            self.reg[6 - i] = self.POP(register=False)
+        # The FL register is popped off the stack.
+        self.fl = self.POP(register=False)
+        # The return address is popped off the stack and stored in PC.
+        self.pc = self.POP(register=False)
+        # Interrupts are re-enabled
+        self.interrupt = True
+
 
     def JEQ(self):
         """
