@@ -1,9 +1,12 @@
 import sys
+import os
 
 LDI = 0b10000010
 PRN = 0b01000111
 HLT = 0b00000001
 MUL = 0b10100010
+PUSH = 0b01000101
+POP = 0b01000110
 
 class CPU:
     """Main CPU class."""
@@ -14,10 +17,11 @@ class CPU:
         self.pc = 0
         self.reg = [0] * 8
         self.ram = [0] * 256
+        self.SP = 0xf3
 
     def load(self, filename):
         """Load a program into memory."""
-
+        # print("Loading CPU...")
         address = 0
 
         # For now, we've just hardcoded a program:
@@ -58,21 +62,19 @@ class CPU:
             sys.exit(2)
 
 
-    def ram_read(self, mar):
-        mdr = self.ram[mar]
+    def ram_read(self, address):
         # Memory Address Register
         # The MAR contains the address that is being read or written to.
-        return mdr
+        return self.ram[address]
 
-    def ram_write(self, mdr, mar):
+    def ram_write(self, address, value):
         # Memory Data Register
         # The MDR contains the data that was read or the data to write. 
-        self.ram[mar] = mdr
+        self.ram[address] = value
 
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
-
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
         elif op == MUL:
@@ -80,6 +82,7 @@ class CPU:
         #elif op == "SUB": etc
         else:
             raise Exception("Unsupported ALU operation")
+
     def trace(self):
         """
         Handy function to print out the CPU state. You might want to call this
@@ -102,6 +105,8 @@ class CPU:
     def run(self):
         """Run the CPU."""
         while True:
+            # IR = self.ram_read(self.PC)
+            # op = self.getOperation(IR)
             opcode = self.ram[self.pc]
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
@@ -114,6 +119,29 @@ class CPU:
             elif opcode == MUL:
                 self.alu(opcode, operand_a, operand_b)
                 self.pc += 3
+            elif opcode == PUSH:
+                operand_a = self.ram_read(self.pc + 1) #Register whose value is to be pushed on stack
+                self.ram_write(self.SP, self.reg[operand_a])
+                self.pc += 2
+                self.SP -= 1
+            elif opcode == POP:
+                operand_a = self.ram_read(self.pc + 1)  # Register in which stack value is to be popped
+                self.reg[operand_a] = self.ram_read(self.SP+1)
+                self.SP += 1
+                self.pc += 2
+
+            # elif opcode == CALL:
+            #     operand_a = self.ram_read(self.PC + 1) #Register hold PC where to jump
+
+            #     #operand_b = self.ram_read(self.PC + 2) #Next instruction after CALL. this goes to stack
+            #     self.ram_write(self.SP, self.PC + 2)
+            #     self.SP -= 1
+
+            #     self.PC = self.reg[operand_a] #Jump to instruction pointed in CALL
+
+            # elif opcode == "RET":
+            #     self.PC = self.ram_read(self.SP + 1) #Pop from stack the PC
+            #     self.SP += 1
             elif opcode == HLT:
                 sys.exit(0)
             else:
