@@ -4,6 +4,7 @@ import sys
 
 HLT = 0b00000001
 LDI = 0b10000010
+MUL = 0b10100010
 PRN = 0b01000111
 
 
@@ -12,7 +13,7 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        self.register = bytearray(8)
+        self.reg = bytearray(8)
         self.ram = bytearray(32)
         
         self.PC = 0
@@ -32,18 +33,15 @@ class CPU:
 
         address = 0
 
-        # For now, we've just hardcoded a program:
-
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
-
+        if len(sys.argv) != 2:
+            print("Usage: ls8.py <filename>")
+            exit()
+        
+        with open(sys.argv[1]) as file:
+            program = [int(line[:line.find('#')].strip(), 2)
+                       for line in file
+                       if line != '\n' and line[0] != '#']
+            
         for instruction in program:
             self.ram[address] = instruction
             address += 1
@@ -54,6 +52,8 @@ class CPU:
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
+        elif op == "MUL":
+            self.reg[reg_a] = self.reg[reg_a] * self.reg[reg_b]
         #elif op == "SUB": etc
         else:
             raise Exception("Unsupported ALU operation")
@@ -75,7 +75,6 @@ class CPU:
 
         for i in range(8):
             print(" %02X" % self.reg[i], end='')
-
         print()
 
     def run(self):
@@ -86,14 +85,15 @@ class CPU:
         
         while self.IR != HLT:
             if self.IR == LDI:
-                self.register[operand_a] = operand_b
-                self.PC += 3
+                self.reg[operand_a] = operand_b
+            elif self.IR == MUL:
+                self.alu("MUL", operand_a, operand_b)
             elif self.IR == PRN:
-                print(self.register[operand_a])
-                self.PC += 2
+                print(self.reg[operand_a])
             else:
                 raise Exception("Unsupported operation.")
             
+            self.PC += ((self.IR & 0b11000000) >> 6) + 1
             self.IR = self.ram_read(self.PC)
             operand_a = self.ram_read(self.PC + 1)
             operand_b = self.ram_read(self.PC + 2)
