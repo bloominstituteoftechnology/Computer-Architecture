@@ -1,7 +1,7 @@
 """CPU functionality."""
 
 import sys
-import re
+from datetime import datetime
 
 class CPU:
     """Main CPU class."""
@@ -43,6 +43,19 @@ class CPU:
         self.branch_table[0b01000110] = self.POP
         self.branch_table[0b01010000] = self.CALL
         self.branch_table[0b00010001] = self.RET
+        self.branch_table[0b01010010] = self.INT
+        self.branch_table[0b00010011] = self.IRET
+        self.branch_table[0b01010101] = self.JEQ
+        self.branch_table[0b01011010] = self.JGE
+        self.branch_table[0b01010111] = self.JGT
+        self.branch_table[0b01011001] = self.JLE
+        self.branch_table[0b01011000] = self.JLT
+        self.branch_table[0b01010100] = self.JMP
+        self.branch_table[0b01010110] = self.JNE
+        self.branch_table[0b10000011] = self.LD
+        self.branch_table[0b00000000] = self.NOP
+        self.branch_table[0b01001000] = self.PRA
+
 
         
         
@@ -52,6 +65,17 @@ class CPU:
         self.alu_table[0b10100000] = "ADD"
         self.alu_table[0b10101000] = "AND"
         self.alu_table[0b10100111] = "CMP"
+        self.alu_table[0b01100110] = "DEC"
+        self.alu_table[0b10100011] = "DIV"
+        self.alu_table[0b01100101] = "INC"
+        self.alu_table[0b10100100] = "MOD"
+        self.alu_table[0b01101001] = "NOT"
+        self.alu_table[0b10101010] = "OR"
+        self.alu_table[0b10101100] = "SHL"
+        self.alu_table[0b10101101] = "SHR"
+        self.alu_table[0b10100001] = "SUB"
+        self.alu_table[0b10101011] = "XOR"
+
 
 
 
@@ -70,19 +94,44 @@ class CPU:
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
         elif op == "SUB": 
-            self.reg[reg_a] += self.reg[reg_b]
+            self.reg[reg_a] -= self.reg[reg_b]
         elif op == "MUL":
             self.reg[reg_a] *= self.reg[reg_b]
         elif op == "AND":
             self.reg[reg_a] &= self.reg[reg_b]
         elif op == "CMP":
-            if reg_a == reg_b:
+            if self.reg[reg_a] == self.reg[reg_b]:
                 self.fl = 0b00000001
-            elif reg_a > reg_b:
+            elif self.reg[reg_a] > self.reg[reg_b]:
                 self.fl = 0b00000010
             else:
                 self.fl = 0b00000100
-
+        elif op == "DEC":
+            self.reg[reg_a] -= 1
+        elif op == "DIV":
+            if self.reg[reg_b] == 0:
+                print("Error: Cannot divide by zero!")
+                self.halt = True
+            else:
+                self.reg[reg_a] /= self.reg[reg_b]
+        elif op == "INC":
+            self.reg[reg_a] += 1
+        elif op == "MOD":
+            if self.reg[reg_b] == 0:
+                print("Error: Cannot divide by zero!")
+                self.halt = True
+            else:
+                self.reg[reg_a] %= self.reg[reg_b]
+        elif op == "NOT":
+            self.reg[reg_a] = ~self.reg[reg_a] 
+        elif op == "OR":
+            self.reg[reg_a] |= self.reg[reg_b]
+        elif op == "SHL":
+            self.reg[reg_a] <<= self.reg[reg_b]
+        elif op == "SHR":
+            self.reg[reg_a] >>= self.reg[reg_b]
+        elif op == "XOR":
+            self.reg[reg_a] ^= self.reg[reg_b]    
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -128,11 +177,12 @@ class CPU:
     def run(self):
         """Run the CPU."""
 
-        while not self.halt:         
+        while not self.halt: 
+            # self.trace()  
+            # print(datetime.now())   
             self.ir = self.ram_read(self.pc)
             self.operand_a = self.ram_read(self.pc + 1)
             self.operand_b = self.ram_read(self.pc + 2) 
-            self.trace()
 
             # reset pc_override to check if PC needs to be adjusted 
             self.pc_override = False
@@ -214,3 +264,128 @@ class CPU:
         Pop the value from the top of the stack and store it in the PC.
         """
         self.pc = self.POP(register=False)
+
+    def INT(self):
+        """
+        Issue the interrupt number stored in the given register.
+
+        This will set the _n_th bit in the IS register to the value in the given register.
+        """
+        pass
+
+    def IRET(self):
+        """
+        Return from an interrupt handler.
+
+        The following steps are executed:
+
+            Registers R6-R0 are popped off the stack in that order.
+            The FL register is popped off the stack.
+            The return address is popped off the stack and stored in PC.
+            Interrupts are re-enabled
+        """
+        pass
+
+    def JEQ(self):
+        """
+        If equal flag is set (true), jump to the address stored in the given register.
+        """
+        bit_0 = (self.fl & 2 ** 0) >> 0
+        if bit_0:
+            self.pc_override = True
+            self.pc = self.reg[self.operand_a]
+        
+    def JGE(self):
+        """
+        If greater-than flag or equal flag is set (true), 
+        jump to the address stored in the given register.
+        """
+        bit_0 = (self.fl & 2 ** 0) >> 0
+        bit_1 = (self.fl & 2 ** 1) >> 1
+
+        if bit_0 or bit_1:
+           self.pc_override = True
+           self.pc = self.reg[self.operand_a]
+
+    def JGT(self):
+        """
+        If greater-than flag is set (true), jump to the address stored in the given register.
+        """ 
+        bit_1 = (self.fl & 2 ** 1) >> 1
+
+        if bit_1:
+           self.pc_override = True
+           self.pc = self.reg[self.operand_a]
+
+    def JLE(self):
+        """
+        If less-than flag or equal flag is set (true), jump to the address stored in the given register.
+        """
+        bit_0 = (self.fl & 2 ** 0) >> 0
+        bit_2 = (self.fl & 2 ** 2) >> 2
+
+        if bit_0 or bit_2:
+           self.pc_override = True
+           self.pc = self.reg[self.operand_a]
+    
+    def JLT(self):
+        """
+        If less-than flag is set (true), jump to the address stored in the given register.
+        """
+        bit_2 = (self.fl & 2 ** 2) >> 2
+
+        if bit_2:
+           self.pc_override = True
+           self.pc = self.reg[self.operand_a]
+
+    def JMP(self):
+        """
+        Jump to the address stored in the given register.
+        """
+        self.pc_override = True
+        self.pc = self.reg[self.operand_a]
+
+    def JNE(self):
+        """
+        If E flag is clear (false, 0), jump to the address stored in the given register.
+        """
+        bit_0 = (self.fl & 2 ** 0) >> 0
+        
+        if not bit_0:
+            self.pc_override = True
+            self.pc = self.reg[self.operand_a]
+
+
+    def LD(self):
+        """
+        Loads registerA with the value at the memory address stored in registerB.
+
+        This opcode reads from memory.
+        """
+        self.reg[self.operand_a] = self.ram_read(self.reg[self.operand_b])
+
+    def NOP(self):
+        """
+        No operation. Do nothing for this instruction.
+        """
+        pass
+
+    def PRA(self):
+        """
+        Print alpha character value stored in the given register.
+        """
+        print(chr(self.reg[self.operand_a]))
+
+    def ST(self):
+        """
+        Store value in registerB in the address stored in registerA.
+        This opcode writes to memory.
+        """
+        self.ram_write(
+            self.reg[self.operand_a],
+            self.reg[self.operand_b]
+            )
+
+
+
+
