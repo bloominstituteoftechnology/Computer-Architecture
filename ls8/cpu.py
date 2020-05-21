@@ -10,6 +10,9 @@ OP3 = 0b01000101
 OP4 = 0b10100010
 OP5 = 0b01000111
 OP6 = 0b01000110
+OP7 = 0b01010000
+OP8 = 0b00010001
+OP9 = 0b10100000
 
 class CPU:
     """Main CPU class."""
@@ -26,6 +29,9 @@ class CPU:
         self.branchtable[OP4] = self.mult
         self.branchtable[OP5] = self.prn 
         self.branchtable[OP6] = self.pop
+        self.branchtable[OP7] = self.call
+        self.branchtable[OP8] = self.ret
+        self.branchtable[OP9] = self.add
 
     def halt(self):
         sys.exit()
@@ -69,6 +75,30 @@ class CPU:
         # increment SP by 1
         self.reg[self.sp] += 1
         self.pc += 2
+
+    def call(self):
+        # Push the return address on the stack
+        return_address = self.pc + 2
+        self.reg[self.sp] -= 1
+        self.ram[self.reg[self.sp]] = return_address
+
+        # Set the PC to the address of the function
+        self.pc = self.reg[self.ram[self.pc + 1]]
+
+    def ret(self):
+        # Pop the return address off the stack
+        return_addr = self.ram[self.reg[self.sp]] 
+        self.reg[self.sp] += 1
+        # Set the PC to the return address
+        self.pc = return_addr
+
+    def add(self):
+        # get our values
+        operand1 = self.reg[self.ram[self.pc + 1]]
+        operand2 = self.reg[self.ram[self.pc + 2]]
+        # set first register value to sum
+        self.reg[self.ram[self.pc + 1]] = operand1 + operand2
+        self.pc += 3
 
 
     def ram_read(self, address):
