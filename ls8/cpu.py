@@ -130,18 +130,6 @@ class CPU:
                 self.SP += 1
                 self.pc += 2
 
-            # elif opcode == CALL:
-            #     operand_a = self.ram_read(self.PC + 1) #Register hold PC where to jump
-
-            #     #operand_b = self.ram_read(self.PC + 2) #Next instruction after CALL. this goes to stack
-            #     self.ram_write(self.SP, self.PC + 2)
-            #     self.SP -= 1
-
-            #     self.PC = self.reg[operand_a] #Jump to instruction pointed in CALL
-
-            # elif opcode == "RET":
-            #     self.PC = self.ram_read(self.SP + 1) #Pop from stack the PC
-            #     self.SP += 1
             elif opcode == HLT:
                 sys.exit(0)
             else:
