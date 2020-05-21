@@ -23,16 +23,16 @@
 - [x] Un-hardcode the machine code
 - [x] Implement the `load()` function to load an `.ls8` file given the filename
       passed in as an argument
-- [ ] Implement a Multiply instruction (run `mult.ls8`)
+- [x] Implement a Multiply instruction (run `mult.ls8`)
 
 ### Day 3: Stack
 
-- [ ] Implement the System Stack and be able to run the `stack.ls8` program
+- [x] Implement the System Stack and be able to run the `stack.ls8` program
 
 ### Day 4: Get `call.ls8` running
 
-- [ ] Implement the CALL and RET instructions
-- [ ] Implement Subroutine Calls and be able to run the `call.ls8` program
+- [x] Implement the CALL and RET instructions
+- [x] Implement Subroutine Calls and be able to run the `call.ls8` program
 
 ### Stretch
 
