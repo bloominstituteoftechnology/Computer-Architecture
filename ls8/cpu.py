@@ -129,7 +129,7 @@ class CPU:
 
     def jne(self):
         # if not equal flag, jump to given reg
-        if self.fl_reg == 0b00000000:
+        if self.fl_reg != 0b00000001:
             self.pc = self.reg[self.ram[self.pc + 1]]
         else: self.pc += 2
 
@@ -162,8 +162,6 @@ class CPU:
                 v = int(string_val, 2)
                 self.ram[address] = v
                 address += 1
-
-        print(self.ram)
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -198,7 +196,6 @@ class CPU:
         """Run the CPU."""
         halted = False
         while not halted:
-            print(self.reg)
             process = self.ram[self.pc]
             self.branchtable[process]()
                 
