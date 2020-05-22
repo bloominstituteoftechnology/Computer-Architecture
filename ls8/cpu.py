@@ -143,7 +143,7 @@ class CPU:
             
             current_instruct = self.ram_read(self.pc)
             decoded = self.decode(current_instruct)
-            print((self.pc, decoded))
+            #print((self.pc, decoded))
 
             # If the instruction uses the ALU
             if decoded['is_alu']:
