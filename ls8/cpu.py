@@ -24,8 +24,9 @@ class CPU:
         self.pc = 0
         self.sp = 7
         self.value = 0
-        #self.fl = 6
-        self.E = 0
+        # self.E = 0
+        # self.G = 0
+        # self.L = 0
         self.branch_table = {}
         self.branch_table[HLT] = self.handle_hlt
         self.branch_table[LDI] = self.handle_ldi
@@ -40,6 +41,7 @@ class CPU:
         self.branch_table[CMP] = self.handle_cmp
         self.branch_table[JMP] = self.handle_jmp
         self.branch_table[JEQ] = self.handle_jeq
+        self.branch_table[JNE] = self.handle_jne
     def handle_st(self, pc):
         reg_num = self.ram[self.pc + 1]
         value = self.ram[self.pc + 2]
@@ -49,14 +51,12 @@ class CPU:
         self.pc += 3
 
     def handle_cmp(self, reg_a, reg_b):
-        if reg_a == reg_a:
-            self.reg[self.E] = 1
-        elif reg_a > reg_b:
-            self.reg[self.E] = 1
-        elif reg_a < reg_b:
-            self.reg[self.E] = 1
-        else:
-            self.reg[self.E] = 0
+        reg_a = self.ram_read(self.pc + 1)
+        reg_b = self.ram_read(self.pc + 2)
+
+        self.alu("CMP", reg_a, reg_b)
+        self.pc += 3
+
         
     def ram_read(self, MAR):
         return self.ram[MAR]
@@ -87,13 +87,13 @@ class CPU:
             else:
                 self.E = 0
             if self.reg[reg_a] < self.reg[reg_b]:
-                self.E = 1
+                self.L = 1
             else:
-                self.E = 0
+                self.L = 0
             if self.reg[reg_a] > self.reg[reg_b]:
-                self.E = 1
+                self.G = 1
             else:
-                self.E = 0
+                self.G = 0
 
         else:
             raise Exception("Unsupported ALU operation")
@@ -115,15 +115,22 @@ class CPU:
         print()
 
     def handle_jmp(self, reg_a, reg_b):
-        self.pc = self.reg[reg_a]
+        val = self.ram_read(self.pc + 1)
+        self.pc = self.reg[val]
         
-    def handle_jeq(self, reg_a):
-        if self.reg[self.E] == 1:
-            self.handle_jmp(reg_a, 0)
+    def handle_jeq(self, reg_a, reg_b):
+        val = self.ram_read(self.pc + 1)
+        if self.E == 1:
+            self.pc = self.reg[val]
+        else:
+            self.pc += 2
 
-    def handle_jne(self, reg_a):
-        if self.reg[self.E] == 0:
-            self.handle_jmp(reg_a, 0)
+    def handle_jne(self, reg_a, reg_b):
+        val = self.ram_read(self.pc + 1)
+        if self.E == 0:
+            self.pc = self.reg[val]
+        else:
+            self.pc += 2
 
     def handle_push(self, reg_a, reg_b):
         self.reg[self.sp] -= 1
