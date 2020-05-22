@@ -2,12 +2,15 @@
 
 import sys
 
+ADD = 0b10100000
+CALL = 0b01010000
 HLT = 0b00000001
 LDI = 0b10000010
 MUL = 0b10100010
 POP = 0b01000110
 PRN = 0b01000111
 PUSH = 0b01000101
+RET = 0b00010001
 
 SP = 7 # register number for stack pointer
 
@@ -17,16 +20,19 @@ class CPU:
     def __init__(self):
         """Construct a new CPU."""
 
-        self.branch = {LDI: self.ldi,
+        self.branch = {ADD: self.add,
+                       CALL: self.call,
+                       LDI: self.ldi,
                        MUL: self.mul,
                        POP: self.pop,
                        PRN: self.prn,
                        PUSH: self.push,
+                       RET: self.ret,
                        }
 
         self.reg = bytearray(8)
         self.ram = bytearray(256)
-        
+
         self.reg[SP] = 0xF4
 
         self.PC = 0
@@ -34,6 +40,14 @@ class CPU:
         self.MAR = 0
         self.MDR = 0
         self.FL = 0
+
+    def add(self, reg_a_num, reg_b_num):
+        self.alu("ADD", reg_a_num, reg_b_num)
+
+    def call(self, reg_num):
+        self.ldi(4, self.PC + 2)
+        self.push(4)
+        self.PC = self.reg[reg_num]
 
     def ldi(self, reg_num, value):
         self.reg[reg_num] = value
@@ -47,10 +61,14 @@ class CPU:
 
     def prn(self, reg_num):
         print(self.reg[reg_num])
-        
+
     def push(self, reg_num):
         self.reg[SP] -= 1
         self.ram_write(self.reg[reg_num], self.reg[SP])
+
+    def ret(self):
+        self.pop(4)
+        self.PC = self.reg[4]
 
     def ram_read(self, address):
         return self.ram[address]
@@ -115,6 +133,7 @@ class CPU:
 
         while self.IR != HLT:
             num_args = (self.IR & 0b11000000) >> 6
+            pc_set = (self.IR & 0b00010000) >> 4
             try:
                 if num_args == 0:
                     self.branch[self.IR]()
@@ -125,7 +144,9 @@ class CPU:
             except KeyError:
                 raise Exception("Unsupported operation.")
 
-            self.PC += num_args + 1
+            if pc_set == 0:
+                self.PC += num_args + 1
+
             self.IR = self.ram_read(self.PC)
             operand_a = self.ram_read(self.PC + 1)
             operand_b = self.ram_read(self.PC + 2)
