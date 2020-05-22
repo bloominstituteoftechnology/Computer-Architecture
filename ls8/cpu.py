@@ -8,12 +8,12 @@ class CPU:
     def __init__(self):
         """Construct a new CPU."""
         # program counter
-        self.pc = 0
+        self.pc = 0 # program counter
         # 8 new registers
-        self.reg = [0] * 8
+        self.reg = [0] * 8 # register
         # memory storage for ram
         self.ram = [0] * 256
-        self.sp = 0xf3
+        self.sp = 0xf3 # stack pointer - points at the value at the top of the stack 
         """L Less-than: during a CMP, set to 1 if registerA is less than registerB, zero otherwise.
         G Greater-than: during a CMP, set to 1 if registerA is greater than registerB, zero otherwise.
         E Equal: during a CMP, set to 1 if registerA is equal to registerB, zero otherwise."""
@@ -46,8 +46,8 @@ class CPU:
                 address += 1
 
 
-        # for instruction in program:
-        #     self.ram[address] = instruction
+        # for instruction_register in program:
+        #     self.ram[address] = instruction_register
         #     address += 1
 
 
@@ -92,12 +92,12 @@ class CPU:
     def run(self):
         """Run the CPU.
         read the memory address that's stored in register `PC`, and store
-        that result in `IR`, the _Instruction Register_
+        that result in `IR`, the _instruction_register Register_
         
         read the bytes at `PC+1` and `PC+2` from RAM into variables `operand_a` 
-        and `operand_b` in case the instruction needs them.
+        and `operand_b` in case the instruction_register needs them.
         
-        the `PC` needs to be updated to point to the next instruction 
+        the `PC` needs to be updated to point to the next instruction_register 
         for the next iteration of the loop in `run()`"""
 
         # self.branchtable = {}
@@ -112,7 +112,7 @@ class CPU:
         # operand_b = self.ram_read(self.pc+2)
         # self.branchtable[self.ir]('t')
 
-        # _Instruction Register_ contains a copy of the currently executing instruction
+        # _instruction_register Register_ contains a copy of the currently executing instruction_register
 
         HLT = 0b00000001
         LDI = 0b10000010
@@ -120,44 +120,53 @@ class CPU:
         MUL = 0b10100010
         POP = 0b01000110
         PUSH = 0b01000101
-        RET = 
-        CALL = 
+        RET = 0b00010001
+        CALL = 0b01010000
+        ADD = 0b10100000
 
         #read the memory address that's stored in register `PC`, and store that result in `IR`
         while True:
-            instruction = self.ram_read(self.pc)
+            instruction_register = self.ram_read(self.pc)
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
-            if instruction == HLT:
+            if instruction_register == HLT:
+                # Halt the CPU (and exit the emulator).
                 break
-            elif instruction == LDI:
+            elif instruction_register == LDI:
+                # Set the value of a register to an integer.
                 self.reg[operand_a] = operand_b
                 # print('LDI pc + 3')
                 self.pc = self.pc + 3
-            elif instruction == PRN:
+            elif instruction_register == PRN:
                 print(self.reg[operand_a])
                 # print('PRN pc + 2')
                 self.pc = self.pc + 2
-            elif instruction == MUL:
+            elif instruction_register == MUL:
                 print(self.reg[operand_a] * self.reg[operand_b])
                 # print('MUL pc + 3')
                 self.pc = self.pc + 3
-            elif instruction == POP:
-                operand_a = self.ram_read(self.pc+1)
+            elif instruction_register == POP:
                 self.reg[operand_a] = self.ram_read(self.sp+1)
                 self.sp += 1
                 self.pc += 2
-            elif instruction == PUSH:
-                operand_a = self.ram_read(self.pc+1)
+            elif instruction_register == PUSH:
                 self.ram_write(self.sp, self.reg[operand_a])
                 self.pc += 2
                 self.sp -= 1
-
-            elif instruction == ADD:
+            elif instruction_register == ADD:
                 self.alu("ADD", operand_a, operand_b)
                 self.pc += 3
+            elif instruction_register == CALL:
+                self.sp -= 1
+                self.ram_write(self.sp, self.pc+2)
+                self.pc = self.reg[operand_a]
+            elif instruction_register == RET:
+                # Return from subroutine. Pop the value from the top of the stack and store it in the PC
+                # next instruction to add to stack, 
+                self.pc = self.ram_read(self.sp)
+                self.sp += 1
             else:
-                print(f'instruction{hex(instruction)} not recognized')
+                print(f'instruction_register{hex(instruction_register)} not recognized')
                 break
             
 
