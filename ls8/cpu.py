@@ -27,7 +27,8 @@ class CPU:
             0b1010:self.OR,
             0b1011:self.XOR,
             0b1100:self.SHL,
-            0b1101:self.SHR
+            0b1101:self.SHR,
+            0b1111:self.ADDI
         }
 
         self.pc_mutators = {
@@ -107,10 +108,42 @@ class CPU:
     def run(self):
         """Run the CPU."""
         self.halted = False
+        self.interrupted = False
 
         while not self.halted:
+            if not self.interrupted:
+                maskedInterrupts = self.register[6] & self.register[5]
+                counter = 0
+                while maskedInterrupts != 0b0:
+                    if maskedInterrupts & 0b1 == 1:
+                        print('interrupted')
+                        self.interrupted == True
+                        break
+                    else:
+                        counter += 1
+                        maskedInterrupts = maskedInterrupts >> 1
+            
+                if self.interrupted:
+                    # Clear the bit in the IS register
+                    self.register[6] = 0b0
+                    # Push 'PC' register onto stack
+                    self.register[7] -= 1
+                    self.ram[self.register[7]] = self.pc
+                    # Push FL register onto stack
+                    self.register[7] -= 1
+                    self.ram[self.register[7]] = self.fl
+                    # Push Registers R0-R6 onto stack
+                    for x in self.register[:7]:
+                        self.register[7] -= 1
+                        self.ram[self.register[7]] = x
+                    # The address of the appropriate handler is looked
+                    # up in the interrupt vector table
+                    self.pc = self.ram[0xff-(8-counter)]
+
+            
             current_instruct = self.ram_read(self.pc)
             decoded = self.decode(current_instruct)
+            print((self.pc, decoded))
 
             # If the instruction uses the ALU
             if decoded['is_alu']:
@@ -135,6 +168,7 @@ class CPU:
                     func(reg_a, reg_b)
         
         sys.exit(0)
+
     # ALU Operations
     def ADD(self, reg_a, reg_b):
         self.register[reg_a] += self.register[reg_b]
@@ -193,6 +227,9 @@ class CPU:
     def SHR(self, reg_a, reg_b):
         self.register[reg_a] >>= self.register[reg_b]
 
+    def ADDI(self, reg_a, val):
+        self.register[reg_a] += val
+
     # PC Mutators
     def CALL(self, reg):
         self.register[7] -= 1
@@ -204,13 +241,21 @@ class CPU:
         self.register[7] += 1
 
     def INT(self, reg_a):
-        maskedInterrupts = self.register[5] & self.register[6]
-        found_set = False
-        while not found_set:
-            if bool(maskedInterrupts & 0b1):
+        self.register[6] = self.register[reg_a]
 
     def IRET(self):
-        pass
+        # Registers R6-R0 are popped off the stack in that order
+        for x in range(6,-1,-1):
+            self.register[x] = self.ram[self.register[7]]
+            self.register[7] += 1
+        # The FL register is popped off the stack
+        self.fl = self.ram[self.register[7]]
+        self.register[7] += 1
+        # The Return address is popped off the stack and stored in PC
+        self.pc = self.ram[self.register[7]]
+        self.register[7] += 1
+        # Interrupts are re-enabled
+        self.interrupted = False
 
     def JMP(self, reg_a):
         self.pc = self.register[reg_a]
