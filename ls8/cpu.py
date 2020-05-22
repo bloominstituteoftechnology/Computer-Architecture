@@ -5,10 +5,11 @@ import sys
 HLT = 0b00000001
 LDI = 0b10000010
 MUL = 0b10100010
+POP = 0b01000110
 PRN = 0b01000111
+PUSH = 0b01000101
 
-
-
+SP = 7 # register number for stack pointer
 
 class CPU:
     """Main CPU class."""
@@ -18,11 +19,15 @@ class CPU:
 
         self.branch = {LDI: self.ldi,
                        MUL: self.mul,
+                       POP: self.pop,
                        PRN: self.prn,
+                       PUSH: self.push,
                        }
 
         self.reg = bytearray(8)
-        self.ram = bytearray(32)
+        self.ram = bytearray(256)
+        
+        self.reg[SP] = 0xF4
 
         self.PC = 0
         self.IR = 0
@@ -36,8 +41,16 @@ class CPU:
     def mul(self, reg_a_num, reg_b_num):
         self.alu("MUL", reg_a_num, reg_b_num)
 
+    def pop(self, reg_num):
+        self.reg[reg_num] = self.ram_read(self.reg[SP])
+        self.reg[SP] += 1
+
     def prn(self, reg_num):
         print(self.reg[reg_num])
+        
+    def push(self, reg_num):
+        self.reg[SP] -= 1
+        self.ram_write(self.reg[reg_num], self.reg[SP])
 
     def ram_read(self, address):
         return self.ram[address]
