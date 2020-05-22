@@ -8,23 +8,40 @@ MUL = 0b10100010
 PRN = 0b01000111
 
 
+
+
 class CPU:
     """Main CPU class."""
 
     def __init__(self):
         """Construct a new CPU."""
+
+        self.branch = {LDI: self.ldi,
+                       MUL: self.mul,
+                       PRN: self.prn,
+                       }
+
         self.reg = bytearray(8)
         self.ram = bytearray(32)
-        
+
         self.PC = 0
         self.IR = 0
         self.MAR = 0
         self.MDR = 0
         self.FL = 0
-        
+
+    def ldi(self, reg_num, value):
+        self.reg[reg_num] = value
+
+    def mul(self, reg_a_num, reg_b_num):
+        self.alu("MUL", reg_a_num, reg_b_num)
+
+    def prn(self, reg_num):
+        print(self.reg[reg_num])
+
     def ram_read(self, address):
         return self.ram[address]
-    
+
     def ram_write(self, value, address):
         self.ram[address] = value
 
@@ -35,13 +52,13 @@ class CPU:
 
         if len(sys.argv) != 2:
             print("Usage: ls8.py <filename>")
-            exit()
-        
+            sys.exit()
+
         with open(sys.argv[1]) as file:
             program = [int(line[:line.find('#')].strip(), 2)
                        for line in file
                        if line != '\n' and line[0] != '#']
-            
+
         for instruction in program:
             self.ram[address] = instruction
             address += 1
@@ -65,12 +82,12 @@ class CPU:
         """
 
         print(f"TRACE: %02X | %02X %02X %02X |" % (
-            self.pc,
+            self.PC,
             #self.fl,
             #self.ie,
-            self.ram_read(self.pc),
-            self.ram_read(self.pc + 1),
-            self.ram_read(self.pc + 2)
+            self.ram_read(self.PC),
+            self.ram_read(self.PC + 1),
+            self.ram_read(self.PC + 2)
         ), end='')
 
         for i in range(8):
@@ -78,22 +95,24 @@ class CPU:
         print()
 
     def run(self):
-        """Run the CPU."""      
+        """Run the CPU."""
         self.IR = self.ram_read(self.PC)
         operand_a = self.ram_read(self.PC + 1)
         operand_b = self.ram_read(self.PC + 2)
-        
+
         while self.IR != HLT:
-            if self.IR == LDI:
-                self.reg[operand_a] = operand_b
-            elif self.IR == MUL:
-                self.alu("MUL", operand_a, operand_b)
-            elif self.IR == PRN:
-                print(self.reg[operand_a])
-            else:
+            num_args = (self.IR & 0b11000000) >> 6
+            try:
+                if num_args == 0:
+                    self.branch[self.IR]()
+                elif num_args == 1:
+                    self.branch[self.IR](operand_a)
+                else:
+                    self.branch[self.IR](operand_a, operand_b)
+            except KeyError:
                 raise Exception("Unsupported operation.")
-            
-            self.PC += ((self.IR & 0b11000000) >> 6) + 1
+
+            self.PC += num_args + 1
             self.IR = self.ram_read(self.PC)
             operand_a = self.ram_read(self.PC + 1)
             operand_b = self.ram_read(self.PC + 2)
