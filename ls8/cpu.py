@@ -13,7 +13,10 @@ OP6 = 0b01000110
 OP7 = 0b01010000
 OP8 = 0b00010001
 OP9 = 0b10100000
-
+OP10 = 0b10100111
+OP11 = 0b01010100
+OP12 = 0b01010110
+OP13 = 0b01010101
 class CPU:
     """Main CPU class."""
     def __init__(self):
@@ -22,6 +25,7 @@ class CPU:
         self.reg = [0, 0, 0, 0, 0, 0, 0, 0xF4]
         self.pc = 0
         self.sp = 7
+        self.fl_reg = 0b00000000
         self.branchtable = {}
         self.branchtable[OP1] = self.halt
         self.branchtable[OP2] = self.ldi
@@ -32,6 +36,11 @@ class CPU:
         self.branchtable[OP7] = self.call
         self.branchtable[OP8] = self.ret
         self.branchtable[OP9] = self.add
+        self.branchtable[OP10] = self.compare
+        self.branchtable[OP11] = self.jmp
+        self.branchtable[OP12] = self.jne
+        self.branchtable[OP13] = self.jeq
+    
 
     def halt(self):
         sys.exit()
@@ -100,6 +109,35 @@ class CPU:
         self.reg[self.ram[self.pc + 1]] = operand1 + operand2
         self.pc += 3
 
+    def compare(self):
+        if self.reg[self.ram[self.pc + 1]] == self.reg[self.ram[self.pc + 2]]:
+            # set equal flag to 1
+            self.fl_reg = 0b00000001
+            self.pc += 3
+        elif self.reg[self.ram[self.pc + 1]] < self.reg[self.ram[self.pc + 2]]:
+            # set less than flag to 1
+            self.fl_reg = 0b00000100
+            self.pc += 3
+        elif self.reg[self.ram[self.pc + 1]] > self.reg[self.ram[self.pc + 2]]:
+            # set greater than flag to 1
+            self.fl_reg = 0b00000010
+            self.pc += 3
+
+    def jmp(self):
+        # set pc to address in given reg
+        self.pc = self.reg[self.ram[self.pc + 1]]
+
+    def jne(self):
+        # if not equal flag, jump to given reg
+        if self.fl_reg == 0b00000000:
+            self.pc = self.reg[self.ram[self.pc + 1]]
+        else: self.pc += 2
+
+    def jeq(self):
+        # if equal flag, jump to given reg
+        if self.fl_reg == 0b00000001:
+            self.pc = self.reg[self.ram[self.pc + 1]]
+        else: self.pc += 2
 
     def ram_read(self, address):
         return self.ram[address]
@@ -124,6 +162,8 @@ class CPU:
                 v = int(string_val, 2)
                 self.ram[address] = v
                 address += 1
+
+        print(self.ram)
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -158,6 +198,7 @@ class CPU:
         """Run the CPU."""
         halted = False
         while not halted:
+            print(self.reg)
             process = self.ram[self.pc]
             self.branchtable[process]()
                 
