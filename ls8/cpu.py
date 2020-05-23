@@ -164,11 +164,11 @@ class CPU:
     def load(self):
         """Load a program into memory."""
 
-        if len(sys.argv) != 2:
+        if len(sys.argv) != 2:  # if the number of arguments is not 2
             print("ERROR: Must have file name")
             sys.exit(1)
 
-        filename = sys.argv[1]
+        filename = sys.argv[1]  # the filenam is the second argument
 
         try:
             address = 0
@@ -186,7 +186,7 @@ class CPU:
                     if value == "":
                         continue
 
-                    num = int(value, 2)
+                    num = int(value, 2) # stores the value as a binary to num
                     self.ram[address] = num
                     address += 1
 
@@ -257,6 +257,7 @@ class CPU:
             # This can just be a local variable
             IR = self.ram_read(self.PC)
             # print(IR)
+    
 
             # using ram_read(), read the bytes at PC+1 and PC+2 from RAM into variables
             self.operand_a = self.ram_read(self.PC + 1)
