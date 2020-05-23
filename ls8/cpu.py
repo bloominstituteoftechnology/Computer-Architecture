@@ -4,9 +4,9 @@ import sys
 
 # Operation Tables
 binary_op = {
-    0b00000001: 'HLT',
-    0b10000010: 'LDI',
-    0b01000111: 'PRN',
+    0b00000001: 'HLT',  # 1
+    0b10000010: 'LDI',  # 130
+    0b01000111: 'PRN',  # 71
     0b01000101: 'PUSH',
     0b01000110: 'POP',
     0b01010000: 'CALL',
@@ -110,11 +110,11 @@ class CPU:
         sys.exit()
 
     def LOAD(self):
-        """Load value to register"""
+        """Load value of operand_b to register"""
         self.reg[self.operand_a] = self.operand_b
 
     def PRINT(self):
-        """Print the value in a register"""
+        """Print the value in register"""
         print(self.reg[self.operand_a])
 
     def PUSH(self):
@@ -146,16 +146,19 @@ class CPU:
         # increment SP
         self.reg[SP] += 1
 
+    
+    # Implement RAM read function
     def ram_read(self, address):
         """Accepts an address to read and returns the value stored there"""
-        self.MAR = address
-        self.MDR = self.ram[address]
+        self.MAR = address              # MAR holds the memory address we're reading
+        self.MDR = self.ram[address]    # MDR holds the value that is read from the value in RAM
         return self.ram[address]
 
+    # Implement RAM write function
     def ram_write(self, value, address):
         """Accepts a value to write, and the address to write it to"""
-        self.MAR = address
-        self.MDR = value
+        self.MAR = address              # MAR holds the memory address we're writing
+        self.MDR = value                # MDR holds the value passed in
         self.ram[address] = value
 
     def load(self):
