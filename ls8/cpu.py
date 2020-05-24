@@ -10,9 +10,18 @@ DEC = 0b01100110
 DIV = 0b10100011
 HLT = 0b00000001
 INC = 0b01100101
+JEQ = 0b01010101
+JGE = 0b01011010
+JGT = 0b01010111
+JLE = 0b01011001
+JLT = 0b01011000
+JMP = 0b01010100
+JNE = 0b01010110
+LD = 0b10000011
 LDI = 0b10000010
 MOD = 0b10100100
 MUL = 0b10100010
+NOP = 0b00000000
 NOT = 0b01101001
 OR = 0b10101010
 POP = 0b01000110
@@ -41,9 +50,18 @@ class CPU:
                        DEC: self.dec,
                        DIV: self.div,
                        INC: self.inc,
+                       JEQ: self.jeq,
+                       JGE: self.jge,
+                       JGT: self.jgt,
+                       JLE: self.jle,
+                       JLT: self.jlt,
+                       JMP: self.jmp,
+                       JNE: self.jne,
+                       LD: self.ld,
                        LDI: self.ldi,
                        MOD: self.mod,
                        MUL: self.mul,
+                       NOP: self.nop,
                        NOT: self.nnot,
                        OR: self.oor,
                        POP: self.pop,
@@ -134,6 +152,81 @@ class CPU:
         Increment (add 1 to) the value in the given register.
         """
         self.alu('INC', reg_num)
+        
+    def jeq(self, reg_num):
+        """
+        If equal flag is set (true), jump to the address stored in the given
+        register.
+        """
+        if self.FL & 0b11111111 == 1:
+            self.PC = self.reg[reg_num]
+        else:
+            self.PC += 2
+        
+    def jge(self, reg_num):
+        """
+        If greater-than flag or equal flag is set (true), jump to the address
+        stored in the given register.
+        """
+        if self.FL & 0b11111111 in (1, 2, 3):
+            self.PC = self.reg[reg_num]
+        else:
+            self.PC += 2
+            
+    def jgt(self, reg_num):
+        """
+        If greater-than flag is set (true), jump to the address stored in the
+        given register.
+        """
+        if self.FL & 0b11111111 == 2:
+            self.PC = self.reg[reg_num]
+        else:
+            self.PC += 2
+
+    def jle(self, reg_num):
+        """
+        If less than flag or equal flag is set (true), jump to the address
+        stored in the given register.
+        """
+        if self.FL & 0b11111111 in (1, 4, 5):
+            self.PC = self.reg[reg_num]
+        else:
+            self.PC += 2
+
+    def jlt(self, reg_num):
+        """
+        If less than flag is set (true), jump to the address stored in the
+        given register.
+        """
+        if self.FL & 0b11111111 == 4:
+            self.PC = self.reg[reg_num]
+        else:
+            self.PC += 2
+
+    def jmp(self, reg_num):
+        """
+        Jump to the address stored in the given register.
+
+        Set the PC to the address stored in the given register.
+        """
+        self.PC = self.reg[reg_num]
+  
+    def jne(self, reg_num):
+        """
+        If E flag is clear (false, 0), jump to the address stored in the given
+        register.
+        """
+        if self.FL & 0b11111111 != 1:
+            self.PC = self.reg[reg_num]
+        else:
+            self.PC += 2
+
+    def ld(self, reg_a, reg_b):
+        """
+        Loads registerA with the value at the memory address stored in
+        registerB.
+        """
+        self.reg[reg_a] = self.ram[self.reg[reg_b]]
 
     def ldi(self, reg_num, value):
         """
@@ -157,6 +250,9 @@ class CPU:
         registerA.
         """
         self.alu('MUL', reg_a, reg_b)
+
+    def nop(self):
+        pass
 
     def nnot(self, reg_num):
         """
