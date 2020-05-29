@@ -402,9 +402,15 @@ class CPU:
         self.alu('XOR', reg_a, reg_b)
 
     def ram_read(self, address):
+        """
+        Read and return the value at the given RAM address.
+        """
         return self.ram[address]
 
     def ram_write(self, value, address):
+        """
+        Write the given value at the given RAM address.
+        """
         self.ram[address] = value
 
     def load(self):
@@ -491,11 +497,16 @@ class CPU:
         operand_b = self.ram_read(self.PC + 2)
 
         prev_time = datetime.now()
+
         while self.IR != HLT:
+
+            # Check to see if timer interrupt needs to be set.
             new_time = datetime.now()
             if (new_time - prev_time).total_seconds() >= 1:
                 prev_time = new_time
                 self.reg[IS] = self.reg[IS] | 0b00000001
+
+            # Check to see if ANY interesting interrupt IS set.
             interrupt_happened = False
             if self.interrupts_enabled and self.reg[IM] != 0:
                 masked_interrupts = self.reg[IM] & self.reg[IS]
