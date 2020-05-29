@@ -1,6 +1,7 @@
 """CPU functionality."""
 
 import sys
+from datetime import datetime
 
 ADD = 0b10100000
 AND = 0b10101000
@@ -10,6 +11,8 @@ DEC = 0b01100110
 DIV = 0b10100011
 HLT = 0b00000001
 INC = 0b01100101
+INT = 0b01010010
+IRET = 0b00010011
 JEQ = 0b01010101
 JGE = 0b01011010
 JGT = 0b01010111
@@ -35,6 +38,8 @@ SHL = 0b10101100
 SHR = 0b10101101
 XOR = 0b10101011
 
+IM = 5 # register number for interrupt mask
+IS = 6 # register number for interrupt status
 SP = 7 # register number for stack pointer
 
 class CPU:
@@ -50,6 +55,8 @@ class CPU:
                        DEC: self.dec,
                        DIV: self.div,
                        INC: self.inc,
+                       INT: self.int,
+                       IRET: self.iret,
                        JEQ: self.jeq,
                        JGE: self.jge,
                        JGT: self.jgt,
@@ -86,6 +93,8 @@ class CPU:
         self.MAR = 0
         self.MDR = 0
         self.FL = 0
+
+        self.interrupts_enabled = True
 
     def aand(self, reg_a, reg_b):
         """
@@ -152,7 +161,28 @@ class CPU:
         Increment (add 1 to) the value in the given register.
         """
         self.alu('INC', reg_num)
-        
+
+    def int(self, reg_num):
+        """
+        Issue the interrupt number stored in the given register.
+        """
+
+    def iret(self):
+        """
+        Return from an interrupt handler.
+        """
+
+        # Pop registers R6 - R0 off the stack.
+        for i in reversed(range(7)):
+            self.pop(i)
+
+        # Pop the FL & PC off the stack.
+        self.FL = self.popi()
+        self.PC = self.popi()
+
+        # Re-enable interrupts.
+        self.interrupts_enabled = True
+
     def jeq(self, reg_num):
         """
         If equal flag is set (true), jump to the address stored in the given
@@ -162,7 +192,7 @@ class CPU:
             self.PC = self.reg[reg_num]
         else:
             self.PC += 2
-        
+
     def jge(self, reg_num):
         """
         If greater-than flag or equal flag is set (true), jump to the address
@@ -172,7 +202,7 @@ class CPU:
             self.PC = self.reg[reg_num]
         else:
             self.PC += 2
-            
+
     def jgt(self, reg_num):
         """
         If greater-than flag is set (true), jump to the address stored in the
@@ -210,7 +240,7 @@ class CPU:
         Set the PC to the address stored in the given register.
         """
         self.PC = self.reg[reg_num]
-  
+
     def jne(self, reg_num):
         """
         If E flag is clear (false, 0), jump to the address stored in the given
@@ -252,7 +282,9 @@ class CPU:
         self.alu('MUL', reg_a, reg_b)
 
     def nop(self):
-        pass
+        """
+        No operation. Do nothing for this instruction.
+        """
 
     def nnot(self, reg_num):
         """
@@ -280,6 +312,13 @@ class CPU:
         self.reg[reg_num] = self.ram_read(self.reg[SP])
         self.reg[SP] += 1
 
+    def popi(self):
+        """
+        Pop the value at the top of the stack and return it directly.
+        """
+        self.reg[SP] += 1
+        return self.ram_read(self.reg[SP] - 1)
+
     def pra(self, reg_num):
         """
         Print alpha character value stored in the given register.
@@ -299,14 +338,25 @@ class CPU:
         print(self.reg[reg_num])
 
     def push(self, reg_num):
-        """Push the value in the given register on the stack.
+        """
+        Push the value in the given register on the stack.
 
         1. Decrement the SP.
         2. Copy the value in the given register to the address pointed to by
-        SP.
+        the SP.
         """
         self.reg[SP] -= 1
         self.ram_write(self.reg[reg_num], self.reg[SP])
+
+    def pushi(self, value):
+        """
+        Push the immediate value given to the stack.
+
+        1. Decrement the SP.
+        2. Copy the immediate value to the address pointed to by the SP.
+        """
+        self.reg[SP] -= 1
+        self.ram_write(value, self.reg[SP])
 
     def ret(self):
         """
@@ -440,7 +490,39 @@ class CPU:
         operand_a = self.ram_read(self.PC + 1)
         operand_b = self.ram_read(self.PC + 2)
 
+        prev_time = datetime.now()
         while self.IR != HLT:
+            new_time = datetime.now()
+            if (new_time - prev_time).total_seconds() >= 1:
+                prev_time = new_time
+                self.reg[IS] = self.reg[IS] | 0b00000001
+            interrupt_happened = False
+            if self.interrupts_enabled and self.reg[IM] != 0:
+                masked_interrupts = self.reg[IM] & self.reg[IS]
+                for i in range(8):
+                    interrupt_happened = ((masked_interrupts >> i) & 1) == 1
+                    if interrupt_happened:
+
+                        # Disable interrupts.
+                        self.interrupts_enabled = False
+
+                        # Clear the bit in the IS register.
+                        self.reg[IS] = self.reg[IS] & (0b11111110 << i)
+
+                        # Push the PC & FL registers to the stack.
+                        self.pushi(self.PC)
+                        self.pushi(self.FL)
+
+                        # Push registers R0 - R6 to the stack.
+                        for j in range(7):
+                            self.push(j)
+
+                        # Set the PC to the interrupt handler address.
+                        self.PC = self.ram[0xF8 + i]
+                        self.IR = self.ram_read(self.PC)
+                        operand_a = self.ram_read(self.PC + 1)
+                        operand_b = self.ram_read(self.PC + 2)
+
             num_args = (self.IR & 0b11000000) >> 6
             pc_set = (self.IR & 0b00010000) >> 4
             try:
