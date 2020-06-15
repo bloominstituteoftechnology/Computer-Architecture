@@ -7,7 +7,7 @@ class CPU:
 
     def __init__(self):
         self.register = [0] * 8 # 8 registers
-        pass
+        self.memory = [0] * 256 # memory of 256 bit
 
     def load(self):
         """Load a program into memory."""
@@ -61,5 +61,6 @@ class CPU:
         print()
 
     def run(self):
-        """Run the CPU."""
-        pass
+        running = True
+
+        instruction_register = self.register
