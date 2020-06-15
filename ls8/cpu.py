@@ -41,7 +41,7 @@ class CPU:
         self.instructions["JMP"] = None
         self.instructions["JNE"] = None
         self.instructions["LD"] = None
-        self.instructions["LDI"] = None
+        self.instructions["LDI"] = ldi
         self.instructions["MOD"] = None
         self.instructions["MUL"] = None
         self.instructions["NOP"] = None
@@ -49,7 +49,7 @@ class CPU:
         self.instructions["OR"] = None
         self.instructions["POP"] = None
         self.instructions["PRA"] = None
-        self.instructions["PRN"] = None
+        self.instructions["PRN"] = prn
         self.instructions["PUSH"] = None
         self.instructions["RET"] = None
         self.instructions["SHL"] = None
@@ -60,6 +60,12 @@ class CPU:
 
         def hlt():
             self.is_running = False
+
+        def ldi(register, value):
+            self.ram[register] = value
+
+        def prn(register):
+            print(self.ram[register])
 
         # keep track of whether program is running
         # HALT will set this variable to false
