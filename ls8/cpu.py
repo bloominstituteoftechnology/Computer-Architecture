@@ -21,6 +21,17 @@ class CPU:
         self.mdr = None  # memory data register
         self.fl = None   # flags
 
+        # define instructions
+        
+        def hlt():
+            self.is_running = False
+
+        def ldi(register, value):
+            self.ram[register] = value
+
+        def prn(register):
+            print(self.ram[register])
+
         # hold a mapping of instructions to functions
         self.instructions = dict()
         self.instructions["ADD"] = None
@@ -57,15 +68,6 @@ class CPU:
         self.instructions["ST"] = None
         self.instructions["SUB"] = None
         self.instructions["XOR"] = None
-
-        def hlt():
-            self.is_running = False
-
-        def ldi(register, value):
-            self.ram[register] = value
-
-        def prn(register):
-            print(self.ram[register])
 
         # keep track of whether program is running
         # HALT will set this variable to false
