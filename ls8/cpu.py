@@ -29,7 +29,7 @@ class CPU:
         self.instructions["CMP"] = None
         self.instructions["DEC"] = None
         self.instructions["DIV"] = None
-        self.instructions["HLT"] = None
+        self.instructions["HLT"] = hlt
         self.instructions["INC"] = None
         self.instructions["INT"] = None
         self.instructions["IRET"] = None
@@ -57,6 +57,13 @@ class CPU:
         self.instructions["ST"] = None
         self.instructions["SUB"] = None
         self.instructions["XOR"] = None
+
+        def hlt():
+            self.is_running = False
+
+        # keep track of whether program is running
+        # HALT will set this variable to false
+        self.is_running = True
 
     # retrieve the value stored in the specifed register, and store it in the MDR register
     def ram_read(self, address):
@@ -121,16 +128,34 @@ class CPU:
     def run(self):
         """Run the CPU."""
 
-        # store memory address in instruction register
-        self.ir = self.ram_read(self.pc)
+        while self.is_running:
 
-        # retrieve the next two bytes of data in case they are used as operands
-        operand_a = self.ram_read(self.pc + 1)
-        operand_b = self.ram_read(self.pc + 2)
+            # store memory address in instruction register
+            self.ir = self.ram_read(self.pc)
 
-        # determine the number of operands used by the instruction
-        first_two_bits = self.ir >> 6
-        number_of_operands = first_two_bits + 1
+            # retrieve the next two bytes of data in case they are used as operands
+            operand_a = self.ram_read(self.pc + 1)
+            operand_b = self.ram_read(self.pc + 2)
 
-        # update program counter to point to the next instruction
-        self.pc += number_of_operands + 1
+            # determine the number of operands used by the instruction
+            first_two_bits = self.ir >> 6
+            number_of_operands = first_two_bits + 1
+
+            # execute the instruction
+            if self.ir in self.instructions and self.instructions[self.ir] is not None:
+
+                # execute the instructions with any required operands
+                if number_of_operands == 0:
+                    self.instructions[self.ir]()
+                
+                if number_of_operands == 1:
+                    self.instructions[self.ir](operand_a)
+                
+                else:
+                    self.instructions[self.ir](operand_a, operand_b)
+
+            else:
+                print("Invalid instruction", self.ir)
+
+            # update program counter to point to the next instruction
+            self.pc += number_of_operands + 1
