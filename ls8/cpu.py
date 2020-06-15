@@ -7,24 +7,45 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
+        self.reg = [0] * 8
+        self.pc = 0
+        self.ram = [0] * 256
+        
         pass
 
-    def load(self):
+    def load(self, file_name):
         """Load a program into memory."""
 
         address = 0
+        program = []
+        with open(file_name) as f:
+            lines = f.readlines()
+            for line in lines:
+                if line[0]!= '#':
+                    num = int(line[0:8], 2)
+                    num1 = bin(num)
+                    binary = format(num,"08b")
+                    program.append(binary)
 
+        print(program)
+      
+       
+                
+        
+        
+       
+        
         # For now, we've just hardcoded a program:
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+        # program = [
+        #     # From print8.ls8
+        #     0b10000010, # LDI R0,8
+        #     0b00000000,
+        #     0b00001000,
+        #     0b01000111, # PRN R0
+        #     0b00000000,
+        #     0b00000001, # HLT
+        # ]
 
         for instruction in program:
             self.ram[address] = instruction
@@ -59,7 +80,45 @@ class CPU:
             print(" %02X" % self.reg[i], end='')
 
         print()
+    
+    def ram_read(self, counter):
+        return self.ram[counter]
+        # counter += counter
+        
+      
+    
+    def ram_write(self,counter, value):
+        self.reg[counter] = value
+
 
     def run(self):
         """Run the CPU."""
-        pass
+        HLT = 0b00000001
+        pc = self.pc
+         # 0b10000010
+        print('running')
+        running = True
+        while running:
+            ir = self.ram_read(pc)
+            if ir == 0b10000010:
+              
+                self.ram_write(self.ram_read(pc+1), self.ram_read(pc+2))
+                print("LDI, pc, pc+1", ir, self.ram_read(pc+1), self.ram_read(pc+2)) 
+                pc +=3  #3
+            elif ir == HLT:
+                running = False
+                print("HLT, pc, pc+1", ir, pc, self.ram_read(pc+1) )
+                print(f"Encountered HLT at address {pc}")
+                pc = pc + 1
+                
+                sys.exit(1)
+            elif ir == 0b01000111:
+                print(self.ram_read(pc+1))
+                print("PRN, pc, pc+1", ir, pc, self.ram_read(pc+1) )
+                pc = pc + 2
+
+            else:
+                print(f'Unknown instruction {ir} at address {pc}')
+                sys.exit(1)
+
+      
