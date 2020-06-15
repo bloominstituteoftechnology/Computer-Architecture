@@ -7,7 +7,16 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        # Init memory with 256 bits
+        self.ram = [0b0] * 256
+        # Init register with 8 bits
+        self.reg = [0] * 8
+        # Init our program counter
+        self.pc = 0
+        # Init our instruction reader
+        self.ir = 0
+        # Per our spec, reg 7 = 0xF4
+        self.reg
 
     def load(self):
         """Load a program into memory."""
