@@ -6,8 +6,20 @@ class CPU:
     """Main CPU class."""
 
     def __init__(self):
-        """Construct a new CPU."""
-        pass
+        
+        # RAM
+        self.ram = [0] * 256
+
+        # general-purpose registers
+        self.registers = [0] * 8
+        self.registers[7] = 0xF4    # stack pointer
+
+        # internal registers
+        self.pc = None   # program counter
+        self.ir = None   # instruction register
+        self.mar = None  # memory address register
+        self.mdr = None  # memory data register
+        self.fl = None   # flags
 
     def load(self):
         """Load a program into memory."""
