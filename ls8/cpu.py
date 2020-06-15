@@ -15,11 +15,11 @@ class CPU:
         self.registers[7] = 0xF4    # stack pointer
 
         # internal registers
-        self.pc = None   # program counter
+        self.pc = 0   # program counter
         self.ir = None   # instruction register
         self.mar = None  # memory address register
         self.mdr = None  # memory data register
-        self.fl = None   # flags
+        self.fl = 0   # flags
 
         # define instructions
         
@@ -75,7 +75,9 @@ class CPU:
 
     # retrieve the value stored in the specifed register, and store it in the MDR register
     def ram_read(self, address):
+        
         self.mdr = self.ram[address]
+
         return self.mdr
 
     # write the specified value into the specifed register
