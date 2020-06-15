@@ -21,6 +21,14 @@ class CPU:
         self.mdr = None  # memory data register
         self.fl = None   # flags
 
+    # retrieve the value stored in the MAR register, and store it in the MDR register
+    def ram_read(self):
+        self.mdr = self.ram[self.mar]
+
+    # write the value stored in the MDR register into the MAR register
+    def ram_write(self):
+        self.ram[self.mar] = self.mdr
+
     def load(self):
         """Load a program into memory."""
 
