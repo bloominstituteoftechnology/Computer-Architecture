@@ -52,8 +52,11 @@ while running:
 
 	elif ir == SAVE_REG:
 		reg_num = memory[pc + 1]
+		print("reg num",reg_num)
 		value = memory[pc + 2]
+		print("value", value)
 		register[reg_num] = value
+		print(register)
 		pc += 3
 
 	elif ir == PRINT_REG:

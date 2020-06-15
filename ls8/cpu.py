@@ -6,9 +6,9 @@ class CPU:
     """Main CPU class."""
 
     def __init__(self):
-        self.register = [0] * 8 # 8 registers
-        self.memory = [0] * 256 # memory of 256 bit
-
+        self.reg = [0] * 8 # 8 registers
+        self.ram = [0] * 256 # memory of 256 bit
+        self.program_counter = 0
     def load(self):
         """Load a program into memory."""
 
@@ -30,6 +30,23 @@ class CPU:
             self.ram[address] = instruction
             address += 1
 
+    def LDI(self):
+        reg_num = reg[program_counter]
+        pass 
+    def PRN(self):
+        reg_num = reg[program_counter] 
+        pass 
+    def HLT(self):
+        reg_num = reg[program_counter]
+        pass 
+
+# MAR contains the address that is being read or written to. 
+# he MDR contains> the data that was read or the data to write.
+    
+    def ram_read(self, MAR, MDR):
+        pass 
+    def ram_write(self, MAR, MDR):
+        pass 
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -60,6 +77,7 @@ class CPU:
 
         print()
 
+    # execute the instructions stored in self.ram 
     def run(self):
         running = True
 
