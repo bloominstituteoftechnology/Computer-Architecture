@@ -21,13 +21,14 @@ class CPU:
         self.mdr = None  # memory data register
         self.fl = None   # flags
 
-    # retrieve the value stored in the MAR register, and store it in the MDR register
-    def ram_read(self):
-        self.mdr = self.ram[self.mar]
+    # retrieve the value stored in the specifed register, and store it in the MDR register
+    def ram_read(self, address):
+        self.mdr = self.ram[address]
+        return self.mdr
 
-    # write the value stored in the MDR register into the MAR register
-    def ram_write(self):
-        self.ram[self.mar] = self.mdr
+    # write the specified value into the specifed register
+    def ram_write(self, value, address):
+        self.ram[address] = value
 
     def load(self):
         """Load a program into memory."""
@@ -82,4 +83,17 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+
+        # store memory address in instruction register
+        self.ir = self.ram_read(self.pc)
+
+        # retrieve the next two bytes of data in case they are used as operands
+        operand_a = self.ram_read(self.pc + 1)
+        operand_b = self.ram_read(self.pc + 2)
+
+        # determine the number of operands used by the instruction
+        first_two_bits = self.ir >> 6
+        number_of_operands = first_two_bits + 1
+
+        # update program counter to point to the next instruction
+        self.pc += number_of_operands + 1
