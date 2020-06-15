@@ -21,6 +21,43 @@ class CPU:
         self.mdr = None  # memory data register
         self.fl = None   # flags
 
+        # hold a mapping of instructions to functions
+        self.instructions = dict()
+        self.instructions["ADD"] = None
+        self.instructions["AND"] = None
+        self.instructions["CALL"] = None
+        self.instructions["CMP"] = None
+        self.instructions["DEC"] = None
+        self.instructions["DIV"] = None
+        self.instructions["HLT"] = None
+        self.instructions["INC"] = None
+        self.instructions["INT"] = None
+        self.instructions["IRET"] = None
+        self.instructions["JEQ"] = None
+        self.instructions["JGE"] = None
+        self.instructions["JGT"] = None
+        self.instructions["JLE"] = None
+        self.instructions["JLT"] = None
+        self.instructions["JMP"] = None
+        self.instructions["JNE"] = None
+        self.instructions["LD"] = None
+        self.instructions["LDI"] = None
+        self.instructions["MOD"] = None
+        self.instructions["MUL"] = None
+        self.instructions["NOP"] = None
+        self.instructions["NOT"] = None
+        self.instructions["OR"] = None
+        self.instructions["POP"] = None
+        self.instructions["PRA"] = None
+        self.instructions["PRN"] = None
+        self.instructions["PUSH"] = None
+        self.instructions["RET"] = None
+        self.instructions["SHL"] = None
+        self.instructions["SHR"] = None
+        self.instructions["ST"] = None
+        self.instructions["SUB"] = None
+        self.instructions["XOR"] = None
+
     # retrieve the value stored in the specifed register, and store it in the MDR register
     def ram_read(self, address):
         self.mdr = self.ram[address]
