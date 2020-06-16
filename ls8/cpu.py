@@ -68,3 +68,6 @@ class CPU:
 
     def ram_read(self, address):
         return self.ram[address]
+    
+    def ram_write(self, address, value):
+        self.ram[address] = value
