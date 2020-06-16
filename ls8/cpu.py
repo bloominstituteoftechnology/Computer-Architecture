@@ -85,14 +85,19 @@ class CPU:
 
     def call_fun(self, n):
         branch_table = {
-            0 : self.NOP,
-            1 : self.HLT,
-            71 : self.PRN,
-            130 : self.LDI,
-            162 : self.MUL
+            NOP : self.NOP,
+            HLT : self.HLT,
+            PRN : self.PRN,
+            LDI : self.LDI,
+            MUL : self.MUL
         }
+
         f = branch_table[n]
-        f()
+        if branch_table.get(n) is not None:
+            f()
+        else:
+            print(f'Unknown instruction {n} at address {self.pc}')
+            sys.exit(1)
 
     def run(self):
         while self.running:
