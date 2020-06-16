@@ -7,7 +7,15 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        # init 8 registers
+        self.reg = [0] * 8
+        # we increment pc--it's the index of the current instructions
+        self.pc = 0
+        # Init memory with 256 bits
+        self.ram = [0b0] * 256
+        # Per our spec, reg 7 = 0xF4
+        self.reg[7] = 0xF4
+        self.sp = self.reg[7]
 
     def load(self):
         """Load a program into memory."""
@@ -36,9 +44,18 @@ class CPU:
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
-        #elif op == "SUB": etc
+        elif op == "SUB": 
+            self.reg[reg_a] -= self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
+
+    def ram_read(self, address):
+        """prints what's stored in that specified address in RAM"""
+        return self.ram[address]
+
+    def ram_write(self, address, value):
+        """Overwrites the address in ram with the value"""
+        self.ram[address] = value
 
     def trace(self):
         """
@@ -62,4 +79,40 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        running = True
+        while running:
+            # Set the instruction register (it increments every loop)
+            ir = self.ram[self.pc]
+            # Used in some instructions
+            operand_a = self.ram[self.pc + 1] # register 1
+            operand_b = self.ram[self.pc + 2] # register 2
+
+            # HLT, or Halt: exits the emulator
+            if ir == 0b00000001:
+                running = False
+                self.pc += 1
+            elif ir == 0b10100010:    
+                operand_a = self.ram[self.pc+1]
+                operand_b = self.ram[self.pc+2]
+                self.alu("MUL", operand_a, operand_b)
+                self.pc += 3
+            # PRN, or print register: prints the current register
+            elif ir == 0b01000111:
+                print(ir)
+                self.pc += 1
+            # Mul, or multiply: multiplies the next two values.
+            elif ir == 0b10100010:    
+                self.alu("MUL", operand_a, operand_b)
+                self.pc += 3
+            else:
+                self.pc += 1
+
+if __name__ == '__main__':
+    LS8 = CPU()
+    LS8.load()
+    for i in range(9):
+        print(LS8.ram_read(i))
+    LS8.ram_write(0, 15)
+    print('==============')
+    print(LS8.ram_read(0))
+    print('==============')

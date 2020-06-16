@@ -11,7 +11,7 @@ which is about as simple as it gets.
 
 An 8 bit CPU is one that only has 8 wires available for addresses (specifying
 where something is in memory), computations, and instructions. With 8 bits, our
-CPU has a total of 256 bytes of memory and can only compute values up to 255.
+CPU has a total of 256 bytes (2**8) of memory and can only compute values up to 255.
 The CPU could support 256 instructions, as well, but we won't need them.
 
 For starters, we'll execute code that stores the value 8 in a register,
@@ -60,6 +60,13 @@ but you'll have to implement those three above instructions first!
 ## Step 0: IMPORTANT: inventory what is here!
 
 * Make a list of files here.
+
+    - ls8.py
+    - cpu.py
+    - ls8-cheatsheet.md
+    - FAQ.py
+    - ls8-spec.md_
+
 * Write a short 3-10-word description of what each file does.
 * Note what has been implemented, and what hasn't.
 * Read this whole file.
