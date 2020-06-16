@@ -21,6 +21,10 @@ class CPU:
         self.mdr = None  # memory data register
         self.fl = 0   # flags
 
+        # keep track of whether program is running
+        # HALT will set this variable to false
+        self.is_running = True
+
         # define instructions
         
         def hlt():
@@ -40,7 +44,7 @@ class CPU:
         self.instructions["CMP"] = None
         self.instructions["DEC"] = None
         self.instructions["DIV"] = None
-        self.instructions["HLT"] = hlt
+        self.instructions[0b00000001] = hlt
         self.instructions["INC"] = None
         self.instructions["INT"] = None
         self.instructions["IRET"] = None
@@ -52,7 +56,7 @@ class CPU:
         self.instructions["JMP"] = None
         self.instructions["JNE"] = None
         self.instructions["LD"] = None
-        self.instructions["LDI"] = ldi
+        self.instructions[0b10000010] = ldi
         self.instructions["MOD"] = None
         self.instructions["MUL"] = None
         self.instructions["NOP"] = None
@@ -60,7 +64,7 @@ class CPU:
         self.instructions["OR"] = None
         self.instructions["POP"] = None
         self.instructions["PRA"] = None
-        self.instructions["PRN"] = prn
+        self.instructions[0b01000111] = prn
         self.instructions["PUSH"] = None
         self.instructions["RET"] = None
         self.instructions["SHL"] = None
@@ -69,13 +73,9 @@ class CPU:
         self.instructions["SUB"] = None
         self.instructions["XOR"] = None
 
-        # keep track of whether program is running
-        # HALT will set this variable to false
-        self.is_running = True
-
     # retrieve the value stored in the specifed register, and store it in the MDR register
     def ram_read(self, address):
-        
+
         self.mdr = self.ram[address]
 
         return self.mdr
@@ -149,7 +149,7 @@ class CPU:
 
             # determine the number of operands used by the instruction
             first_two_bits = self.ir >> 6
-            number_of_operands = first_two_bits + 1
+            number_of_operands = first_two_bits
 
             # execute the instruction
             if self.ir in self.instructions and self.instructions[self.ir] is not None:
@@ -158,7 +158,7 @@ class CPU:
                 if number_of_operands == 0:
                     self.instructions[self.ir]()
                 
-                if number_of_operands == 1:
+                elif number_of_operands == 1:
                     self.instructions[self.ir](operand_a)
                 
                 else:
@@ -166,6 +166,7 @@ class CPU:
 
             else:
                 print("Invalid instruction", self.ir)
+                pass
 
             # update program counter to point to the next instruction
             self.pc += number_of_operands + 1
