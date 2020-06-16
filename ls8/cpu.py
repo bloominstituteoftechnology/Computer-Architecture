@@ -41,11 +41,12 @@ class CPU:
             self.ram[address] = instruction
             address += 1
 
-    def load(self, program):
+    def load(self):
         # Starting at beginning of RAM
         pointer = 0
 
-        with open(program) as f:
+        # Program to run comes from sys.argv[1]
+        with open(sys.argv[1]) as f:
             for line in f:
                 # Take leading script before # comment and strip whitespace
                 opcode = line.split("#")[0].strip()
@@ -102,7 +103,6 @@ class CPU:
 
             # HALT command
             if self.ir == 0b00000001:
-                print('HALT')
                 running = False
             
             # LDI, or Load Immediate; set specified register to specific value
@@ -123,8 +123,8 @@ class CPU:
             elif self.ir == 0b10100010:    
                 operand_a = self.ram[self.pc + 1] # register 1
                 operand_b = self.ram[self.pc + 2] # register 2
-                self.alu(operand_a)
-
+                self.alu("MUL", operand_a, operand_b)
+                self.pc += 3
 
             # If instruction unknown, print location for bug fixing
             else:
