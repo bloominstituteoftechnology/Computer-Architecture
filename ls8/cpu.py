@@ -11,6 +11,12 @@ class CPU:
         self.pc = 0
         self.ram = [0] * 256
         self.running = True
+        self.ir = {
+            0b10100010:'MUL',
+            0b00000001:'HLT',
+            0b10000010:'LDI',
+            0b01000111:'PRN'
+            }
      
 
     def load(self, file_name):
@@ -50,24 +56,26 @@ class CPU:
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
         
-        
-
+        value = op >> 6 
+        value = value + 1
+        # print('value', value)
+        op = self.ir[op]
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
         #elif op == "SUB": etc
         elif op == 'MUL':
             print(self.reg[reg_a] * self.reg[reg_b])
-            self.pc +=3
+            self.pc += value
         elif op == 'LDI':
             self.ram_write(reg_a, reg_b)
-            self.pc +=3  #3
+            self.pc += value #3
         elif op == 'HLT':
             self.running = False
-            self.pc += 1
+            self.pc += value
             sys.exit(1)
         elif op == 'PRN':
             print(self.reg[reg_a])
-            self.pc += 2
+            self.pc += value
         else:
             raise Exception("Unsupported ALU operation")
             sys.exit(1)
@@ -149,5 +157,5 @@ class CPU:
             #     print(f'Unknown instruction {ir} at address {pc}')
             #     sys.exit(1)
           
-            self.alu(ir[self.ram_read(self.pc)], self.ram_read(self.pc+1), self.ram_read(self.pc+2))
+            self.alu(self.ram_read(self.pc), self.ram_read(self.pc+1), self.ram_read(self.pc+2))
             
