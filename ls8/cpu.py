@@ -93,6 +93,9 @@ class CPU:
                 running = self.hlt()
             elif ir == self.MUL:
                 running = self.mult()
+            else:
+                print(f"unknown instruction {ir} at address {self.pc}")
+                sys.exit(1)
 
 
     def ldi(self):
