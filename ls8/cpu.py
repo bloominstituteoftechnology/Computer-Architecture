@@ -102,11 +102,8 @@ class CPU:
     def run(self):
         while self.running:
             ir = self.ram_read(self.pc)
-            if self.call_fun(ir):
-                self.call_fun(ir)
-            else:
-                print(f'Unknown instruction {ir} at address {self.pc}')
-                sys.exit(1)
+            self.call_fun(ir)
+            
 
     def ram_read(self, address):
         return self.ram[address]
