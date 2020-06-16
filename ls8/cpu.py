@@ -2,31 +2,67 @@
 
 import sys
 
+# opcodes for branch table
+HLT = 0b00000001
+PRN = 0b01000111
+LDI = 0b10000010
+MUL = 0b10100010
+
 class CPU:
     """Main CPU class."""
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.pc = 0
+        self.reg = [0] * 8
+        self.ram = [0] * 256
+        self.branch_table = {
+            HLT: self.halt,
+            LDI: self.ldi,
+            PRN: self.prn,
+            MUL: self.multiply,
+            'ADD': 1,
+            'ADD': 1
+            }
 
-    def load(self):
+    def halt(self, op_a, op_b):
+        sys.exit(0)
+
+    def ldi(self, op_a, op_b):
+        self.reg[op_a] = op_b
+        self.pc += 3
+
+    def prn(self, op_a, op_b):
+        print(self.reg[op_a])
+        self.pc += 2
+
+    def multiply(self, op_a, op_b):
+        self.reg[op_a] *= self.reg[op_b]
+        self.pc += 3
+
+
+    def ram_read(self, mar):
+        mdr = self.ram[mar]
+        return mdr
+
+    def ram_write(self, mdr, mar):
+        self.ram[mar] = mdr
+    
+    def load(self, program):
         """Load a program into memory."""
-
+        instructions = []
+        with open(program) as f:
+            for line in f:
+                line = line.strip().split("#")
+                try:
+                    num = int(line[0], 2)
+                except ValueError:
+                    continue
+                instructions.append(num)
+            
         address = 0
 
-        # For now, we've just hardcoded a program:
-
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
-
-        for instruction in program:
+        for instruction in instructions:
             self.ram[address] = instruction
             address += 1
 
@@ -62,4 +98,9 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        while True:
+            # self.trace()
+            op_code = self.ram[self.pc]
+            operand_a , operand_b  = self.ram[self.pc + 1], self.ram[self.pc + 2]
+            if op_code in self.branch_table:
+                self.branch_table[op_code](operand_a, operand_b)
