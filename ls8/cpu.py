@@ -63,6 +63,40 @@ class CPU:
 
         print()
 
+    def LDI(self):
+        reg_num = self.ram_read(self.pc + 1)
+        value = self.ram_read(self.pc + 2)
+        self.reg[reg_num] = value
+        self.pc += 3
+
+    def HLT(self):
+        self.running = False
+    
+    def PRN(self):
+        reg_num = self.ram_read(self.pc + 1)
+        print(self.reg[reg_num])
+        self.pc += 2
+    
+    def MUL(self):
+        reg_num1 = self.ram_read(self.pc + 1)
+        reg_num2 = self.ram_read(self.pc + 2)
+        self.alu("MUL", reg_num1, reg_num2)
+        self.pc += 3
+
+    def NOP(self):
+        self.pc += 1
+
+    def call_fun(self, n):
+        branch_table = {
+            0 : self.NOP,
+            1 : self.HLT,
+            71 : self.PRN,
+            130 : self.LDI,
+            162 : self.MUL
+        }
+        f = branch_table[n]
+        f()
+
     def run(self):
         while self.running:
             ir = self.ram_read(self.pc)
