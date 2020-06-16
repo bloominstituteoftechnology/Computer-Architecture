@@ -4,6 +4,9 @@ import sys
 
 class CPU:
     """Main CPU class."""
+    LDI = 0b10000010
+    HLT = 0b00000001
+    PRN = 0b01000111
 
     def __init__(self):
         self.ram = [0] * 256
