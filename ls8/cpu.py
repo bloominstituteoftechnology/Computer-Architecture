@@ -19,25 +19,17 @@ class CPU:
         self.running = True
 
     def load(self):
-        """Load a program into memory."""
-
         address = 0
+        filename = sys.argv[1]
 
-        # For now, we've just hardcoded a program:
-
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
-
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+        with open(filename) as f:
+            for address, line in enumerate(f):
+                line = line.split('#')
+                try:
+                    v = int(line[0], 2)
+                except ValueError:
+                    continue
+                self.ram_write(address, v)
 
 
     def alu(self, op, reg_a, reg_b):
