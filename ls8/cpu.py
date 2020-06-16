@@ -100,17 +100,8 @@ class CPU:
     def run(self):
         while self.running:
             ir = self.ram_read(self.pc)
-            if ir == self.LDI:
-                reg_num = self.ram_read(self.pc + 1)
-                value = self.ram_read(self.pc + 2)
-                self.ram_write(reg_num, value)
-                self.pc += 3
-            elif ir == self.HLT:
-                self.running = False
-            elif ir == self.PRN:
-                reg_num = self.ram[self.pc + 1]
-                print(self.ram[reg_num])
-                self.pc += 2
+            if self.call_fun(ir):
+                self.call_fun(ir)
             else:
                 print(f'Unknown instruction {ir} at address {self.pc}')
                 sys.exit(1)
