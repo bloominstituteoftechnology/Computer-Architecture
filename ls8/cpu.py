@@ -7,7 +7,13 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.register = [0] * 8
+        self.ram = [0] * 256
+        self.pc = 0
+        self.ir = 0
+        self.mar = 0
+        self.mdr = 0
+        self.fl = 0
 
     def load(self):
         """Load a program into memory."""
@@ -35,7 +41,7 @@ class CPU:
         """ALU operations."""
 
         if op == "ADD":
-            self.reg[reg_a] += self.reg[reg_b]
+            self.register[reg_a] += self.register[reg_b]
         #elif op == "SUB": etc
         else:
             raise Exception("Unsupported ALU operation")
@@ -56,10 +62,38 @@ class CPU:
         ), end='')
 
         for i in range(8):
-            print(" %02X" % self.reg[i], end='')
+            print(" %02X" % self.register[i], end='')
 
         print()
 
     def run(self):
         """Run the CPU."""
-        pass
+        running = True
+        while running:
+            value = self.ram[self.pc]
+            self.ir = value
+
+            #LDI : loads valB at reg valA
+            if self.ir == 0b10000010:
+                op_a = self.ram_read(self.pc + 1)
+                op_b = self.ram_read(self.pc + 2)
+                self.register[op_a] = op_b
+                self.pc += 3
+            #PRA: prints alpha char
+            elif self.ir == 0b01001000:
+                print(self.register[self.pc + 1])
+                self.pc += 2
+            #PRN : prints num
+            elif self.ir == 0b01000111:
+                index = self.ram_read(self.pc + 1)
+                print(self.register[index])
+                self.pc += 2
+            #HLT: ends run()
+            elif self.ir == 0b00000001:
+                running = False
+    
+    def ram_read(self, address):
+        return self.ram[address]
+
+    def ram_write(self, address, value):
+        self.ram[address] = value
