@@ -10,8 +10,6 @@ NOP = 0b00000000
 
 class CPU:
     """Main CPU class."""
-    
-
     def __init__(self):
         self.ram = [0] * 256
         self.reg = [0] * 8
@@ -19,7 +17,6 @@ class CPU:
         self.running = True
 
     def load(self):
-        address = 0
         filename = sys.argv[1]
 
         with open(filename) as f:
