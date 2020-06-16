@@ -2,12 +2,33 @@
 
 import sys
 
+LDI = 0b10000010
+PRN = 0b01000111
+HLT = 0b00000001
+
 class CPU:
     """Main CPU class."""
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.ram = [0] * 256
+        self.reg = [0] * 8
+        self.pc = 0
+        self.ir = 0
+        self.running = True
+        self.commands = {
+            0b10000010: self.ldi,
+            0b01000111: self.prn,
+            0b00000001: self.hlt
+            
+        }
+
+
+    def ram_read(self, address):
+        return self.ram[address]
+    
+    def ram_write(self,value, address):
+        self.ram[address] = value
 
     def load(self):
         """Load a program into memory."""
@@ -62,4 +83,62 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+
+
+        while self.running:
+            ir = self.ram[self.pc]
+
+            if ir == LDI:
+                operand_a = self.ram_read(self.pc + 1)
+                operand_b = self.ram_read(self.pc + 2)
+                
+                self.reg[operand_a] = operand_b
+                self.pc += 3
+
+            elif ir == PRN:
+                operand_a = self.ram_read(self.pc + 1)
+                print(self.ram_read(operand_a))
+                self.pc +=2
+
+            elif ir == HLT:
+                self.running = False
+                self.pc += 1
+                # sys.exit()
+            
+            else:
+                print(f'failure with {ir} at address {self.pc}')
+                sys.exit()
+                
+
+    # def runV2(self):
+    #     """Run the CPU."""
+
+
+    #     while self.running:
+    #         ir = self.ram[self.pc]
+
+    #         operand_a = self.ram_read(self.pc +1)
+    #         operand_b = self.ram_read(self.pc +2)
+
+    #         try:
+    #             operation_output = self.commands[ir](operand_a,operand_b)
+    #             running = operation_output[0]
+    #             self.pc += operation_output[1]
+
+    #         except Exception as e:
+    #             print(e)
+    #             print(f"command: {ir}")
+    #             sys.exit()
+    
+    # def ldi(self,operand_a,operand_b):
+    #     self.reg[operand_a] = operand_b
+    #     return(True, 3) #this is to check that it is still runnig [0] and how many pc spots to hop [1] in this case still runing is true and we hop 3 spots forward.
+
+    # def prn(self, operand_a, operand_b):
+    #     print(self.reg[operand_a])
+    #     return(True, 2)
+    
+    # def hlt(self, operand_a, operand_b):
+    #     return(False, 0)
+
+    
