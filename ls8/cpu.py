@@ -43,9 +43,7 @@ class CPU:
             if "1" in inst or "0" in inst:
                 inst = inst[slice(8)]
                 # inst = inst[0]
-
-                print("INST: ", type(inst))
-                self.ram[address] = inst
+                self.ram[address] = int(inst, 2)
                 address += 1
 
         print("RAM: ", self.ram)
@@ -122,8 +120,8 @@ class CPU:
                 self.pc += 2
 
             elif ir == inst["MUL"]:
-                num1 = self.ram_read(self.pc + 1)
-                num2 = self.ram_read(self.pc + 2)
+                num1 = self.ram_read(self.ram[self.pc + 1])
+                num2 = self.ram_read(self.ram[self.pc + 2])
                 print("MUL answere: ", num1 * num2)
                 self.pc += 3
 
