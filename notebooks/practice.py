@@ -1,6 +1,4 @@
 """
-
-
 Print out all of the strings in the following array in alphabetical order, each on a separate line.
 ['Waltz', 'Tango', 'Viennese Waltz', 'Foxtrot', 'Cha Cha', 'Samba', 'Rumba', 'Paso Doble', 'Jive']
 The expected output is:
@@ -26,6 +24,8 @@ line.sort()  # (n log(n))
 # Python timsort
 # use the built in function
 # always (n log(n))
-# Bubble Sort
+# Bubble Sort 0(n^2)
+# Mergesort
+# 2-3 challenges.
 for i in line:
     print(i)

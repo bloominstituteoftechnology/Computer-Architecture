@@ -31,6 +31,7 @@ HALT = 2
 SAVE_REG = 3  # SAVE_REG R1, 37
 PRINT_REG = 4  # PRINT_REG R1
 
+# running instructions
 memory = [
     PRINT_JORGE,  # < ---- PC
     # PRINT_JORGE,

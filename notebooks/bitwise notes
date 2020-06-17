@@ -1,0 +1,108 @@
+Bitwise Operations
+------------------
+
+Review: Boolean
+
+if x < 10 or x > 2:
+	print("foo")
+
+x = 0
+
+if False: 
+	print("foo")
+
+A   B    A and B
+----------------
+F   F       F
+T   F       F
+F   T       F
+T   T       T
+
+A   B    A or B
+----------------
+F   F       F
+T   F       T
+F   T       T
+T   T       T
+
+Bitwise:
+
+A   B     A & B   Bitwise AND
+----------------
+0   0       0
+1   0       0
+0   1       0
+1   1       1
+
+A   B     A | B   Bitwise OR
+----------------
+0   0       0
+1   0       1
+0   1       1
+1   1       1
+
+  11001100
+& 11110000   AND Mask
+----------
+  11000000
+
+In general:
+
+* You can use AND to clear (set to 0) bits
+* You can use OR to set (set to 1) bits
+
+Shifting
+--------
+
+Moving all bits in a number left or right.
+
+   111001
+   011100 
+   001110 
+   000111
+   000011
+
+Base 10, Decimal analogy:
+
+      vv
+    12345678
+    23456780
+    34567800
+    03456780
+    00345678
+    00034567
+    00003456
+    00000345
+    00000034
+	      ^^
+
+      vv
+    12345678
+ d& 00990000  First AND
+ -----------
+    00340000  Then shift
+	00034000
+	00003400
+	00000340
+	00000034
+
+
+       vv
+ir = 0b10000010
+
+     vv
+     10000010
+   & 11000000
+   ----------
+     10000000
+	 ^^
+     00000010
+	       ^^
+
+num_operands = (ir & 0b11000000) >> 6
+
+how_far_to_move_pc = num_operands + 1
+
+pc += how_far_to_move_pc
+
+LDI R1,R2

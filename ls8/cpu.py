@@ -19,6 +19,17 @@ class CPU:
         self.registers = [0] * 8  # 8 general-purpose registers, like variables, R0, R1, R2 .. R7
         # internal registers
         self.pc = 0  # Program Counter, index of the current instruction
+        self.halted = False
+        self.ir = 0
+        # self.branch_table = {
+        self.ldi = 0b10000010,
+        self.prn = 0b01000111,
+        # ADD: self.alu,
+        # DIV: self.alu,
+        # SUB: self.alu,
+        # AND: self.alu,
+        # OR: self.alu
+        # }
 
 
 # Step 2: Add RAM functions
@@ -33,29 +44,57 @@ class CPU:
     def ram_write(self, value, address):
         self.ram[address] = value
 
-    def load(self):
+    def load(self, filename):
         """Load a program into memory."""
 
-        address = 0
+        # path = 'examples/' + filename
+        # address = 0
+        # -- Load program ---
+        with open(filename, 'r') as f:
+            # for address, line in enumerate(f):
+            for line in f:
+                line = line.split('#')
+                line = line[0].strip()
+                # except ValueError:
+                continue
+
+                self.ram[address] = int(line, 2)
+                address += 1
 
         # For now, we've just hardcoded a program:
 
-        program = [
-            # From print8.ls8
-            0b10000010,  # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111,  # PRN R0
-            0b00000000,
-            0b00000001,  # HLT
-        ]
+            program = [
+                # From print8.ls8
+                0b10000010,  # LDI R0,8
+                0b00000000,
+                0b00001000,
+                0b01000111,  # PRN R0
+                0b00000000,
+                0b00000001,  # HLT
+            ]
 
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+            # for address, instruction in enumerate(program):
+            #     self.ram[address] = instruction
+            #     address += 1
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
+
+        if op == ADD:
+            self.reg[reg_a] += self.reg[reg_b]
+        elif op == SUB:
+            self.reg[reg_a] -= self.reg[reg_b]
+        elif op == MUL:
+            self.reg[reg_a] *= self.reg[reg_b]
+        elif op == DIV:
+            self.reg[reg_a] //= self.reg[reg_b]
+        elif op == AND:
+            self.reg[reg_a] &= self.reg[reg_b]
+        elif op == OR:
+            self.reg[reg_a] |= self.reg[reg_b]
+
+        else:
+            raise Exception("Unsupported ALU operation")
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
@@ -100,11 +139,20 @@ class CPU:
         HLT = 0b00000001  # Instruction handler
         LDI = 0b10000010  # instruction
         PRN = 0b01000111  # PRN instruction
+
+        ADD = 0b10100000
+        SUB = 0b10100001
+        MUL = 0b10100010
+        DIV = 0b10100011
+
+        AND = 0b10101000
+        OR = 0b10101010
+
         running = True
 
         self.ir = self.ram_read(self.pc)
-        reg_num1 = self.ram_read(self.pc + 1)
-        reg_num2 = self.ram_read(self.pc + 2)
+        reg_num1 = self.ram_read(self.pc + 1)  # register
+        reg_num2 = self.ram_read(self.pc + 2)  # value
 
         while running:
             # Lets set our value of our register

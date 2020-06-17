@@ -22,23 +22,34 @@ SAVE_REG = 3    # SAVE_REG R1,37   register[1] = 37
 PRINT_REG = 4   # PRINT_REG R1     print(register[1])
 ADD = 5
 
-memory = [
-    SAVE_REG,  # SAVE_REG R1,37
-    1,  # <-- index into the register array
-    99,  # <-- value that we want to store there
-    SAVE_REG,
-    2,  # <-- index into the register array
-    11,  # <-- value that we want to store there
-    ADD,  # ADD R1, R2  register[1] += register[2]
-    1,
-    2,
-    PRINT_REG,
-    1,
-    PRINT_BEEJ,
-    HALT,
-]
-
+memory = [0] * 256
 register = [0] * 8  # 8 general-purpose registers, like variables, R0, R1, R2 .. R7
+
+# -- Load program --
+filename = sys.argv[1]
+# hardcoded
+with open(filename) as f:
+    # with open("prog1") as f:
+    # itteration looking at one line at a time
+    for address, line in enumerate(f):
+        # for line in f:
+        # print(line)
+        line = line.split("#")
+
+        try:
+            v = int(line[0])
+        except ValueError:
+            continue
+            # print(v)
+
+        memory[address] = v
+        address += 1
+        print(memory[:15])
+        print(sys.argv)  # embedded into our sys
+
+sys.exit(0)
+
+# -- Run loop --
 
 pc = 0  # Program Counter, index of the current instruction
 running = True
@@ -63,7 +74,7 @@ while running:
 
     elif ir == ADD:
         reg_num1 = memory[pc + 1]
-        reg_num2 = memory[pc + 2]
+        reg_num2 = memory[pc4 + 2]
         register[reg_num1] += register[reg_num2]
         pc += 3
 

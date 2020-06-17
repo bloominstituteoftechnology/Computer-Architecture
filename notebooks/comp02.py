@@ -13,8 +13,6 @@ Memory--like a big array
 """
 
 
-# memory = [0] * 256  # RAM
-
 import sys
 PRINT_BEEJ = 1
 HALT = 2
@@ -22,23 +20,28 @@ SAVE_REG = 3    # SAVE_REG R1,37   register[1] = 37
 PRINT_REG = 4   # PRINT_REG R1     print(register[1])
 ADD = 5
 
-memory = [
-    SAVE_REG,  # SAVE_REG R1,37
-    1,  # <-- index into the register array
-    99,  # <-- value that we want to store there
-    SAVE_REG,
-    2,  # <-- index into the register array
-    11,  # <-- value that we want to store there
-    ADD,  # ADD R1, R2  register[1] += register[2]
-    1,
-    2,
-    PRINT_REG,
-    1,
-    PRINT_BEEJ,
-    HALT,
-]
+memory = [0] * 256
 
 register = [0] * 8  # 8 general-purpose registers, like variables, R0, R1, R2 .. R7
+
+# -- Load program --
+filename = sys.argv[1]
+
+# TODO: error checking on sys.argv
+
+with open(filename) as f:
+    for address, line in enumerate(f):
+
+        line = line.split("#")
+
+        try:
+            v = int(line[0], 10)
+        except ValueError:
+            continue
+
+        memory[address] = v
+
+# -- Run loop --
 
 pc = 0  # Program Counter, index of the current instruction
 running = True
