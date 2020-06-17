@@ -3,9 +3,13 @@
 """Main."""
 
 import sys
+prog = sys.argv[1]
+
+
+    
 from cpu import *
 
 cpu = CPU()
 
-cpu.load()
+cpu.load(prog)
 cpu.run()
