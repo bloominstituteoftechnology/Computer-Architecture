@@ -149,18 +149,18 @@ class CPU:
         # print(f"You have PUSHED V:{value} to R: {self.sp}")
         self.pc += 2
 
-    def call_stack(self, n):
-        stack = {
+    def call_func(self, n):
+        func_stack = {
             0b10000010: self.LDI,
             0b00000001: self.HLT,
             0b01000111: self.PRN,
             0b10100010: self.MUL,
             0b01000110: self.POP,
-            0b01000101: self.PSH
+            0b01000101: self.PSH,
 
         }
-        if n in stack:
-            stack[n]()
+        if n in func_stack:
+            func_stack[n]()
         else:
             print(f"No instrunction found! IR: {n}")
             sys.exit(1)
@@ -173,7 +173,7 @@ class CPU:
             # print("----------------")
             # print(f"PC: {self.pc + 1}")
             ir = self.ram[self.pc]  # the instruction or code to run
-            self.call_stack(ir)
+            self.call_func(ir)
             # print("----------------")
 
             # if ir == inst["LDI"]:
