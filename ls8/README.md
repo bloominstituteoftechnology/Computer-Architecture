@@ -68,7 +68,17 @@ but you'll have to implement those three above instructions first!
     - ls8-spec.md_
 
 * Write a short 3-10-word description of what each file does.
+
+    - ls8.py: Looks like it just loads and runs the cpu
+    - cpu.py: Where out CPU class lives. 
+    - ls8-cheatsheet.md: 
+    - FAQ.py
+    - ls8-spec.md_
+        
 * Note what has been implemented, and what hasn't.
+    - load looks good
+    - 
+    - 
 * Read this whole file.
 * Skim the spec.
 
