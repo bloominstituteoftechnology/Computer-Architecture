@@ -3,10 +3,22 @@
 import sys
 
 # opcodes for branch table
+ADD = 0b10100000
 HLT = 0b00000001
 PRN = 0b01000111
 LDI = 0b10000010
 MUL = 0b10100010
+POP = 0b01000110
+PUSH = 0b01000101
+CALL = 0b01010000
+RET = 0b00010001
+CMP = 0b10100111
+JNE = 0b01010110
+JEQ = 0b01010101
+JMP = 0b01010100
+
+# reserve register for stack pointer
+SP = 7
 
 class CPU:
     """Main CPU class."""
@@ -16,14 +28,58 @@ class CPU:
         self.pc = 0
         self.reg = [0] * 8
         self.ram = [0] * 256
+        self.fl = 0
         self.branch_table = {
+            ADD: self.add,
             HLT: self.halt,
             LDI: self.ldi,
             PRN: self.prn,
             MUL: self.multiply,
-            'ADD': 1,
-            'ADD': 1
+            POP: self.pop,
+            PUSH: self.push,
+            CALL: self.call,
+            RET: self.ret,
+            CMP: self.cmp,
+            JNE: self.jne,
+            JEQ: self.jeq,
+            JMP: self.jmp
             }
+    def add(self, op_a, op_b):
+        self.reg[op_a] += self.reg[op_b]
+        self.pc += 3
+
+    def cmp(self, op_a, op_b):
+        if self.reg[op_a] == self.reg[op_b]:
+            self.fl = "E"
+        elif self.reg[op_a] < self.reg[op_b]:
+            self.fl = "LT"
+        elif self.reg[op_a] > self.reg[op_b]:
+            self.fl = "GT"
+        self.pc += 3
+
+    def jeq(self, op_a, op_b):
+        if self.fl == "E":
+            self.pc = self.reg[op_a]
+        else:
+            self.pc += 2
+            
+    def jmp(self, op_a, op_b):
+        self.pc = self.reg[op_a]
+
+    def jne(self, op_a, op_b):
+        if self.fl != "E":
+            self.pc = self.reg[op_a]
+        else:
+            self.pc += 2
+    
+    def call(self, op_a, op_b):
+        self.reg[SP] -= 1
+        self.ram_write(self.pc + 2, self.reg[SP])
+        self.pc = self.reg[op_a]
+    
+    def ret(self, op_a, op_b):
+        self.pc = self.ram[self.reg[SP]]
+        self.reg[SP] += 1        
 
     def halt(self, op_a, op_b):
         sys.exit(0)
@@ -40,7 +96,17 @@ class CPU:
         self.reg[op_a] *= self.reg[op_b]
         self.pc += 3
 
+    def push(self, op_a, op_b):
+        self.reg[SP] -= 1
+        self.ram_write(self.reg[op_a], self.reg[SP])
+        self.pc += 2
 
+    def pop(self, op_a, op_b):
+        value = self.ram_read(self.reg[SP])
+        self.reg[op_a] = value
+        self.reg[SP] += 1
+        self.pc += 2
+    
     def ram_read(self, mar):
         mdr = self.ram[mar]
         return mdr
@@ -99,7 +165,7 @@ class CPU:
     def run(self):
         """Run the CPU."""
         while True:
-            # self.trace()
+            self.trace()
             op_code = self.ram[self.pc]
             operand_a , operand_b  = self.ram[self.pc + 1], self.ram[self.pc + 2]
             if op_code in self.branch_table:
