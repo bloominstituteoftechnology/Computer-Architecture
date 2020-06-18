@@ -81,14 +81,6 @@ class CPU:
 
         print()
 
-    def push(self, address=None):
-        if address is None:
-            self.reg[7] -= 1
-            self.ram_write(self.reg[7], self.reg[self.ram_read(self.pc+1)])
-        else:
-            self.reg[7] -= 1
-            self.ram_write(self.reg[7], address)
-
     def run(self):
         """Run the CPU."""
         HLT = 0b00000001
@@ -108,7 +100,7 @@ class CPU:
                 self.pc += 1
                 sys.exit()
             elif instruction == MUL:
-                self.alu('MUL', reg_a, reg_b)
+                self.reg[reg_a] *= self.reg[reg_b]
                 self.pc += 3
             elif instruction == PRN:
                 print(self.reg[reg_a])
