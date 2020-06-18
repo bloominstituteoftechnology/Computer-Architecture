@@ -59,7 +59,7 @@ but you'll have to implement those three above instructions first!
 
 ## Step 0: IMPORTANT: inventory what is here!
 
-* Make a list of files here.
+* Make a list of files here.~~~~
 asmfolder - where programs are stored
 cpu.py
     holds the CPU class

@@ -10,9 +10,27 @@ class CPU:
         self.reg = [0] * 8
         self.pc = 0
         self.running = False
-        self.LDI = 0b10000010
-        self.PRN = 0b01000111
-        self.HLT = 0b00000001
+        self.branch_table = {
+            0b10000010: self.LDI,
+            0b01000111: self.PRN,
+            0b10100010: self.MULT,
+            0b00000001: self.HLT
+        }
+
+    def LDI(self):
+        reg_num = self.ram_read(self.pc+1)
+        value = self.ram_read(self.pc+2)
+        self.reg[reg_num] = value
+
+    def PRN(self):
+        reg_num = self.ram_read(self.pc+1)
+        print(self.reg[reg_num])
+
+    def HLT(self):
+        self.running = False
+
+    def MULT(self):
+        self.alu('MULT', self.pc+1, self.pc+2)
 
     def ram_read(self, index):
         return self.ram[index]
@@ -20,34 +38,25 @@ class CPU:
     def ram_write(self, index, value):
         self.ram[index] = value
 
-    def load(self):
+    def load(self, f):
         """Load a program into memory."""
-
+        file_path = f
+        program = open(f"{file_path}", "r")
         address = 0
-
-        # For now, we've just hardcoded a program:
-
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
-
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+        for line in program:
+            if line[0] == "0" or line[0] == "1":
+                command = line.split("#", 1)[0]
+                self.ram[address] = int(command, 2)
+                address += 1
 
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
 
         if op == "ADD":
-            self.reg[reg_a] += self.reg[reg_b]
-        #elif op == "SUB": etc
+            self.reg[self.pc+1] += self.reg[self.pc+2]
+        elif op == "MULT":
+            self.reg[self.ram[reg_a]] *= self.reg[self.ram[reg_b]]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -73,21 +82,13 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        running = True
-        while running:
+        self.running = True
+        while self.running:
             ir = self.ram[self.pc]
-            if ir == self.LDI:
-                reg_num = self.ram[self.pc+1]
-                value = self.ram[self.pc+2]
-                self.reg[reg_num] = value
-                self.pc += 3
-            elif ir == self.PRN:
-                reg_num = self.ram[self.pc+1]
-                print(self.reg[reg_num])
-                self.pc +=2
-            elif ir == self.HLT:
-                running = False
-                self.pc +=1
-            else:
+            if ir not in self.branch_table:
                 print(f'Unkown instruction {ir} at address {self.pc}')
                 sys.exit(1)
+            self.branch_table[ir]()
+            params = (ir & 0b11000000) >> 6
+            self.pc += params + 1
+            
