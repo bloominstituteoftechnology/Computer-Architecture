@@ -10,27 +10,38 @@ class CPU:
         self.reg = [0] * 8
         self.pc = 0
         self.running = False
-        self.branch_table = {
+    
+    def call_stack(self, func):
+        branch_table = {
             0b10000010: self.LDI,
             0b01000111: self.PRN,
             0b10100010: self.MULT,
             0b00000001: self.HLT
         }
+        if func in branch_table:
+            branch_table[func]()
+        else:
+            print('invalid function')
+            sys.exit(1)
 
     def LDI(self):
         reg_num = self.ram_read(self.pc+1)
         value = self.ram_read(self.pc+2)
         self.reg[reg_num] = value
+        self.pc += 3
 
     def PRN(self):
         reg_num = self.ram_read(self.pc+1)
         print(self.reg[reg_num])
+        self.pc += 2
 
     def HLT(self):
         self.running = False
+        self.pc += 1
 
     def MULT(self):
         self.alu('MULT', self.pc+1, self.pc+2)
+        self.pc += 3
 
     def ram_read(self, index):
         return self.ram[index]
@@ -85,10 +96,4 @@ class CPU:
         self.running = True
         while self.running:
             ir = self.ram[self.pc]
-            if ir not in self.branch_table:
-                print(f'Unkown instruction {ir} at address {self.pc}')
-                sys.exit(1)
-            self.branch_table[ir]()
-            params = (ir & 0b11000000) >> 6
-            self.pc += params + 1
-            
+            self.call_stack(ir)
