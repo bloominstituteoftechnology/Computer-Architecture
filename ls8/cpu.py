@@ -2,6 +2,8 @@
 
 import sys
 
+
+
 class CPU:
     """Main CPU class."""
 
@@ -10,6 +12,19 @@ class CPU:
         self.ram = [0] * 256 # memory of 256 bit
         self.program_counter = 0
         self.running = False 
+        # class variable for branch table
+        instruction_branch_table = {
+            LDI : 0b10000010,
+            PRN : 0b01000111,
+            HLT : 0b00000001,
+            MULT : 0b10100010,
+            PUSH : 0b01000101,
+            POP : 0b01000110,
+            CALL : 0b01010000,
+            RET : 0b00010001,
+            SP : 7
+
+        }
     def load(self):
         program = f.readlines()
         for line in program:
