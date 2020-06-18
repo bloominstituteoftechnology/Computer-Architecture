@@ -139,8 +139,10 @@ class CPU:
                 self.pc += 2
 
             elif ir == POP:
+                # get the value of SP and overwrite next register
                 value = self.ram_read(self.reg[SP])
                 self.reg[operand_a] = value
+                # increment SP
                 self.reg[SP] += 1
                 self.pc += 2
 
