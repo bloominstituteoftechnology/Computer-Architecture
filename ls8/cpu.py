@@ -267,7 +267,7 @@ class CPU:
                 # return our address:
                 self.pc = return_address
             else:
-                print(" print(f'unknown instruction {instruction} at address {IR}")
+                print(f"unknown instruction {instruction} at address {IR}")
                 print(f"Our program counter value is: {self.pc}")
                 print(f"The command issued was: {self.ram_read(self.pc)}")
                 sys.exit(1)
