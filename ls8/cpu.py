@@ -18,6 +18,7 @@ class CPU:
         """Construct a new CPU."""
         self.ram = [0]*256
         self.reg = [0] * 8
+        self.fl = 0b00000000
         self.pc = 0
         self.sp = 0xF3
         self.is_run = False
@@ -43,11 +44,12 @@ class CPU:
 
         for inst in prog:
             # print("Inst: ", inst)
-            if "1" in inst or "0" in inst:
-                inst = inst[slice(8)]
-                # inst = inst[0]
-                self.ram[address] = int(inst, 2)
-                address += 1
+            if inst[0] != "#":
+                if "1" in inst or "0" in inst:
+                    inst = inst[slice(8)]
+                    # inst = inst[0]
+                    self.ram[address] = int(inst, 2)
+                    address += 1
 
         # print("RAM: ", self.ram)
         # print(f"Sp: {self.sp} Reg Len: {len(self.reg)}")
@@ -74,6 +76,17 @@ class CPU:
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
         # elif op == "SUB": etc
+        if op == "CMP":
+            if reg_a == reg_b:
+                self.fl = 0b00000001
+                print(f"ALU flag: {self.fl}")
+
+            if reg_a > reg_b:
+                self.fl = 0b00000100
+
+            else:
+                self.fl = 0b00000010
+
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -100,13 +113,14 @@ class CPU:
     def LDI(self):
         reg_index = self.ram[self.pc + 1]
         value = self.ram[self.pc + 2]
-
+        # print("LDI")
         self.reg[reg_index] = value
         # self.ram_write(
         #     self.ram[self.pc + 1], self.ram[self.pc + 2])
         # print(self.ram[])
         # print("PC + 1: ", self.ram[self.pc + 1])
         # print("PC + 2: ", self.ram[self.pc + 2])
+        # print(f"Value: {value}")
         # print(f"REG: {self.reg}")
         self.pc += 3
         # run = False
@@ -182,7 +196,26 @@ class CPU:
         # self.HLT()
 
     def CMP(self):
-        pass
+        """
+        comepare 2 given regs
+        set flags according to the out put
+        reg_a === reg_b = flag  E to 1 or 0
+        reg_a < reg_b = flag L to 1 or 0
+        reg_a > reg_b = flag G to 1 or 0
+        """
+        # print("CMP")
+        reg_a = self.reg[self.ram[self.pc + 1]]
+        # print(f"reg_a: {reg_a}")
+        reg_b = self.reg[self.ram[self.pc + 2]]
+        # print(f"reg_b: {reg_b}")
+
+        if reg_a == reg_b:
+            self.fl = 1
+        else:
+            self.fl = 0
+        # self.fl = 0x00
+        # self.alu("CMP", reg_a, reg_b)
+        self.pc += 3
 
     def DEC(self):
         pass
@@ -200,7 +233,22 @@ class CPU:
         pass
 
     def JEQ(self):
-        pass
+        """
+        if the Equal flag is true (0b00000001)
+        then jump to the register
+        """
+        # print("JEQ")
+        # print(f"FLAG: {self.fl}")
+        mask = 0b00000001
+        a = self.fl & mask
+        # print(f"A: {a}")
+
+        if a == 0b00000001:
+            # print("we jump")
+            self.pc = self.reg[self.ram[self.pc + 1]]
+        else:
+            # print("we dont jump")
+            self.pc += 2
 
     def JGE(self):
         pass
@@ -215,9 +263,27 @@ class CPU:
         pass
 
     def JMP(self):
-        pass
+        # print("JMP")
+        self.pc = self.reg[self.ram[self.pc + 1]]
 
     def JNE(self):
+        """
+        jump to given register if E flag is false
+        mask with &
+        itll equal eaither 0 or 2
+        """
+        # print("JNE")
+        mask = 0b00000001
+        a = self.fl & mask
+        # print(f"A: {a}")
+
+        if a == 0b00000000:
+            # print("we jump")
+            self.pc = self.reg[self.ram[self.pc + 1]]
+        else:
+            # print("we dont jump")
+            self.pc += 2
+
         pass
 
     def LD(self):
