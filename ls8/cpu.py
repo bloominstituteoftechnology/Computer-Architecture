@@ -30,6 +30,9 @@ class CPU:
             self.ram[address] = instruction
             address += 1
 
+    # load instruction from first
+    # value
+    # 
     def LDI(self):
         reg_num = reg[program_counter]
         pass 
@@ -54,6 +57,8 @@ class CPU:
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
         #elif op == "SUB": etc
+        elif op == "MULT":
+            self.reg[reg_a] *= self.reg[reg_b]    
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -81,4 +86,6 @@ class CPU:
     def run(self):
         running = True
 
-        instruction_register = self.register
+        while running:
+
+            if 
