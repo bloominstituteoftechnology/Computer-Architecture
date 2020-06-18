@@ -11,5 +11,3 @@ program = sys.argv[1]
 cpu.load(program)
 
 cpu.run()
-
-print(cpu.ram[:15])

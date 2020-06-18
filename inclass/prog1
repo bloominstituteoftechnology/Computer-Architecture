@@ -1,0 +1,13 @@
+3    # SAVE_REG R1,37
+1  
+99 
+3    # SAVE_REG R2, 11
+2  
+11 
+5    # ADD R1, R2  register[1] += register[2]
+1
+2
+4    # PRINT_BEEJ
+1
+1    # PRINT_BEEJ
+HALT
