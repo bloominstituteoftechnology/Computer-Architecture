@@ -11,25 +11,17 @@ class CPU:
         self.program_counter = 0
         self.running = False 
     def load(self):
-        """Load a program into memory."""
+        program = f.readlines()
+        for line in program:
+            line = line.split('#')
+            instruction = line[0].split()
 
-        address = 0
+            if instruction is not None:
 
-        # For now, we've just hardcoded a program:
-
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
-
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+                self.ram[address] = int(instruction, 2)
+                address += 1
+            else:
+                continue
 
     # load instruction from first
     # value
@@ -85,6 +77,18 @@ class CPU:
             print(" %02X" % self.reg[i], end='')
 
         print()
+
+    # hard coded program
+        #     # program = [
+        #     # From print8.ls8           #     # From print8.ls8
+        #     0b10000010,  # LDI R0,8         #     0b10000010,  # LDI R0,8
+        #     0b00000000,  # NOP: Do nothing for this instruction.            #     0b00000000,  # NOP: Do nothing for this instruction.
+        #     0b00001000,  # this is the number 8         #     0b00001000,  # this is the number 8
+        #     0b01000111,  # PRN R0           #     0b01000111,  # PRN R0
+        #     0b00000000,  # NOP: Do nothing for this instruction.            #     0b00000000,  # NOP: Do nothing for this instruction.
+        #     0b00000001,  # HLT          #     0b00000001,  # HLT
+        # ]           # ]
+
 
     # execute the instructions stored in self.ram 
     def run(self):
