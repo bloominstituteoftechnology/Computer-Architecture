@@ -19,8 +19,9 @@ class CPU:
         self.ram = [0]*256
         self.reg = [0] * 8
         self.pc = 0
-        self.sp = len(self.reg) - 1
+        self.sp = 0xF3
         self.is_run = False
+        self.call_flag = False
         pass
 
     def ram_read(self, mar):
@@ -97,8 +98,12 @@ class CPU:
         print()
 
     def LDI(self):
-        self.ram_write(
-            self.ram[self.pc + 1], self.ram[self.pc + 2])
+        reg_index = self.ram[self.pc + 1]
+        value = self.ram[self.pc + 2]
+
+        self.reg[reg_index] = value
+        # self.ram_write(
+        #     self.ram[self.pc + 1], self.ram[self.pc + 2])
         # print(self.ram[])
         # print("PC + 1: ", self.ram[self.pc + 1])
         # print("PC + 2: ", self.ram[self.pc + 2])
@@ -130,7 +135,7 @@ class CPU:
         # take from the stack and add it to the reg location
         # weird cause they both are  in reg
         # top parts of reg is stack
-        value = self.reg[self.sp]
+        value = self.ram[self.sp]
         self.reg[self.ram[self.pc + 1]] = value
         # print(f"REG: {self.reg}")
         # print(
@@ -138,16 +143,128 @@ class CPU:
         self.sp += 1
         self.pc += 2
 
-    def PSH(self):
+    def PSH(self, inc=True):
+
         self.sp -= 1
         # print(f"Sp: {self.sp}")
-        # write the value in ram at pc to the stack (top parts of reg)
+        # write the value in ram at pc to the stack (top parts of RAM)
         # save ram value to stack
         value = self.reg[self.ram[self.pc + 1]]
-        self.reg[self.sp] = value
+        self.ram[self.sp] = value
         # print(f"REG: {self.reg}")
         # print(f"You have PUSHED V:{value} to R: {self.sp}")
+        if inc:
+            self.pc += 2
+
+    def ADD(self):
+        reg_a = self.ram[self.pc + 1]
+        reg_b = self.ram[self.pc + 2]
+        self.alu("ADD", reg_a, reg_b)
+        self.pc += 3
+
+    def AND(self):
+        pass
+
+    def CALL(self):
+        """
+        push curent pc to stack, so we can return later
+            we do not want to inc the pc while pushing
+        set pc to the address in the given register...
+        register will hold a location that points to 
+        somewhere in ram, we will go there and do the things
+        .....value is stored in a reg
+        """
+        self.sp -= 1
+        self.ram[self.sp] = self.pc
+        # print(f"RAM AT : {self.sp} is set to : {self.pc + 1}")
+        # print(f"PC is being set to: {self.reg[self.ram[self.pc + 1]]}")
+        self.pc = self.reg[self.ram[self.pc + 1]]
+        # self.HLT()
+
+    def CMP(self):
+        pass
+
+    def DEC(self):
+        pass
+
+    def DIV(self):
+        pass
+
+    def INC(self):
+        pass
+
+    def INT(self):
+        pass
+
+    def IRET(self):
+        pass
+
+    def JEQ(self):
+        pass
+
+    def JGE(self):
+        pass
+
+    def JGT(self):
+        pass
+
+    def JLE(self):
+        pass
+
+    def JLT(self):
+        pass
+
+    def JMP(self):
+        pass
+
+    def JNE(self):
+        pass
+
+    def LD(self):
+        pass
+
+    def MOD(self):
+        pass
+
+    def NOP(self):
+        pass
+
+    def NOT(self):
+        pass
+
+    def OR(self):
+        pass
+
+    def PRA(self):
+        pass
+
+    def RET(self):
+        """
+        retrive are saved location, should be in stack
+        and set the to pc
+        inc pc 2 so we dont run call again.
+        dec sp becuase we are poppin lockin
+        """
+        self.pc = self.ram[self.sp]
         self.pc += 2
+        self.sp -= 1
+
+        pass
+
+    def SHL(self):
+        pass
+
+    def SHR(self):
+        pass
+
+    def ST(self):
+        pass
+
+    def SUB(self):
+        pass
+
+    def XLA(self):
+        pass
 
     def call_func(self, n):
         func_stack = {
@@ -157,6 +274,34 @@ class CPU:
             0b10100010: self.MUL,
             0b01000110: self.POP,
             0b01000101: self.PSH,
+            0b10100000: self.ADD,
+            0b10101000: self.AND,
+            0b01010000: self.CALL,
+            0b10100111: self.CMP,
+            0b01100110: self.DEC,
+            0b10100011: self.DIV,
+            0b01100101: self.INC,
+            0b01010010: self.INT,
+            0b00010011: self.IRET,
+            0b01010101: self.JEQ,
+            0b01011010: self.JGE,
+            0b01010111: self.JGT,
+            0b01011001: self.JLE,
+            0b01011000: self.JLT,
+            0b01010100: self.JMP,
+            0b01010110: self.JNE,
+            0b10000011: self.LD,
+            0b10100100: self.MOD,
+            0b00000000: self.NOP,
+            0b01101001: self.NOT,
+            0b10101010: self.OR,
+            0b01001000: self.PRA,
+            0b00010001: self.RET,
+            0b10101100: self.SHL,
+            0b10101101: self.SHR,
+            0b10000100: self.ST,
+            0b10100001: self.SUB,
+            0b10101011: self.XLA
 
         }
         if n in func_stack:

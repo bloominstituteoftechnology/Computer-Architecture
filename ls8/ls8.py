@@ -7,7 +7,7 @@ import re
 from cpu import *
 
 cpu = CPU()
-cpu.load("examples/stack.ls8")
+cpu.load("examples/call.ls8")
 cpu.run()
 
 # prog_file = "examples/print8.ls8"
