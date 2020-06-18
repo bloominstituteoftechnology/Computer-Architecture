@@ -2,7 +2,7 @@
 
 import sys
 
-
+    
 
 class CPU:
     """Main CPU class."""
@@ -95,15 +95,14 @@ class CPU:
 
     # hard coded program
         #     # program = [
-        #     # From print8.ls8           #     # From print8.ls8
-        #     0b10000010,  # LDI R0,8         #     0b10000010,  # LDI R0,8
-        #     0b00000000,  # NOP: Do nothing for this instruction.            #     0b00000000,  # NOP: Do nothing for this instruction.
-        #     0b00001000,  # this is the number 8         #     0b00001000,  # this is the number 8
-        #     0b01000111,  # PRN R0           #     0b01000111,  # PRN R0
-        #     0b00000000,  # NOP: Do nothing for this instruction.            #     0b00000000,  # NOP: Do nothing for this instruction.
-        #     0b00000001,  # HLT          #     0b00000001,  # HLT
-        # ]           # ]
-
+        #     # From print8.ls8          
+        #     0b10000010,  # LDI R0,8         
+        #     0b00000000,  # NOP: Do nothing for this instruction.            
+        #     0b00001000,  # this is the number 8        
+        #     0b01000111,  # PRN R0          
+        #     0b00000000,  # NOP: Do nothing for this instruction.          
+        #     0b00000001,  # HLT         
+        # ]          
 
     # execute the instructions stored in self.ram 
     def run(self):
@@ -113,18 +112,18 @@ class CPU:
 
             IR = self.ram_read(self.program_counter)
 
-            if IR == 0b10000010:
+            if IR == 0b10000010: #LDI
                 operand_a = self.ram_read(self.program_counter + 1)
                 operand_b = self.ram_read(self.program_counter + 2)
                 self.ram_write(operand_b, operand_a)
                 self.program_counter += 3
-            elif IR == 0b01000111:
+            elif IR == 0b01000111: #PRN
                 operand_a = self.ram_read(self.program_counter + 1)
                 self.ram_write(operand_b, operand_a)
                 print(f'printing... {self.ram[operand_a]}')           
                 self.program_counter += 2
 
-            elif IR == 0b00000001:
+            elif IR == 0b00000001: #HLT
                 self.running = False
                 print("Program Halted")
             else:
