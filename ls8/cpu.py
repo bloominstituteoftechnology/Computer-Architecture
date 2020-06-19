@@ -12,12 +12,14 @@ PUSH = 0b01000101 # 69
 POP = 0b01000110 # 70
 CALL = 0b01010000 # 80
 RET = 0b00010001 # 17 
+CMP = 0b10100111 # 167  
 
 class CPU:
     """Main CPU class."""
 
     def __init__(self):
         """Construct a new CPU."""
+        self.equal_flag = 0b00000000 # equal flag 
         self.SP = 7 # stack pointer
         self.pc = 0 # program counter
         self.reg = [0] * 8 # 8 registers
@@ -111,6 +113,21 @@ class CPU:
     def alu(self, op, reg_a: int, reg_b: int) -> int:
         """ALU operations."""
         if op == "ADD":
+        ### CMP
+
+# *This is an instruction handled by the ALU.*
+
+# `CMP registerA registerB`
+
+# Compare the values in two registers.
+
+# * If they are equal, set the Equal `E` flag to 1, otherwise set it to 0.
+
+# * If registerA is less than registerB, set the Less-than `L` flag to 1,
+#   otherwise set it to 0.
+
+# * If registerA is greater than registerB, set the Greater-than `G` flag
+#   to 1, otherwise set it to 0.
             self.reg[reg_a] += self.reg[reg_b] 
         elif op == "MUL":
             self.reg[reg_a] *= self.reg[reg_b]
