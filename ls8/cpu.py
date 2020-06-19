@@ -63,3 +63,10 @@ class CPU:
     def run(self):
         """Run the CPU."""
         pass
+
+#UPER:
+#Notes for sprint challenge/ Goals Accomplished
+#Create branch for PR 
+#Succesfully answered 3/3 CS interview questions with at least 2 questions being a sure 3.
+#Complete the FAQ, and LS8 Readme, 
+# I will continue to work on this sprint over the weekend until succesful completion. 
