@@ -47,7 +47,7 @@ class CPU:
         ALL OF THESE FUNCTIONS TAKE 2 args because it makes the load and run 
         functions work more smoothly although most do not actually use 2 args
     """
-    # LOAD
+    # LOAD b into register a 
     def LDI(self, operand_a: int, operand_b: int) -> None:
         self.reg[operand_a] = operand_b
 
@@ -138,27 +138,24 @@ class CPU:
                 address += 1
 
     # math operations on A and B, storing and returning from A
+    # registers limited to 8 bits, 0-255, so bitwise AND with 255 to do modulus 
     def alu(self, op, reg_a: int, reg_b: int) -> int:
         """ALU operations."""
         if op == "ADD":
-            self.reg[reg_a] += self.reg[reg_b] 
-        elif op == "CMP":
-# Compare the values in two registers.
-# `FL` bits: `00000LGE`
-# * `L` Less-than: during a `CMP`, set to 1 if registerA is less than registerB,
-#   zero otherwise.
-# * `G` Greater-than: during a `CMP`, set to 1 if registerA is greater than
-#   registerB, zero otherwise.
-# * `E` Equal: during a `CMP`, set to 1 if registerA is equal to registerB, zero
-#   otherwise.
+            self.reg[reg_a] += self.reg[reg_b]
+            self.reg[reg_a] = self.reg[reg_a] & 0xFF
+        elif op == "MUL":
+            self.reg[reg_a] *= self.reg[reg_b]
+            self.reg[reg_a] = self.reg[reg_a] & 0xFF
+ 
+        elif op == "CMP": # Compare the values in two registers. `FL` bits: `00000LGE`
             if self.reg[reg_a] == self.reg[reg_b]:
                 self.FL = 0b00000001
             elif self.reg[reg_a] < self.reg[reg_b]:
                 self.FL = 0b00000100
             else:
                 self.FL = 0b00000010 
-        elif op == "MUL":
-            self.reg[reg_a] *= self.reg[reg_b]
+
         else:
             raise Exception("Unsupported ALU operation")
 
