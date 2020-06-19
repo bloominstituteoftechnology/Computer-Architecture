@@ -19,10 +19,11 @@ class CPU:
     def __init__(self):
         """Construct a new CPU."""
         self.SP = 7 # stack pointer
-        self.pc = 0
-        self.reg = [0] * 8
-        self.ram = [0] * 256
+        self.pc = 0 # program counter
+        self.reg = [0] * 8 # 8 registers
+        self.ram = [0] * 256 # 256 ram storage
         self.running = True
+        # table of op codes to functions defined below 
         self.instructions = {
             LDI: self.LDI,
             PRN: self.PRN,
