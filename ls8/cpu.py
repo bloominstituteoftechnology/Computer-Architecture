@@ -140,6 +140,7 @@ class CPU:
             
             self.reg[self.sp] = self.reg[self.sp] + 1
             self.pc = reg_value 
+        # sprint related code
 
         elif op == 'CMP':
             
