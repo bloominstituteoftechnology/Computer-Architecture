@@ -7,7 +7,7 @@ import re
 from cpu import *
 
 cpu = CPU()
-cpu.load("examples/sctest.ls8")
+cpu.load(sys.argv[1])
 cpu.run()
 
 # prog_file = "examples/print8.ls8"

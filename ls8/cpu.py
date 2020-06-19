@@ -181,7 +181,7 @@ class CPU:
 
     def CALL(self):
         """
-        push curent pc to stack, so we can return later
+        push current pc to stack, so we can return later
             we do not want to inc the pc while pushing
         set pc to the address in the given register...
         register will hold a location that points to 
@@ -240,10 +240,11 @@ class CPU:
         # print("JEQ")
         # print(f"FLAG: {self.fl}")
         mask = 0b00000001
+
         a = self.fl & mask
         # print(f"A: {a}")
 
-        if a == 0b00000001:
+        if a:
             # print("we jump")
             self.pc = self.reg[self.ram[self.pc + 1]]
         else:
