@@ -19,7 +19,7 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        self.fl = 0b00000000 # equal flag 
+        self.FL = 0b00000000 # equal flag 
         self.SP = 7 # stack pointer
         self.pc = 0 # program counter
         self.reg = [0] * 8 # 8 registers
@@ -35,7 +35,8 @@ class CPU:
             POP: self.POP,
             HLT: self.HLT,
             CALL: self.CALL,
-            RET: self.RET
+            RET: self.RET,
+            CMP: self.CMP
         }
     """
         ALL OF THESE FUNCTIONS TAKE 2 args because it makes the load and run 
@@ -91,6 +92,9 @@ class CPU:
     def HLT(self, operand_a: int, operand_b: int) -> None:
         self.running = False
 
+    def CMP(self, operand_a: int, operand_b: int) -> None:
+        self.alu('CMP', operand_a, operand_b)
+
     def load(self, filename) -> None:
         """Load a program into memory."""
 
@@ -113,22 +117,31 @@ class CPU:
     def alu(self, op, reg_a: int, reg_b: int) -> int:
         """ALU operations."""
         if op == "ADD":
-        ### CMP
-
+            self.reg[reg_a] += self.reg[reg_b] 
+        elif op == "CMP":
+### CMP
 # *This is an instruction handled by the ALU.*
-
 # `CMP registerA registerB`
-
 # Compare the values in two registers.
-
 # * If they are equal, set the Equal `E` flag to 1, otherwise set it to 0.
-
 # * If registerA is less than registerB, set the Less-than `L` flag to 1,
 #   otherwise set it to 0.
-
 # * If registerA is greater than registerB, set the Greater-than `G` flag
 #   to 1, otherwise set it to 0.
-            self.reg[reg_a] += self.reg[reg_b] 
+# `FL` bits: `00000LGE`
+
+# * `L` Less-than: during a `CMP`, set to 1 if registerA is less than registerB,
+#   zero otherwise.
+# * `G` Greater-than: during a `CMP`, set to 1 if registerA is greater than
+#   registerB, zero otherwise.
+# * `E` Equal: during a `CMP`, set to 1 if registerA is equal to registerB, zero
+#   otherwise.
+            if self.reg[reg_a] == self.reg[reg_b]:
+                self.FL = 0b00000001
+            elif self.reg[reg_a] < self.reg[reg_b]:
+                self.FL = 0b00000100
+            else:
+                self.FL = 0b00000010 
         elif op == "MUL":
             self.reg[reg_a] *= self.reg[reg_b]
         else:
