@@ -13,7 +13,7 @@ POP = 0b01000110 # 70
 CALL = 0b01010000 # 80
 RET = 0b00010001 # 17 
 CMP = 0b10100111 # 167  
-
+JMP = 0b01010100 # 84 
 class CPU:
     """Main CPU class."""
 
@@ -36,7 +36,8 @@ class CPU:
             HLT: self.HLT,
             CALL: self.CALL,
             RET: self.RET,
-            CMP: self.CMP
+            CMP: self.CMP,
+            JMP: self.JMP
         }
     """
         ALL OF THESE FUNCTIONS TAKE 2 args because it makes the load and run 
@@ -94,6 +95,11 @@ class CPU:
 
     def CMP(self, operand_a: int, operand_b: int) -> None:
         self.alu('CMP', operand_a, operand_b)
+    
+    # Jump to the address stored in the given register.
+    def JMP(self, operand_a: int, operand_b: int) -> None:
+# Set the `PC` to the address stored in the given register.
+        self.pc = self.reg[operand_a]
 
     def load(self, filename) -> None:
         """Load a program into memory."""
