@@ -13,7 +13,9 @@ POP = 0b01000110 # 70
 CALL = 0b01010000 # 80
 RET = 0b00010001 # 17 
 CMP = 0b10100111 # 167  
-JMP = 0b01010100 # 84 
+JMP = 0b01010100 # 84
+JEQ = 0b01010101 # 85
+JNE = 0b01010110 # 86  
 class CPU:
     """Main CPU class."""
 
@@ -37,7 +39,9 @@ class CPU:
             CALL: self.CALL,
             RET: self.RET,
             CMP: self.CMP,
-            JMP: self.JMP
+            JMP: self.JMP,
+            JEQ: self.JEQ,
+            JNE: self.JNE
         }
     """
         ALL OF THESE FUNCTIONS TAKE 2 args because it makes the load and run 
@@ -98,9 +102,23 @@ class CPU:
     
     # Jump to the address stored in the given register.
     def JMP(self, operand_a: int, operand_b: int) -> None:
-# Set the `PC` to the address stored in the given register.
+        # Set the `PC` to the address stored in the given register.
         self.pc = self.reg[operand_a]
 
+        # If `equal` flag is set (true), jump to the address stored in the given register.
+        # Else, we have to increment PC by 2 to go to next instruction (THIS SHOULD BE IN THE SPEC)
+    def JEQ(self, operand_a: int, operand_b: int) -> None:
+        if self.FL & 0b1 == 1:
+            self.pc = self.reg[operand_a]
+        else:
+            self.pc += 2 
+        # If `E` flag is clear (false, 0), jump to the address stored in the given register.
+        # Else, we have to increment PC by 2 to go to next instruction (THIS SHOULD BE IN THE SPEC)
+    def JNE(self, operand_a: int, operand_b: int) -> None:
+        if self.FL & 0b1 == 0:
+            self.pc = self.reg[operand_a]
+        else:
+            self.pc += 2 
     def load(self, filename) -> None:
         """Load a program into memory."""
 
@@ -125,17 +143,8 @@ class CPU:
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b] 
         elif op == "CMP":
-### CMP
-# *This is an instruction handled by the ALU.*
-# `CMP registerA registerB`
 # Compare the values in two registers.
-# * If they are equal, set the Equal `E` flag to 1, otherwise set it to 0.
-# * If registerA is less than registerB, set the Less-than `L` flag to 1,
-#   otherwise set it to 0.
-# * If registerA is greater than registerB, set the Greater-than `G` flag
-#   to 1, otherwise set it to 0.
 # `FL` bits: `00000LGE`
-
 # * `L` Less-than: during a `CMP`, set to 1 if registerA is less than registerB,
 #   zero otherwise.
 # * `G` Greater-than: during a `CMP`, set to 1 if registerA is greater than
@@ -173,7 +182,7 @@ class CPU:
 
         print(f"TRACE: %02X | %02X %02X %02X |" % (
             self.pc,
-            #self.fl,
+            self.FL,
             #self.ie,
             self.ram_read(self.pc),
             self.ram_read(self.pc + 1),
@@ -190,6 +199,7 @@ class CPU:
 
         while self.running is True:
             IR = self.ram_read(self.pc)
+            self.trace()
             """
             Conveniently:
                 op codes under 63 have an instruction length of 0 + 1
