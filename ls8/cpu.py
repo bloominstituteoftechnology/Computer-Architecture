@@ -79,7 +79,6 @@ class CPU:
     def OR(self, operand_a:int, operand_b: int) -> int:
         self.alu('OR', operand_a, operand_b)
 
-
     def PUSH(self, operand_a: int, operand_b: int) -> None:
         # decrement self.SP (stack pointer)
         self.reg[self.SP] -= 1
@@ -237,7 +236,7 @@ class CPU:
                 self.instructions[IR](operand_a, operand_b)
             else:
                 print("Invalid instruction")
-            if not IR & 0b00010000: # increment program counter when not HALT which is the only bitwise AND that returns non zero
+            if not IR & 0b00010000: # increment program counter except in case of JNE, JEQ, RET 
                 self.pc += instruction_length
 
             # self.pc += instruction_length
