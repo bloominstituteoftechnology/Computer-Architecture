@@ -15,7 +15,10 @@ RET = 0b00010001 # 17
 CMP = 0b10100111 # 167  
 JMP = 0b01010100 # 84
 JEQ = 0b01010101 # 85
-JNE = 0b01010110 # 86  
+JNE = 0b01010110 # 86
+XOR = 0b10101011 # 171
+AND = 0b10101000 # 168
+OR =  0b10101010 # 170
 class CPU:
     """Main CPU class."""
 
@@ -41,7 +44,10 @@ class CPU:
             CMP: self.CMP,
             JMP: self.JMP,
             JEQ: self.JEQ,
-            JNE: self.JNE
+            JNE: self.JNE,
+            XOR: self.XOR,
+            AND: self.AND,
+            OR: self.OR 
         }
     """
         ALL OF THESE FUNCTIONS TAKE 2 args because it makes the load and run 
@@ -62,7 +68,18 @@ class CPU:
     # call ALU integer multiply
     def MUL(self, operand_a: int, operand_b: int) -> int:
         self.alu('MUL', operand_a, operand_b)
-    
+
+    # call ALU XOR
+    def XOR(self, operand_a:int, operand_b: int) -> int:
+        self.alu('XOR', operand_a, operand_b)
+    # call ALU AND
+    def AND(self, operand_a:int, operand_b: int) -> int:
+        self.alu('AND', operand_a, operand_b)
+    # call ALU OR
+    def OR(self, operand_a:int, operand_b: int) -> int:
+        self.alu('OR', operand_a, operand_b)
+
+
     def PUSH(self, operand_a: int, operand_b: int) -> None:
         # decrement self.SP (stack pointer)
         self.reg[self.SP] -= 1
@@ -107,6 +124,7 @@ class CPU:
 
         # If `equal` flag is set (true), jump to the address stored in the given register.
         # Else, we have to increment PC by 2 to go to next instruction (THIS SHOULD BE IN THE SPEC)
+        # since otherwise all it does is equivalent to pass 
     def JEQ(self, operand_a: int, operand_b: int) -> None:
         if self.FL & 0b1 == 1:
             self.pc = self.reg[operand_a]
@@ -114,22 +132,23 @@ class CPU:
             self.pc += 2 
         # If `E` flag is clear (false, 0), jump to the address stored in the given register.
         # Else, we have to increment PC by 2 to go to next instruction (THIS SHOULD BE IN THE SPEC)
+        # since otherwise all it does is equivalent to pass 
     def JNE(self, operand_a: int, operand_b: int) -> None:
         if self.FL & 0b1 == 0:
             self.pc = self.reg[operand_a]
         else:
-            self.pc += 2 
+            self.pc += 2
+
+
+
     def load(self, filename) -> None:
         """Load a program into memory."""
-
         address = 0
-
         with open(filename, 'r') as f:
             program = f.readlines()
             for line in program:
                 line = line.split('#')
                 line = line[0].strip()
-
                 if line == '':
                     continue
                 # convert to binary and save to ram
@@ -147,7 +166,6 @@ class CPU:
         elif op == "MUL":
             self.reg[reg_a] *= self.reg[reg_b]
             self.reg[reg_a] = self.reg[reg_a] & 0xFF
- 
         elif op == "CMP": # Compare the values in two registers. `FL` bits: `00000LGE`
             if self.reg[reg_a] == self.reg[reg_b]:
                 self.FL = 0b00000001
@@ -155,7 +173,15 @@ class CPU:
                 self.FL = 0b00000100
             else:
                 self.FL = 0b00000010 
-
+        elif op == "XOR":
+            self.reg[reg_a] ^= self.reg[reg_b]
+            self.reg[reg_a] = self.reg[reg_a] & 0xFF
+        elif op == "AND":
+            self.reg[reg_a] &= self.reg[reg_b]
+            self.reg[reg_a] = self.reg[reg_a] & 0xFF
+        elif op == "OR":
+            self.reg[reg_a] |= self.reg[reg_b]
+            self.reg[reg_a] = self.reg[reg_a] & 0xFF            
         else:
             raise Exception("Unsupported ALU operation")
 
