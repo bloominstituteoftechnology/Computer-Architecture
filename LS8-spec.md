@@ -37,7 +37,7 @@ The register is made up of 8 bits. If a particular bit is set, that flag is "tru
   registerB, zero otherwise.
 * `E` Equal: during a `CMP`, set to 1 if registerA is equal to registerB, zero
   otherwise.
-
+        
 
 ## Memory
 
