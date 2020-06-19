@@ -19,7 +19,7 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        self.equal_flag = 0b00000000 # equal flag 
+        self.fl = 0b00000000 # equal flag 
         self.SP = 7 # stack pointer
         self.pc = 0 # program counter
         self.reg = [0] * 8 # 8 registers
