@@ -13,43 +13,49 @@ class CPU:
         self.program_counter = 0
         self.running = False 
         # class variable for branch table
+        # stack pointer starts at 7 
+        stack_pointer = 7 
         instruction_branch_table = {
-            LDI : 0b10000010,
-            PRN : 0b01000111,
-            HLT : 0b00000001,
-            MULT : 0b10100010,
-            PUSH : 0b01000101,
-            POP : 0b01000110,
-            CALL : 0b01010000,
-            RET : 0b00010001,
-            SP : 7
-
+            "LDI" : 0b10000010,
+            "PRN" : 0b01000111,
+            "HLT" : 0b00000001,
+            "MULT" : 0b10100010,
+            "PUSH" : 0b01000101,
+            "POP" : 0b01000110,
+            "CALL" : 0b01010000,
+            "RET" : 0b00010001,
         }
-    def load(self):
-        program = f.readlines()
-        for line in program:
-            line = line.split('#')
-            instruction = line[0].split()
+    def load(self, filename):
+        """ 
+        load a program into ram, use run to run it
 
-            if instruction is not None:
+        """
+        counter = 0 
+        with open(filename, 'r') as f:
+            program = f.readlines()
+            for line in program:
+                line = line.split('#') # ignore comments
+                line = line[0].strip()
 
-                self.ram[address] = int(instruction, 2)
-                address += 1
-            else:
-                continue
-
-    # load instruction from first
-    # value
-    # 
-    def LDI(self):
-        reg_num = reg[program_counter]
-        pass 
-    def PRN(self):
-        reg_num = reg[program_counter] 
-        pass 
+                if line =='': # ignore newlines
+                    continue
+                self.ram[counter] = int(line, 2)
+                counter += 1
+    
+    # load thing at b into register at a        
+    def LDI(self, a, b):
+        self.reg[a] = b 
+    # print contents of thing at a 
+    def PRN(self, a, b):
+        print(f'contents of reg at b {self.reg[a]}')
+    # halt program by set running to False
+    # since run while loop checks for this 
     def HLT(self):
-        reg_num = reg[program_counter]
-        pass 
+        self.running = False
+    def ADD(self, a, b):
+        self.alu("ADD", a, b)
+    def MUL(self, a, b):
+        self.alu("MUL", a, b)
 
 # MAR contains the address that is being read or written to. 
 # he MDR contains> the data that was read or the data to write.
@@ -68,7 +74,7 @@ class CPU:
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
         #elif op == "SUB": etc
-        elif op == "MULT":
+        elif op == "MUL":
             self.reg[reg_a] *= self.reg[reg_b]    
         else:
             raise Exception("Unsupported ALU operation")
