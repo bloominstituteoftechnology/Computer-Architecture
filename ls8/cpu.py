@@ -45,11 +45,21 @@ class CPU:
     def __init__(self):
         """Construct a new CPU."""
         self.ram = [0] * 256
-        self.reg = [0] * 8
+        self.reg = [0] * 7
+        self.reg.append(0xF4)
         self.pc = 0
+        self.fl = 0
         self.dispatch = {
+            0x01: self._hlt,
             0x82: self._ldi,
-            0x47: self._prn
+            0x47: self._prn,
+        }
+        self.alu_dispatch = {
+            0xA0: self._add,
+            0xA1: self._sub,
+            0xA2: self._mul,
+            0xA3: self._div,
+            0xA4: self._mod,
         }
 
     def ram_read(self, address):
@@ -60,33 +70,35 @@ class CPU:
 
     def load(self):
         """Load a program into memory."""
+        if len(sys.argv) < 2:
+            print("ERROR: no filename argument")
+            return
 
         address = 0
 
-        # For now, we've just hardcoded a program:
+        with open(sys.argv[1], 'r') as program_file:
+            for line in program_file:
+                comment_index = line.find('#')
+                if comment_index != -1:
+                    line = line[:comment_index]
+                line = line.strip()
+                if len(line) == 0:
+                    continue
+                self.ram[address] = int(line, 2)
+                address += 1
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
-
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
-
-    def alu(self, op, reg_a, reg_b):
+    def alu(self, ir, reg_a, reg_b):
         """ALU operations."""
 
-        if op == "ADD":
-            self.reg[reg_a] += self.reg[reg_b]
-        #elif op == "SUB": etc
-        else:
+        operation = self.alu_dispatch.get(ir)
+        arg_count = self._arg_count(ir)
+
+        if operation is None:
             raise Exception("Unsupported ALU operation")
+        elif arg_count == 1:
+            operation(reg_a)
+        elif arg_count == 2:
+            operation(reg_a, reg_b)
 
     def trace(self):
         """
@@ -108,29 +120,94 @@ class CPU:
 
         print()
 
+    def _arg_count(self, ir):
+        return ir >> 6
+
     def run(self):
         """Run the CPU."""
         ir = self.ram_read(self.pc)  # instruction register
 
         operand_a = self.ram_read(self.pc + 1)
         operand_b = self.ram_read(self.pc + 2)
-        operation = self.dispatch.get(ir)
-        args = ir >> 6
-       
-        if operation is None or ir == 1:
-            return
-        elif args == 1:
-            operation(operand_a)
-        elif args == 2:
-            operation(operand_a, operand_b)
-        else:
-            operation()
+        args = self._arg_count(ir)
 
-        self.pc += args + 1
+        if ir & 0b00100000:
+            self.alu(ir, operand_a, operand_b)
+        else:
+            operation = self.dispatch.get(ir)
+
+            if operation is None:
+                raise Exception("Unsupported ALU operation")
+                return
+            elif args == 1:
+                operation(operand_a)
+            elif args == 2:
+                operation(operand_a, operand_b)
+            else:
+                operation()
+
+        if not ir & 0b00010000:
+            self.pc += args + 1
+
         self.run()
 
+    def _hlt(self):
+        exit()
+   
     def _ldi(self, reg_address, value):
         self.reg[reg_address] = value
 
     def _prn(self, reg_address):
         print(self.reg[reg_address])
+
+    def _add(self, reg_a, reg_b):
+        self.reg[reg_a] = self.reg[reg_a] + self.reg[reg_b]
+
+    def _sub(self, reg_a, reg_b):
+        self.reg[reg_a] = self.reg[reg_a] - self.reg[reg_b]
+
+    def _mul(self, reg_a, reg_b):
+        self.reg[reg_a] = self.reg[reg_a] * self.reg[reg_b]
+
+    def _div(self, reg_a, reg_b):
+        operand_b = self.reg[reg_b]
+        if operand_b == 0:
+            print("Error: Cannot divide by zero")
+            self._hlt()
+            return
+        self.reg[reg_a] = self.reg[reg_a] / operand_b
+
+    def _mod(self, reg_a, reg_b):
+        operand_b = self.reg[reg_b]
+        if operand_b == 0:
+            print("Error: Cannot divide by zero")
+            self._hlt()
+            return
+        self.reg[reg_a] = self.reg[reg_a] % operand_b
+
+    def _inc(self, op):
+        pass
+
+    def _dec(self, op):
+        pass
+
+    def _cmp(self, op1, op2):
+        pass
+
+    def _and(self, op1, op2):
+        pass
+
+    def _not(self, op1, op2):
+        pass
+
+    def _or(self, op1, op2):
+        pass
+
+    def _xor(self, op1, op2):
+        pass
+
+    def _shl(self, op1, op2):
+        pass
+
+    def _shr(self, op1, op2):
+        pass
