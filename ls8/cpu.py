@@ -22,15 +22,7 @@ class CPU:
         0x82: "LDI",   # set value of register to integer
         0x83: "LD",    # loads regA w/ value at mem address stored in regB
         0x84: "ST",    # store value in regB at address in regA
-        0x45: "PUSH",  # push value in given reg onto stack
-        0x46: "POP",   # pop value at top of stack into given reg
-        0x47: "PRN",   # print numeric value stored in given reg
         0x48: "PRA",   # print alpha char value stored in given reg
-        0xA0: "ADD",   # addition (ALU)
-        0xA1: "SUB",   # subtract (ALU)
-        0xA2: "MUL",   # multiply (ALU)
-        0xA3: "DIV",   # division (ALU)
-        0xA4: "MOD",   # modulo (ALU)
         0x65: "INC",   # increment (ALU)
         0x66: "DEC",   # decrement (ALU)
         0xA7: "CMP",   # comparison (ALU)
@@ -51,10 +43,12 @@ class CPU:
         self.fl = 0  # flags
         self._dispatch = {
             0x01: self._hlt,
-            0x82: self._ldi,
+            0x82: self._ldi,  # load integer
+            0x50: self._call,
+            0x11: self._ret,
+            0x47: self._prn,
             0x45: self._push,
             0x46: self._pop,
-            0x47: self._prn,
         }
         self._alu_dispatch = {
             0xA0: self._add,
@@ -64,6 +58,7 @@ class CPU:
             0xA4: self._mod,
         }
         self.sp = 0xF3  # stack pointer
+        self.running = False
 
     def ram_read(self, address):
         return self.ram[address]
@@ -128,34 +123,34 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        ir = self.ram_read(self.pc)  # instruction register
+        self.running = True
+        while self.running:
+            ir = self.ram_read(self.pc)  # instruction register
 
-        operand_a = self.ram_read(self.pc + 1)
-        operand_b = self.ram_read(self.pc + 2)
-        args = self._arg_count(ir)
+            operand_a = self.ram_read(self.pc + 1)
+            operand_b = self.ram_read(self.pc + 2)
+            args = self._arg_count(ir)
 
-        if ir & 0b00100000:
-            self.alu(ir, operand_a, operand_b)
-        else:
-            operation = self._dispatch.get(ir)
-
-            if operation is None:
-                raise Exception("Unsupported ALU operation")
-                return
-            elif args == 1:
-                operation(operand_a)
-            elif args == 2:
-                operation(operand_a, operand_b)
+            if ir & 0b00100000:
+                self.alu(ir, operand_a, operand_b)
             else:
-                operation()
+                operation = self._dispatch.get(ir)
 
-        if not ir & 0b00010000:
-            self.pc += args + 1
+                if operation is None:
+                    raise Exception("Unsupported ALU operation")
+                    return
+                elif args == 1:
+                    operation(operand_a)
+                elif args == 2:
+                    operation(operand_a, operand_b)
+                else:
+                    operation()
 
-        self.run()
+            if not ir & 0b00010000:
+                self.pc += args + 1
 
     def _hlt(self):
-        exit()
+        self.running = False
    
     def _ldi(self, reg_address, value):
         self.reg[reg_address] = value
@@ -222,3 +217,18 @@ class CPU:
     def _pop(self, adr):
         self.reg[adr] = self.ram[self.sp]
         self.sp += 1
+
+    def _call(self, adr):
+        reg0 = self.reg[0]  # temp value for register
+        # push next instruction to stack
+        self.reg[0] = self.pc + 2
+        self._push(0)
+        self.reg[0] = reg0  # put old reg value back in register
+        # jump to call site
+        self.pc = self.reg[adr]
+
+    def _ret(self):
+        reg0 = self.reg[0]
+        self._pop(0)
+        self.pc = self.reg[0]
+        self.reg[0] = reg0
