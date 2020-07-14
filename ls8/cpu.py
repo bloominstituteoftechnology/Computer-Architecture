@@ -1,21 +1,24 @@
 """CPU functionality."""
 
 import sys
+from datetime import datetime
+from datetime import timedelta
+
+IM = 5
+IS = 6
+IV = 0xF8
 
 class CPU:
     """Main CPU class."""
 
     ops = {
         0x52: "INT",   # interrupt
-        0x13: "IRET",  # return from interrupt
-        0x54: "JMP",   # jump to address in given reg
         0x55: "JEQ",   # if == flag true, jump to address in given reg
         0x56: "JNE",   # if E flag is clear, jump to address in given reg
         0x57: "JGT",   # if >, jump to address in given reg
         0x58: "JLT",   # if <
         0x59: "JLE",   # if < or ==
         0x5A: "JGE",   # if > or ==
-        0x48: "PRA",   # print alpha char value stored in given reg
         0x65: "INC",   # increment (ALU)
         0x66: "DEC",   # decrement (ALU)
         0xA7: "CMP",   # comparison (ALU)
@@ -39,10 +42,13 @@ class CPU:
         self._dispatch = {
             0x00: self._nop,
             0x01: self._hlt,
+            0x47: self._prn,
+            0x48: self._pra,
             0x82: self._ldi,  # load integer
             0x50: self._call,
+            0x54: self._jmp,
             0x11: self._ret,
-            0x47: self._prn,
+            0x13: self._iret,
             0x45: self._push,
             0x46: self._pop,
             0x83: self._ld,
@@ -57,6 +63,7 @@ class CPU:
         }
         self.sp = 0xF3  # stack pointer
         self.running = False
+        self._can_interrupt = True
 
     def ram_read(self, address):
         return self.ram[address]
@@ -122,13 +129,30 @@ class CPU:
     def run(self):
         """Run the CPU."""
         self.running = True
+        last_runloop = datetime.now()
+        interrupt_interval = timedelta(seconds=0)
+        masked_interrupts = 0
+
         while self.running:
+            # self.trace()
+           
+            # interrupt timer update
+            now = datetime.now()
+            interrupt_interval += (now - last_runloop)
+            last_runloop = now
+            if interrupt_interval.seconds >= 1:
+                if self._can_interrupt:
+                    masked_interrupts = self.reg[IS] | self.reg[IM]
+                interrupt_interval -= timedelta(seconds=1)
+
+            # prepare instruction
             ir = self.ram_read(self.pc)  # instruction register
 
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
             args = self._arg_count(ir)
 
+            # perform instruction
             if ir & 0b00100000:
                 self.alu(ir, operand_a, operand_b)
             else:
@@ -143,8 +167,25 @@ class CPU:
                 else:
                     operation()
 
+            # set program counter (if necessary)
             if not ir & 0b00010000:
                 self.pc += args + 1
+
+            # handle interrupt
+            for i in range(8):
+                mask = (1 << i)
+                if masked_interrupts & mask:
+                    masked_interrupts &= ~mask
+                    self.reg[IS] &= ~mask
+                    self._can_interrupt = False
+                    (temp0, temp1) = (self.reg[0], self.reg[1])
+                    (self.reg[0], self.reg[1]) = (self.pc, self.fl)
+                    self._push(0)
+                    self._push(1)
+                    (self.reg[0], self.reg[1]) = (temp0, temp1)
+                    for r in range(7):
+                        self._push(r)
+                    self.pc = self.ram[IV + i]
 
     def _nop(self):
         pass
@@ -157,6 +198,9 @@ class CPU:
 
     def _prn(self, reg_address):
         print(self.reg[reg_address])
+
+    def _pra(self, reg_adr):
+        print(chr(self.reg[reg_adr]))
 
     def _add(self, reg_a, reg_b):
         self.reg[reg_a] = self.reg[reg_a] + self.reg[reg_b]
@@ -234,10 +278,21 @@ class CPU:
         self.reg[0] = reg0
 
     def _st(self, reg_a, reg_b):
-        self.ram[reg[reg_a]] = reg[reg_b]
+        self.ram[self.reg[reg_a]] = self.reg[reg_b]
 
     def _ld(self, reg_a, reg_b):
-        self.reg[reg_a] = ram[reg[reg_b]]
+        self.reg[reg_a] = self.ram[self.reg[reg_b]]
 
-    def _int(self, reg_adr):
-        pass
+    def _jmp(self, reg_adr):
+        self.pc = self.reg[reg_adr]
+
+    def _iret(self):
+        for r in range(6, -1, -1):
+            self._pop(r)
+        (temp0, temp1) = (self.reg[0], self.reg[1])
+        self._pop(0)
+        self._pop(1)
+        (self.fl, self.pc) = (self.reg[0], self.reg[1])
+        (self.reg[0], self.reg[1]) = (temp0, temp1)
+
+        self._can_interrupt = True
