@@ -26,6 +26,8 @@ class CPU:
         0xAC: "SHL",   # bitshift left (ALU)
         0xAD: "SHR",   # bitshift right (ALU)
     }
+    # IM = interrupt mask   (R5)
+    # IS = interrupt status (R6)
 
     def __init__(self):
         """Construct a new CPU."""
@@ -35,6 +37,7 @@ class CPU:
         self.pc = 0  # program counter (address of executing instruction)
         self.fl = 0  # flags
         self._dispatch = {
+            0x00: self._nop,
             0x01: self._hlt,
             0x82: self._ldi,  # load integer
             0x50: self._call,
@@ -143,6 +146,9 @@ class CPU:
             if not ir & 0b00010000:
                 self.pc += args + 1
 
+    def _nop(self):
+        pass
+
     def _hlt(self):
         self.running = False
    
@@ -232,3 +238,6 @@ class CPU:
 
     def _ld(self, reg_a, reg_b):
         self.reg[reg_a] = ram[reg[reg_b]]
+
+    def _int(self, reg_adr):
+        pass
