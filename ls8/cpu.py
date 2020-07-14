@@ -47,20 +47,23 @@ class CPU:
         self.ram = [0] * 256
         self.reg = [0] * 7
         self.reg.append(0xF4)
-        self.pc = 0
-        self.fl = 0
-        self.dispatch = {
+        self.pc = 0  # program counter (address of executing instruction)
+        self.fl = 0  # flags
+        self._dispatch = {
             0x01: self._hlt,
             0x82: self._ldi,
+            0x45: self._push,
+            0x46: self._pop,
             0x47: self._prn,
         }
-        self.alu_dispatch = {
+        self._alu_dispatch = {
             0xA0: self._add,
             0xA1: self._sub,
             0xA2: self._mul,
             0xA3: self._div,
             0xA4: self._mod,
         }
+        self.sp = 0xF3  # stack pointer
 
     def ram_read(self, address):
         return self.ram[address]
@@ -90,7 +93,7 @@ class CPU:
     def alu(self, ir, reg_a, reg_b):
         """ALU operations."""
 
-        operation = self.alu_dispatch.get(ir)
+        operation = self._alu_dispatch.get(ir)
         arg_count = self._arg_count(ir)
 
         if operation is None:
@@ -134,7 +137,7 @@ class CPU:
         if ir & 0b00100000:
             self.alu(ir, operand_a, operand_b)
         else:
-            operation = self.dispatch.get(ir)
+            operation = self._dispatch.get(ir)
 
             if operation is None:
                 raise Exception("Unsupported ALU operation")
@@ -211,3 +214,11 @@ class CPU:
 
     def _shr(self, op1, op2):
         pass
+
+    def _push(self, adr):
+        self.sp -= 1
+        self.ram[self.sp] = self.reg[adr]
+
+    def _pop(self, adr):
+        self.reg[adr] = self.ram[self.sp]
+        self.sp += 1
