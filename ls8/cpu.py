@@ -6,10 +6,6 @@ class CPU:
     """Main CPU class."""
 
     ops = {
-        0x00: "NOP",   # no-op
-        0x01: "HLT",   # halt; exit
-        0x50: "CALL",  # call subroutine at register address
-        0x11: "RET",   # return from subroutine
         0x52: "INT",   # interrupt
         0x13: "IRET",  # return from interrupt
         0x54: "JMP",   # jump to address in given reg
@@ -19,9 +15,6 @@ class CPU:
         0x58: "JLT",   # if <
         0x59: "JLE",   # if < or ==
         0x5A: "JGE",   # if > or ==
-        0x82: "LDI",   # set value of register to integer
-        0x83: "LD",    # loads regA w/ value at mem address stored in regB
-        0x84: "ST",    # store value in regB at address in regA
         0x48: "PRA",   # print alpha char value stored in given reg
         0x65: "INC",   # increment (ALU)
         0x66: "DEC",   # decrement (ALU)
@@ -49,6 +42,8 @@ class CPU:
             0x47: self._prn,
             0x45: self._push,
             0x46: self._pop,
+            0x83: self._ld,
+            0x84: self._st,
         }
         self._alu_dispatch = {
             0xA0: self._add,
@@ -137,8 +132,7 @@ class CPU:
                 operation = self._dispatch.get(ir)
 
                 if operation is None:
-                    raise Exception("Unsupported ALU operation")
-                    return
+                    raise Exception("Unsupported operation")
                 elif args == 1:
                     operation(operand_a)
                 elif args == 2:
@@ -232,3 +226,9 @@ class CPU:
         self._pop(0)
         self.pc = self.reg[0]
         self.reg[0] = reg0
+
+    def _st(self, reg_a, reg_b):
+        self.ram[reg[reg_a]] = reg[reg_b]
+
+    def _ld(self, reg_a, reg_b):
+        self.reg[reg_a] = ram[reg[reg_b]]
