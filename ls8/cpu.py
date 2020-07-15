@@ -3,10 +3,18 @@
 import sys
 from datetime import datetime
 from datetime import timedelta
+import threading
+import termios
+import tty
+import os
+import time
 
 IM = 5
 IS = 6
 IV = 0xF8
+
+def cpr(text=''):
+    print(text, end='\r\n')
 
 class CPU:
     """Main CPU class."""
@@ -31,6 +39,27 @@ class CPU:
     }
     # IM = interrupt mask   (R5)
     # IS = interrupt status (R6)
+
+    class KeyboardPoller(threading.Thread):
+        def __init__(self, callback):
+            threading.Thread.__init__(self)
+            self.callback = callback
+            self.running = False
+
+        def run(self):
+            self.running = True
+            fd = sys.stdin.fileno()
+            old_settings = termios.tcgetattr(fd)
+            while self.running:
+                key = None
+                try:
+                    tty.setcbreak(fd)
+                    key = sys.stdin.read(1)
+                finally:
+                    termios.tcsetattr(fd, termios.TCSAFLUSH, old_settings)
+                if key is not None:
+                    self.callback(key)
+
 
     def __init__(self):
         """Construct a new CPU."""
@@ -61,7 +90,8 @@ class CPU:
             0xA3: self._div,
             0xA4: self._mod,
         }
-        self.sp = 0xF3  # stack pointer
+        self.keyboard_poller = CPU.KeyboardPoller(self.__handle_keypress)
+        self.sp = 0xF4  # stack pointer
         self.running = False
         self._can_interrupt = True
 
@@ -74,7 +104,7 @@ class CPU:
     def load(self):
         """Load a program into memory."""
         if len(sys.argv) < 2:
-            print("ERROR: no filename argument")
+            cpr("ERROR: no filename argument")
             return
 
         address = 0
@@ -121,7 +151,7 @@ class CPU:
         for i in range(8):
             print(" %02X" % self.reg[i], end='')
 
-        print()
+        cpr()
 
     def _arg_count(self, ir):
         return ir >> 6
@@ -131,7 +161,7 @@ class CPU:
         self.running = True
         last_runloop = datetime.now()
         interrupt_interval = timedelta(seconds=0)
-        masked_interrupts = 0
+        self.keyboard_poller.start()
 
         while self.running:
             # self.trace()
@@ -141,8 +171,7 @@ class CPU:
             interrupt_interval += (now - last_runloop)
             last_runloop = now
             if interrupt_interval.seconds >= 1:
-                if self._can_interrupt:
-                    masked_interrupts = self.reg[IS] | self.reg[IM]
+                self.reg[IS] |= 0b00000001
                 interrupt_interval -= timedelta(seconds=1)
 
             # prepare instruction
@@ -168,39 +197,68 @@ class CPU:
                     operation()
 
             # set program counter (if necessary)
-            if not ir & 0b00010000:
+            if not (ir & 0b00010000):
                 self.pc += args + 1
 
+            # handle keyboard
+            # inputs,_,_ = select.select([sys.stdin], [], [], 0.0001)
+            # for element in inputs:
+            #     if element == sys.stdin:
+            #         key = sys.stdin.readline()[-1]
+            #         print("key: " + key)
+            #         self.ram[0xF4] = key
+            #         self.reg[IS] |= 0b00000010
+           
+
             # handle interrupt
-            for i in range(8):
-                mask = (1 << i)
-                if masked_interrupts & mask:
-                    masked_interrupts &= ~mask
-                    self.reg[IS] &= ~mask
-                    self._can_interrupt = False
-                    (temp0, temp1) = (self.reg[0], self.reg[1])
-                    (self.reg[0], self.reg[1]) = (self.pc, self.fl)
-                    self._push(0)
-                    self._push(1)
-                    (self.reg[0], self.reg[1]) = (temp0, temp1)
-                    for r in range(7):
-                        self._push(r)
-                    self.pc = self.ram[IV + i]
+            if self._can_interrupt:
+                self.__handle_interrupts()
+
+    def __handle_interrupts(self):
+        masked_interrupts = self.reg[IM] & self.reg[IS]
+        for i in range(8):
+            mask = (1 << i)
+            if masked_interrupts & mask:
+                masked_interrupts &= ~mask
+                self.reg[IS] &= ~mask
+                self._can_interrupt = False
+                (temp0, temp1) = (self.reg[0], self.reg[1])
+                (self.reg[0], self.reg[1]) = (self.pc, self.fl)
+                self._push(0)
+                self._push(1)
+                (self.reg[0], self.reg[1]) = (temp0, temp1)
+                for r in range(7):
+                    self._push(r)
+                self.pc = self.ram[IV + i]
+                return
+
+    def __handle_keypress(self, key):
+        num = ord(key)
+        if num == 3 or num == 4:  # ctrl-C or ctrl-D; exit
+            cpr("exiting")
+            self._hlt()
+        self.ram[0xF4] = ord(key)
+        self.reg[IS] |= 0b00000010
 
     def _nop(self):
         pass
 
     def _hlt(self):
+        self.keyboard_poller.running = False
         self.running = False
-   
+
     def _ldi(self, reg_address, value):
         self.reg[reg_address] = value
 
     def _prn(self, reg_address):
-        print(self.reg[reg_address])
+        cpr(self.reg[reg_address])
 
     def _pra(self, reg_adr):
-        print(chr(self.reg[reg_adr]))
+        item = self.reg[reg_adr]
+        if isinstance(item, int):
+            cpr(chr(item))
+        else:
+            cpr(item)
 
     def _add(self, reg_a, reg_b):
         self.reg[reg_a] = self.reg[reg_a] + self.reg[reg_b]
@@ -214,7 +272,7 @@ class CPU:
     def _div(self, reg_a, reg_b):
         operand_b = self.reg[reg_b]
         if operand_b == 0:
-            print("Error: Cannot divide by zero")
+            cpr("Error: Cannot divide by zero")
             self._hlt()
             return
         self.reg[reg_a] = self.reg[reg_a] / operand_b
@@ -222,7 +280,7 @@ class CPU:
     def _mod(self, reg_a, reg_b):
         operand_b = self.reg[reg_b]
         if operand_b == 0:
-            print("Error: Cannot divide by zero")
+            cpr("Error: Cannot divide by zero")
             self._hlt()
             return
         self.reg[reg_a] = self.reg[reg_a] % operand_b
@@ -296,3 +354,4 @@ class CPU:
         (self.reg[0], self.reg[1]) = (temp0, temp1)
 
         self._can_interrupt = True
+
