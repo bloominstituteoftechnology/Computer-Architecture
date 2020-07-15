@@ -9,15 +9,44 @@ import tty
 import os
 import time
 
-IM = 5
-IS = 6
-IV = 0xF8
+IM = 5     # interrupt mask (register address)
+IS = 6     # interrupt status (register address)
+IV = 0xF8  # interrupt vector(s) (ram address)
 
 def cpr(text=''):
     print(text, end='\r\n')
 
 class CPU:
     """Main CPU class."""
+
+    class KeyboardPoller(threading.Thread):
+        def __init__(self, callback):
+            threading.Thread.__init__(self, daemon=True)
+            self.callback = callback
+            self._stop_event = threading.Event()
+            self.running = False
+
+        def run(self):
+            self.running = True
+            fd = sys.stdin.fileno()
+            old_settings = termios.tcgetattr(fd)
+            while self.running:
+                key = None
+                try:
+                    tty.setcbreak(fd)
+                    key = sys.stdin.read(1)
+                finally:
+                    termios.tcsetattr(fd, termios.TCSAFLUSH, old_settings)
+                if key is not None:
+                    self.callback(key)
+
+        def stop(self):
+            self._stop_event.set()
+            self.running = False
+
+        def stopped(self):
+            return self._stop_event.is_set() and self.running == False
+
 
     ops = {
         0x52: "INT",   # interrupt
@@ -37,29 +66,6 @@ class CPU:
         0xAC: "SHL",   # bitshift left (ALU)
         0xAD: "SHR",   # bitshift right (ALU)
     }
-    # IM = interrupt mask   (R5)
-    # IS = interrupt status (R6)
-
-    class KeyboardPoller(threading.Thread):
-        def __init__(self, callback):
-            threading.Thread.__init__(self)
-            self.callback = callback
-            self.running = False
-
-        def run(self):
-            self.running = True
-            fd = sys.stdin.fileno()
-            old_settings = termios.tcgetattr(fd)
-            while self.running:
-                key = None
-                try:
-                    tty.setcbreak(fd)
-                    key = sys.stdin.read(1)
-                finally:
-                    termios.tcsetattr(fd, termios.TCSAFLUSH, old_settings)
-                if key is not None:
-                    self.callback(key)
-
 
     def __init__(self):
         """Construct a new CPU."""
@@ -200,16 +206,6 @@ class CPU:
             if not (ir & 0b00010000):
                 self.pc += args + 1
 
-            # handle keyboard
-            # inputs,_,_ = select.select([sys.stdin], [], [], 0.0001)
-            # for element in inputs:
-            #     if element == sys.stdin:
-            #         key = sys.stdin.readline()[-1]
-            #         print("key: " + key)
-            #         self.ram[0xF4] = key
-            #         self.reg[IS] |= 0b00000010
-           
-
             # handle interrupt
             if self._can_interrupt:
                 self.__handle_interrupts()
@@ -235,7 +231,6 @@ class CPU:
     def __handle_keypress(self, key):
         num = ord(key)
         if num == 3 or num == 4:  # ctrl-C or ctrl-D; exit
-            cpr("exiting")
             self._hlt()
         self.ram[0xF4] = ord(key)
         self.reg[IS] |= 0b00000010
@@ -244,7 +239,7 @@ class CPU:
         pass
 
     def _hlt(self):
-        self.keyboard_poller.running = False
+        self.keyboard_poller.stop()
         self.running = False
 
     def _ldi(self, reg_address, value):
