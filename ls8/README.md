@@ -60,8 +60,15 @@ but you'll have to implement those three above instructions first!
 ## Step 0: IMPORTANT: inventory what is here!
 
 * Make a list of files here.
-* cpu.py creates cpu, 
-loads programs into memory, runs progrms
+* cpu.py 
+  * creates cpu
+  * loads programs into memory
+  * runs progrms
+  * performs alu opertions
+  * prints current state with trace
+* ls8.py - makes cpu, loads program, runs
+* .ls8 files are programs that have binary instructions
+* 
 * Write a short 3-10-word description of what each file does.
 * Note what has been implemented, and what hasn't.
 * Read this whole file.
