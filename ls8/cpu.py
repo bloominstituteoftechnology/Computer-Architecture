@@ -116,18 +116,17 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pc = self.pc
         HLT = 0b00000001
         LDI = 0b10000010 
         PRN = 0b01000111
 
-        while self.ram[pc] != HLT:
+        while self.ram[self.pc] != HLT:
 
-            if self.ram[pc] == LDI:
-                self.ldi(self.ram[pc+1], self.ram[pc+2])
-                pc += 2
-            elif self.ram[pc] == PRN:
-                self.prn(self.ram[pc+1])
-                pc +=1
+            if self.ram[self.pc] == LDI:
+                self.ldi(self.ram[self.pc+1], self.ram[self.pc+2])
+                self.pc += 2
+            elif self.ram[self.pc] == PRN:
+                self.prn(self.ram[self.pc+1])
+                self.pc +=1
 
-            pc += 1
+            self.pc += 1
