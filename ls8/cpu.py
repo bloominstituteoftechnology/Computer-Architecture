@@ -7,9 +7,50 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.ram = [0] * 256 
+        # +-----------------------+
+        # | FF  I7 vector         |    Interrupt vector table
+        # | FE  I6 vector         |
+        # | FD  I5 vector         |
+        # | FC  I4 vector         |
+        # | FB  I3 vector         |
+        # | FA  I2 vector         |
+        # | F9  I1 vector         |
+        # | F8  I0 vector         |
+        # | F7  Reserved          |
+        # | F6  Reserved          |
+        # | F5  Reserved          |
+        # | F4  Key pressed       |    Holds the most recent key pressed on the keyboard
+        # | F3  Start of Stack    |
+        # | F2  [more stack]      |    Stack grows down
+        # | ...                   |
+        # | 01  [more program]    |
+        # | 00  Program entry     |    Program loaded upward in memory starting at 0
+        # +-----------------------+
+        self.reg = [0] * 8
+        #R5 is reserved as the interrupt mask (IM)
+        #R6 is reserved as the interrupt status (IS)
+        #R7 is reserved as the stack pointer (SP)
+        # `PC`: Program Counter, address of the currently executing instruction
+        self.pc = 0
+        # * `IR`: Instruction Register, contains a copy of the currently executing instruction
+        # * `MAR`: Memory Address Register, holds the memory address we're reading or writing
+        # * `MDR`: Memory Data Register, holds the value to write or the value just read
+        # * `FL`: Flags, see below  
+        self.fl = 0  
 
-    def load(self):
+    # Inside the CPU, there are two internal registers used for memory operations: the Memory Address Register (MAR) and the Memory Data Register (MDR). The MAR contains the address that is being read or written to. The MDR contains the data that was read or the data to write. You don't need to add the MAR or MDR to your CPU class, but they would make handy parameter names for ram_read() and ram_write(), if you wanted.   
+
+    def ram_read(self, MAR): 
+    # should accept the address to read and return the value stored there.
+        return self.ram[MAR]
+
+    def ram_write(self, MAR, MDR): 
+    # should accept a value to write, and the address to write it to. 
+        self.ram[MAR] = MDR
+
+
+    def load(self, program = None):
         """Load a program into memory."""
 
         address = 0
@@ -59,7 +100,34 @@ class CPU:
             print(" %02X" % self.reg[i], end='')
 
         print()
+    
+    def get_index(self, binary):
+        binary_str = str(binary)
+        binary_str.replace("0b", '')
+        return int(binary_str, 2) 
+
+    def ldi(self, reg_num, value):
+        index = self.get_index(reg_num)
+        self.reg[index] = value
+
+    def prn(self, reg_num):
+        index = self.get_index(reg_num)
+        print(self.reg[index])
 
     def run(self):
         """Run the CPU."""
-        pass
+        pc = self.pc
+        HLT = 0b00000001
+        LDI = 0b10000010 
+        PRN = 0b01000111
+
+        while self.ram[pc] != HLT:
+
+            if self.ram[pc] == LDI:
+                self.ldi(self.ram[pc+1], self.ram[pc+2])
+                pc += 2
+            elif self.ram[pc] == PRN:
+                self.prn(self.ram[pc+1])
+                pc +=1
+
+            pc += 1
