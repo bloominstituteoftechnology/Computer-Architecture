@@ -104,3 +104,9 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+
+
+# random files
+tk_challenge.md
+lecture_notes.py
