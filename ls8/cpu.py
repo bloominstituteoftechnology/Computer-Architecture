@@ -8,6 +8,13 @@ class CPU:
     def __init__(self):
         self.ram = [0] * 25
         self.reg = [0] * 8
+        self.pc = 0
+
+    def ram_read(self, pc):
+        return self.ram[pc]
+
+    def ram_write(self, pc, word):
+        self.ram[pc] = word
        
 
     def load(self):
@@ -37,6 +44,12 @@ class CPU:
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
+        elif op == "HLT":
+            return
+        elif op == "LDI":
+            self.reg[reg_a] = reg_b
+        elif op == "PRN":
+            print(self.reg[reg_a])
         #elif op == "SUB": etc
         else:
             raise Exception("Unsupported ALU operation")
