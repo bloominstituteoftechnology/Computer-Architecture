@@ -1,6 +1,7 @@
 """CPU functionality."""
 
 import sys
+import os
 
 HTL = 0b00000001
 LDI = 0b10000010
@@ -16,33 +17,70 @@ class CPU:
 
     def load(self):
         """Load a program into memory."""
+        args = sys.argv
 
-        address = 0
+        if len(args) > 1:
+            program_file = args[1]
+            address = 0
 
-        # For now, we've just hardcoded a program:
+            # try to open file, else print error
+            try:
+                with open(os.path.join(sys.path[0], program_file), 'rb') as file:
+                    for line in file:
+                        line_value = line.split()
 
-        program = [
-            # From print8.ls8
-            0b10000010,  # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111,  # PRN R0
-            0b00000000,
-            0b00000001,  # HLT
-        ]
+                        # if able to change into an integer with a binary value
+                        # add it to ram
+                        try:
+                            binary_instruction = int(line_value[0], 2)
 
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+                            if address < 257:
+                                self.ram[address] = binary_instruction
+                                address += 1
+                        # if tried failed, continue to next line
+                        except:
+                            continue
+                if not file:
+                    print('no data in file')
+                    program = [HTL]
+            except:
+                print('Unexpected error: ', sys.exc_info()[0])
+        else:
+            print('too few arguments, please choose a program to run.')
+
+    def ram_read(self, MAR):
+        '''
+        Returns what is stored at the given address.
+        '''
+        if MAR < len(self.ram):
+            return self.ram[MAR]
+        else:
+            raise IndexError
+
+    def ram_write(self, MAR, MDR):
+        '''
+        Writes the given value to the address given.
+        '''
+        if MAR < len(self.ram):
+            self.ram[MAR] = MDR
+        else:
+            raise IndexError
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
+        elif op == "MULTIPLY":
+            self.reg[reg_a] *= self.reg[reg_b]
         # elif op == "SUB": etc
         else:
             raise Exception("Unsupported ALU operation")
+    
+    def ops(self, op, reg_a, reg_b):
+        '''OPS operations.'''
+        pass
+
 
     def trace(self):
         """
@@ -68,9 +106,8 @@ class CPU:
         """Run the CPU."""
 
         while True:
-            instruction = bin(self.ram_read(self.pc))
-
-            print('instruction: ', instruction[2:])
+            # instruction = bin(self.ram_read(self.pc))
+            # print('instruction: ', instruction[2:])
 
             IR = self.ram_read(self.pc)
             operand_a = self.ram_read(self.pc + 1)
@@ -107,23 +144,3 @@ class CPU:
             self.reg[register_index] = value
         else:
             raise IndexError
-
-    def ram_read(self, MAR):
-        '''
-        Returns what is stored at the given address.
-        '''
-        try:
-            if MAR < len(self.ram):
-                return self.ram[MAR]
-        except IndexError:
-            return f'address is out of range.'
-
-    def ram_write(self, MAR, MDR):
-        '''
-        Writes the given value to the address given.
-        '''
-        try:
-            if MAR < len(self.ram):
-                self.ram[MAR] = MDR
-        except IndexError:
-            return f'address is out of range.'
