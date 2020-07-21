@@ -18,8 +18,23 @@ elif sys.argv[1] not in existing_files:
     print("OPTIONS:")
     print(existing_files)
     exit()
+else:
 
-cpu = CPU()
+    file = open(join(examples, sys.argv[1]), "r")
 
-cpu.load()
-cpu.run()
+    # Get rid of everything that is a comment.
+    # If The line begins with # get rid of it
+    # If after running .strip() the string is empty, get rid of it
+    # For the rest of the lines:
+    # - Use .strip() to get rid of special characters
+    # - use .split() to separate everything after "#" and take out only index 0
+    code = [line.strip().split('#',1)[0] for line in file.readlines() if not line.startswith("#") and line.strip()]
+
+    print(code)
+    for line in code:
+        print(line)
+    file.close()
+
+    # cpu = CPU()
+    # cpu.load()
+    # cpu.run()
