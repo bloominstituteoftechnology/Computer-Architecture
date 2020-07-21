@@ -10,6 +10,10 @@ class CPU:
         self.ram = [0] * 256
         self.reg = [0] * 8
         self.pc = 0
+        self.instruction_set = {
+            "HLT": 0b00000001,
+            "LDI": 0b10000010
+        }
 
     def ram_write(self, val, addy):
         self.ram[addy] = val
@@ -80,8 +84,15 @@ class CPU:
 
             # Instruction Register
             instruction = self.ram_read(self.pc)
-
-            if instruction is 0b00000001:
+            if instruction is self.instruction_set["LDI"]:
+                print("We hit LDI")
+                reg_a = self.ram_read(self.pc+1)
+                int = self.ram_read(self.pc+2)
+                self.reg[reg_a] = int
+                self.pc += 3
+                print(f"Register {reg_a} now contains the value {int}")
+                print(self.reg[reg_a])
+            elif instruction is self.instruction_set["HLT"]:
                 print("We done")
                 running = False
             self.pc += 1
