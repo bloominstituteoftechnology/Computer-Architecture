@@ -7,6 +7,5 @@ from cpu import *
 
 cpu = CPU()
 
-cpu.load("print8.ls8")
+cpu.load()
 cpu.run()
-print(f"Length of reg: {len(cpu.reg)}")

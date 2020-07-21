@@ -2,10 +2,15 @@
 
 import sys
 
+op_codes = {
+    "HLT": 0b00000001,
+    "LDI": 0b10000010,
+    "PRN": 0b01000111,
+    "MUL": 0b10100010
+}
 
-HLT = 0b00000001
-LDI = 0b10000010
-PRN = 0b01000111
+
+
 
 
 class CPU:
@@ -17,43 +22,33 @@ class CPU:
         self.reg = [0] * 8
         self.pc = 0
         self.running = False
+        self.branchtable = {}
 
-    def load(self, program_name):
+    def load(self):
         """Load a program into memory."""
 
         address = 0
+        if len(sys.argv) < 2:
+            print("Please pass in a second file name: python3 ls8.py second_filename.py")
+            sys.exit()
+        file_name = sys.argv[1]
+        print(f"File Name: {file_name}")
+        try:
+            file = open(file_name, "r")
+        except FileNotFoundError:
+            print(f"{sys.argv[0]}: {sys.argv[1]} file was not found.")
+            sys.exit()
         
-        # For now, we've just hardcoded a program:
-        # data = open(program_name, "r")
-        # program = []
-        # # print(f"Program: {program}")
-        # binary = set([])
-        # for line in program:
-        #     # line = line.rstrip("#")
-        #     instruction = line.split("#", 1)[0].rstrip()
-        #     # instruction = instruction.rstrip()
-        #     # instruction = line.rstrip()
-        #     print(f"Instruction: {instruction}")
-        #     if len(instruction) > 6:
-        #         program.append(instruction)
-        #         # self.ram_write(address, instruction)
-        #         # address += 1
-        #     # address += 1
-        # print(f"Program: {program}")
-        
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
-
-        for instruction in program:
-            self.ram_write(address, instruction)
+        for line in file.readlines():
+            instruction = line.split("#", 1)[0].strip()
+            print(f"Instruction: {instruction}")
+            if len(instruction) > 5:
+                self.ram_write(address, int(instruction, 2))
+                # self.ram[address] = int(instruction, 2)
             address += 1
+        file.close()
+        print(f"Random Access Memory: {self.ram}")
+        
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -90,21 +85,29 @@ class CPU:
         
         while self.running:
             IR = self.ram_read(self.pc)
-            if IR is LDI:
+            if IR is op_codes["LDI"]:
                 operand_a = self.ram_read(self.pc + 1)
                 operand_b = self.ram_read(self.pc + 2)
                 self.reg[operand_a] = operand_b
-                self.pc += 2
+                print(f"Operand A: {operand_a}, Operand B: {operand_b}")
+                print(f"CPU Registers: {self.reg}")
+                self.pc += op_codes["LDI"] >> 6
 
-            if IR is PRN:
+            if IR is op_codes["PRN"]:
                 operand_a = self.ram_read(self.pc + 1)
                 print(self.reg[operand_a])
-                self.pc += 1
+                self.pc += op_codes["PRN"] >> 6
             
-            if IR is HLT:
+            if IR is op_codes["HLT"]:
                 self.running = False
                 break
                 
+            if IR is op_codes["MUL"]:
+                print(f"Operand A: {operand_a}, Operand B: {operand_b}")
+                self.reg[0] = self.reg[0] * self.reg[1]
+                print(f"CPU Registers: {self.reg}")
+                self.pc += op_codes["MUL"] >> 6
+
             self.pc += 1
 
     def ram_read(self, MAR):
@@ -112,7 +115,6 @@ class CPU:
 
     def ram_write(self, MAR, MDR):
         self.ram[MAR] = MDR
-
 
 
 
