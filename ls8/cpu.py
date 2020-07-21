@@ -96,9 +96,3 @@ class CPU:
             elif instruction is self.instruction_set["HLT"]:
                 running = False
             self.pc += 1
-
-
-
-cpu = CPU()
-cpu.load()
-cpu.run()
