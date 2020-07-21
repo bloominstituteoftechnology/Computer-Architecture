@@ -9,10 +9,6 @@ op_codes = {
     "MUL": 0b10100010
 }
 
-
-
-
-
 class CPU:
     """Main CPU class."""
 
@@ -23,6 +19,11 @@ class CPU:
         self.pc = 0
         self.running = False
         self.branchtable = {}
+        self.branchtable["LDI"] = self.LDI
+        self.branchtable["PRN"] = self.PRN
+        self.branchtable["HLT"] = self.HLT
+        self.branchtable["MUL"] = self.MUL
+
 
     def load(self):
         """Load a program into memory."""
@@ -32,7 +33,8 @@ class CPU:
             print("Please pass in a second file name: python3 ls8.py second_filename.py")
             sys.exit()
         file_name = sys.argv[1]
-        print(f"File Name: {file_name}")
+        # file_name = "examples/mult.ls8"
+        # print(f"File Name: {file_name}")
         try:
             file = open(file_name, "r")
         except FileNotFoundError:
@@ -41,14 +43,12 @@ class CPU:
         
         for line in file.readlines():
             instruction = line.split("#", 1)[0].strip()
-            print(f"Instruction: {instruction}")
+            # print(f"Instruction: {instruction}")
             if len(instruction) > 5:
                 self.ram_write(address, int(instruction, 2))
-                # self.ram[address] = int(instruction, 2)
             address += 1
         file.close()
-        print(f"Random Access Memory: {self.ram}")
-        
+        # print(f"Random Access Memory: {self.ram}")
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -86,27 +86,16 @@ class CPU:
         while self.running:
             IR = self.ram_read(self.pc)
             if IR is op_codes["LDI"]:
-                operand_a = self.ram_read(self.pc + 1)
-                operand_b = self.ram_read(self.pc + 2)
-                self.reg[operand_a] = operand_b
-                print(f"Operand A: {operand_a}, Operand B: {operand_b}")
-                print(f"CPU Registers: {self.reg}")
-                self.pc += op_codes["LDI"] >> 6
+                self.branchtable["LDI"]()
 
             if IR is op_codes["PRN"]:
-                operand_a = self.ram_read(self.pc + 1)
-                print(self.reg[operand_a])
-                self.pc += op_codes["PRN"] >> 6
+                self.branchtable["PRN"]()
             
             if IR is op_codes["HLT"]:
-                self.running = False
-                break
+                self.branchtable["HLT"]()
                 
             if IR is op_codes["MUL"]:
-                print(f"Operand A: {operand_a}, Operand B: {operand_b}")
-                self.reg[0] = self.reg[0] * self.reg[1]
-                print(f"CPU Registers: {self.reg}")
-                self.pc += op_codes["MUL"] >> 6
+                self.branchtable["MUL"]()
 
             self.pc += 1
 
@@ -116,5 +105,38 @@ class CPU:
     def ram_write(self, MAR, MDR):
         self.ram[MAR] = MDR
 
+    def LDI(self):
+        operand_a = self.ram_read(self.pc + 1)
+        operand_b = self.ram_read(self.pc + 2)
+        self.reg[operand_a] = operand_b
+        self.pc += op_codes["LDI"] >> 6
+
+    def PRN(self):
+        operand_a = self.ram_read(self.pc + 1)
+        print(self.reg[operand_a])
+        self.pc += op_codes["PRN"] >> 6
+    
+    def HLT(self):
+        sys.exit()
+
+    def MUL(self):
+        operand_a = self.ram_read(self.pc + 1)
+        operand_b = self.ram_read(self.pc + 2)
+        x = self.reg[operand_a]
+        y = self.reg[operand_b]
+        result = 0 
+        count = 0
+        while x:
+            if x % 2 is 1:
+                result += y << count
+            count += 1
+            x = int(x / 2)
+        self.reg[operand_a] = result 
+        self.pc += op_codes["MUL"] >> 6
 
 
+cpu = CPU()
+cpu.load()
+cpu.run()
+
+    
