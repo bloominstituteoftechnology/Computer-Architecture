@@ -6,6 +6,7 @@ import os
 HTL = 0b00000001
 LDI = 0b10000010
 PRN = 0b01000111
+MUL = 0b10100010
 
 
 class CPU:
@@ -15,38 +16,42 @@ class CPU:
         self.pc = 0
         self.fl = 0
 
+    def write_program_to_memory(self, program_file):
+        address = 0
+        with open(os.path.join(sys.path[0], program_file), 'r') as file:
+            for line in file:
+                line_value = line.split()
+
+                # if able to change into an integer with a binary value
+                # add it to ram
+                try:
+                    binary_instruction = int(line_value[0], 2)
+
+                    # add file to memory list
+                    if address < 257:
+                        self.ram[address] = binary_instruction
+                        address += 1
+
+                # if tried failed, continue to next line
+                except:
+                    continue
+        if not file:
+            print('no data in file')
+            program = [HTL]
+
     def load(self):
         """Load a program into memory."""
         args = sys.argv
 
         if len(args) > 1:
             program_file = args[1]
-            address = 0
-
-            # try to open file, else print error
             try:
-                with open(os.path.join(sys.path[0], program_file), 'rb') as file:
-                    for line in file:
-                        line_value = line.split()
-
-                        # if able to change into an integer with a binary value
-                        # add it to ram
-                        try:
-                            binary_instruction = int(line_value[0], 2)
-
-                            if address < 257:
-                                self.ram[address] = binary_instruction
-                                address += 1
-                        # if tried failed, continue to next line
-                        except:
-                            continue
-                if not file:
-                    print('no data in file')
-                    program = [HTL]
+                self.write_program_to_memory(program_file)
             except:
                 print('Unexpected error: ', sys.exc_info()[0])
         else:
-            print('too few arguments, please choose a program to run.')
+            print(
+                'too few arguments, please choose a program to run: "python3 ls8.py examples/program_file.ls8"')
 
     def ram_read(self, MAR):
         '''
@@ -71,16 +76,16 @@ class CPU:
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
-        elif op == "MULTIPLY":
+        elif op == MUL:
             self.reg[reg_a] *= self.reg[reg_b]
+
         # elif op == "SUB": etc
         else:
             raise Exception("Unsupported ALU operation")
-    
+
     def ops(self, op, reg_a, reg_b):
         '''OPS operations.'''
         pass
-
 
     def trace(self):
         """
@@ -106,9 +111,6 @@ class CPU:
         """Run the CPU."""
 
         while True:
-            # instruction = bin(self.ram_read(self.pc))
-            # print('instruction: ', instruction[2:])
-
             IR = self.ram_read(self.pc)
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
@@ -117,16 +119,21 @@ class CPU:
                 self.handle_halt()
             elif IR is LDI:
                 self.handle_ldi(operand_a, operand_b)
+                self.pc += 2
             elif IR is PRN:
                 self.handle_print(operand_a)
+                self.pc += 1
+            elif IR is MUL:
+                self.alu(IR, operand_a, operand_b)
+                self.pc += 2
 
             self.pc += 1
 
     def handle_halt(self):
         # cpu reset
-        for i in range(0, 6):
-            self.reg[i] = 0
-        self.reg[7], self.pc, self.fl, self.ram == 0xF4, 0, 0, 0
+        # for i in range(0, 6):
+        #     self.reg[i] = 0
+        # self.reg[7], self.pc, self.fl, self.ram == 0xF4, 0, 0, [0] * 256
 
         sys.exit(1)
 
