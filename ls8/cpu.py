@@ -105,45 +105,43 @@ class CPU:
         # IR R0-R8
         IR= self.ram[self.pc]
 
-        # decode opcode
-        opCode= bin(self.ram_read(0))
-        opCode= opCode[2:]
-        numOps= opCode[:2]
-        isALU= opCode[2:3]
-        setsPC= opCode[3:4]
-        instID= opCode[4:]
-
-        # grab operands as specified
-        if numOps == 2:
-            operand_a= self.ram[self.pc + 1]
-            operand_b= self.ram[self.pc + 2]
-            self.pc+= 3
-        elif numOps == 1:
-            operand_a= self.ram[self.pc + 1]
-            self.pc+= 3
-        print('inst defs hlt: ', self.instructionDefs['HLT'])
-
         # run the operations
         while self.isRunning == True:
-            # get current instruction from ram
-            instruction= self.ram_read(self.pc)
-
-            print('instruction: ', instruction)
-            print('hlt:', self.instructionDefs['HLT'])
-            print('pc: ', self.pc)
+            # decode opcode
+            opCode= bin(self.ram_read(self.pc))
+            opCode= opCode[2:]
+            # does inst set pc or do we
+            numOps= to_decimal(opCode[:2], 2)
+            isALU= opCode[2:3]
+            setsPC= opCode[3:4]
+            instID= opCode[4:]
+            
+            # how far to step pc (from opCode)
+            # if instr doesn't do it for us
+            print('numOps: ', numOps)
+            pcStep= numOps+1 if setsPC == 0 else 0
+            print('opCode: ', to_decimal(opCode, 2))
+            print('self.instructions LDI: ', self.instructionDefs['LDI'])
+            # grab operands as specified
+            if numOps == 2:
+                operand_a= self.ram[self.pc + 1]
+                operand_b= self.ram[self.pc + 2]
+            elif numOps == 1:
+                operand_a= self.ram[self.pc + 1]
 
             # if HLT instruction
-            if instruction == self.instructionDefs['HLT']:
+            # no operands
+            if to_decimal(opCode, 2) == self.instructionDefs['HLT']:
                 self.isRunning= False
+                self.pc+= pcStep
                 print('run HLT')
 
-                # set pc bit in opCode
-                if setsPC == 0:
-                    self.pc+= 1
-            elif instruction == self.instructionDefs['LDI']:
-
+            # takes 2 operands
+            elif to_decimal(opCode, 2) == self.instructionDefs['LDI']:
+                self.reg[operand_a]= operand_b
                 self.isRunning= False
-                self.pc+= 1
+                self.pc+= pcStep
+                print('reg: ', self.reg)
 
             else:
                 self.isRunning= False
