@@ -28,7 +28,9 @@ class CPU:
 
         # For now, we've just hardcoded a program:
         if filename:
-            with open(sys.argv[1]) as f:
+            with open(
+                filename
+            ) as f:  # could be changed to "with open('./examples/' + filename) as f:" to address filename directly, but I prefer to specify file path.
                 address = 0
                 for line in f:
                     value = line.split("#")[0].strip()
@@ -36,7 +38,7 @@ class CPU:
                         continue
 
                     else:
-                        instruction = int(line, 2)
+                        instruction = int(value, 2)
                         self.ram[address] = instruction
                         address += 1
 
@@ -51,8 +53,8 @@ class CPU:
                 0b00000001,  # HLT
             ]
 
-        for address, instruction in enumerate(program):
-            self.ram[address] = instruction
+            for address, instruction in enumerate(program):
+                self.ram[address] = instruction
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -108,6 +110,7 @@ class CPU:
         HLT = 0b00000001
         LDI = 0b10000010
         PRN = 0b01000111
+        MUL = 0b10100010
 
         running = True
 
@@ -134,6 +137,11 @@ class CPU:
             elif ir == PRN:
                 print(self.reg[operand_a])
                 self.pc += 2
+
+            # MUL
+            elif ir == MUL:
+                self.reg[operand_b] *= self.reg[operand_b]
+                self.pc += 3
 
             # Unknown instructions
             else:
