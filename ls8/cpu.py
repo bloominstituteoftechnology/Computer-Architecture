@@ -61,7 +61,7 @@ class CPU:
         self.ram = [0] * 256
         self.reg = [0] * 8
         self.pc = 0
-
+        self.stack_pointer = 0xF7
         self.configure_dispatch_table()
 
     def configure_dispatch_table(self):
@@ -69,11 +69,18 @@ class CPU:
 
         self.dispatch_table[HLT] = self.hlt
         self.dispatch_table[LDI] = self.ldi
+        self.dispatch_table[POP] = self.pop
         self.dispatch_table[PRN] = self.prn
+        self.dispatch_table[PUSH] = self.push
+        
 
     @property
     def stack_pointer(self):
         return self.reg[7]
+    
+    @stack_pointer.setter
+    def stack_pointer(self, value):
+        self.reg[7] = value
 
     def ram_read(self, address) -> int:
         return self.ram[address]
@@ -155,12 +162,20 @@ class CPU:
     def hlt(self):
         sys.exit()
 
-    def ldi(self, reg_num, value):
-        self.reg[reg_num] = value
-        
-    def prn(self, reg_num):
-        print(self.reg[reg_num])
+    def ldi(self, a, value):
+        self.reg[a] = value
 
+    def pop(self, a):
+        self.reg[a] = self.ram_read(self.stack_pointer)
+        self.stack_pointer += 1
+
+    def prn(self, a):
+        print(self.reg[a])
+
+    def push(self, a):
+        self.stack_pointer -= 1
+        self.ram_write(self.stack_pointer, self.reg[a])
+        
     def run(self):
         """Run the CPU."""
 
@@ -170,13 +185,14 @@ class CPU:
         while True:
             # Determine how many bytes in this instruction
             num_operands = instruction_reg >> OPERANDS_OFFSET
-            print(f"instruction_reg: {bin(instruction_reg)}")
-            print(f"num_operands: {num_operands}")
+            
+            # print(f"instruction_reg: {bin(instruction_reg)}")
+            # print(f"num_operands: {num_operands}")
 
             # Determine if it is an ALU operation
             is_alu_operation = (instruction_reg & ALU_MASK) >> ALU_OFFSET
 
-            print(f"Is alu operation: {is_alu_operation}")
+            # print(f"Is alu operation: {is_alu_operation}")
 
             if is_alu_operation:
                 if num_operands == 1:
