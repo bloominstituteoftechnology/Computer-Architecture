@@ -28,6 +28,16 @@ memory = [
     2,  # HALT <-- pc
 ]
 
+# for inst in memory:
+#     if inst == 1:  # PRINT_BEEJ
+#         print("Beej")
+
+#     elif inst == 2:  # HALT
+#         break
+
+#     else:
+#         print(f"Unknown instruction {inst}")
+
 register = [0] * 8
 
 pc = 0  # Program Counter, index into memory of the current instruction
