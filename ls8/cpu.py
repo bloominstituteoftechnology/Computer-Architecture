@@ -40,13 +40,18 @@ SUB  = 0b10100001
 XOR  = 0b10101011
 
 
-OPERANDS_OFFSET = 6
 
-# Bit Masks: Might not be needed
+
+# Bit Masks
 OPERANDS_MASK = 0b11000000
 ALU_MASK      = 0b00100000
 PC_MASK       = 0b00010000
-INSTR_MASK    = 0b00001111
+ID_MASK    = 0b00001111
+
+# Offsets
+
+OPERANDS_OFFSET = 6
+ALU_OFFSET = 5
 
 class CPU:
     """Main CPU class."""
@@ -73,34 +78,55 @@ class CPU:
         self.ram[address] = value
     
 
-    def load(self):
+    def load(self, path):
         """Load a program into memory."""
 
         address = 0
 
-        # For now, we've just hardcoded a program:
+        with open(path) as program:
+            for line in program:
+                line = line.split('#',1)[0]
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
-
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+                try:
+                    instruction = int(line, 2)
+                    self.ram[address] = instruction
+                    address += 1
+                except ValueError:
+                    pass
 
 
-    def alu(self, op, reg_a, reg_b):
+    def alu(self, op, a, b = None):
         """ALU operations."""
-
-        if op == "ADD":
-            self.reg[reg_a] += self.reg[reg_b]
-        #elif op == "SUB": etc
+        if op == ADD:
+            self.reg[a] = self.reg[a] + self.reg[b]
+        elif op == AND:
+            self.reg[a] = self.reg[a] & self.reg[b]
+        elif op == CMP:
+            pass # TODO: requires setting flags
+        elif op == DEC:
+            self.reg[a] -= 1
+        elif op == DIV:
+            if self.reg[b] == 0:
+                raise ValueError("Cannot divide by 0")
+            self.reg[a] = self.reg[a] // self.reg[b] # is this correct, using the floor division?
+        elif op == INC:
+            self.reg[a] += 1
+        elif op == MOD:
+            self.reg[a] = self.reg[a] % self.reg[b]
+        elif op == MUL:
+            self.reg[a] = self.reg[a] * self.reg[b]
+        elif op == NOT:
+            self.reg[a] = ~self.reg[a]
+        elif op == OR:
+            self.reg[a] = self.reg[a] | self.reg[b]
+        elif op == SHL:
+            self.reg[a] = self.reg[a] << self.reg[b]
+        elif op == SHR:
+            self.reg[a] = self.reg[a] >> self.reg[b]
+        elif op == SUB:
+            self.reg[a] = self.reg[a] - self.reg[b]
+        elif op == XOR:
+            self.reg[a] = self.reg[a] ^ self.reg[b]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -126,7 +152,7 @@ class CPU:
 
     def ldi(self, reg_num, value):
         self.reg[reg_num] = value
-
+        
     def prn(self, reg_num):
         print(self.reg[reg_num])
 
@@ -142,9 +168,23 @@ class CPU:
             num_operands = instruction_reg >> OPERANDS_OFFSET
             print(f"instruction_reg: {bin(instruction_reg)}")
             print(f"num_operands: {num_operands}")
-            
-            # Call appropriate function from dispatch table with proper number of operands
-            if num_operands == 0:
+
+            # Determine if it is an ALU operation
+            is_alu_operation = (instruction_reg & ALU_MASK) >> ALU_OFFSET
+
+            print(f"Is alu operation: {is_alu_operation}")
+            if is_alu_operation:
+                if num_operands == 1:
+                    self.alu(instruction_reg, self.ram_read(self.pc + 1))
+                    self.pc += 2
+                elif num_operands == 2:
+                    self.alu(instruction_reg, self.ram_read(self.pc + 1), self.ram_read(self.pc + 2))
+                    self.pc += 3
+                else:
+                    print("Bad instruction")
+                
+            # If not, call appropriate function from dispatch table with proper number of operands
+            elif num_operands == 0:
                 self.dispatch_table[instruction_reg]()
                 self.pc += 1
             elif num_operands == 1:
