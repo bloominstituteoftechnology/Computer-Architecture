@@ -46,7 +46,7 @@ XOR  = 0b10101011
 OPERANDS_MASK = 0b11000000
 ALU_MASK      = 0b00100000
 PC_MASK       = 0b00010000
-ID_MASK    = 0b00001111
+ID_MASK       = 0b00001111
 
 # Offsets
 
@@ -61,15 +61,19 @@ class CPU:
         self.ram = [0] * 256
         self.reg = [0] * 8
         self.pc = 0
-        self.running = True
 
         self.configure_dispatch_table()
 
     def configure_dispatch_table(self):
         self.dispatch_table = {}
 
+        self.dispatch_table[HLT] = self.hlt
         self.dispatch_table[LDI] = self.ldi
         self.dispatch_table[PRN] = self.prn
+
+    @property
+    def stack_pointer(self):
+        return self.reg[7]
 
     def ram_read(self, address) -> int:
         return self.ram[address]
@@ -77,7 +81,6 @@ class CPU:
     def ram_write(self, address, value):
         self.ram[address] = value
     
-
     def load(self, path):
         """Load a program into memory."""
 
@@ -93,7 +96,6 @@ class CPU:
                     address += 1
                 except ValueError:
                     pass
-
 
     def alu(self, op, a, b = None):
         """ALU operations."""
@@ -150,6 +152,9 @@ class CPU:
 
         print()
 
+    def hlt(self):
+        sys.exit()
+
     def ldi(self, reg_num, value):
         self.reg[reg_num] = value
         
@@ -162,8 +167,7 @@ class CPU:
         # Read initial instruction
         instruction_reg = self.ram_read(self.pc)
 
-        while instruction_reg != HLT:
-
+        while True:
             # Determine how many bytes in this instruction
             num_operands = instruction_reg >> OPERANDS_OFFSET
             print(f"instruction_reg: {bin(instruction_reg)}")
@@ -173,6 +177,7 @@ class CPU:
             is_alu_operation = (instruction_reg & ALU_MASK) >> ALU_OFFSET
 
             print(f"Is alu operation: {is_alu_operation}")
+
             if is_alu_operation:
                 if num_operands == 1:
                     self.alu(instruction_reg, self.ram_read(self.pc + 1))
