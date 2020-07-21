@@ -20,6 +20,12 @@ class CPU:
         self.reg= [0] * 8
         self.ram= [0] * 256
         self.pc= 0
+        self.isRunning= False
+
+    instructionDefs= {
+        'HLT': 0b00000001,
+        'LDI': 0b10000010,
+    }
 
     def ram_read(self, MAR):
         storedValue= self.ram[MAR]
@@ -80,8 +86,7 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-       
-
+        self.isRunning= True
         # OP-CODE
 
         # Meanings of the bits in the first byte of each instruction: `AABCDDDD`
@@ -99,6 +104,7 @@ class CPU:
         
         # IR R0-R8
         IR= self.ram[self.pc]
+
         # decode opcode
         opCode= bin(self.ram_read(0))
         opCode= opCode[2:]
@@ -107,12 +113,40 @@ class CPU:
         setsPC= opCode[3:4]
         instID= opCode[4:]
 
-        if to_decimal(numOps, 2) == 2:
+        # grab operands as specified
+        if numOps == 2:
             operand_a= self.ram[self.pc + 1]
             operand_b= self.ram[self.pc + 2]
-        elif to_decimal(numOps, 2) == 1:
+            self.pc+= 3
+        elif numOps == 1:
             operand_a= self.ram[self.pc + 1]
+            self.pc+= 3
+        print('inst defs hlt: ', self.instructionDefs['HLT'])
 
+        # run the operations
+        while self.isRunning == True:
+            # get current instruction from ram
+            instruction= self.ram_read(self.pc)
+
+            print('instruction: ', instruction)
+            print('hlt:', self.instructionDefs['HLT'])
+            print('pc: ', self.pc)
+
+            # if HLT instruction
+            if instruction == self.instructionDefs['HLT']:
+                self.isRunning= False
+                print('run HLT')
+
+                # set pc bit in opCode
+                if setsPC == 0:
+                    self.pc+= 1
+            elif instruction == self.instructionDefs['LDI']:
+
+                self.isRunning= False
+                self.pc+= 1
+
+            else:
+                self.isRunning= False
 
 
         print('opCode', opCode)
