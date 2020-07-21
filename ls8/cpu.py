@@ -69,7 +69,7 @@ class CPU:
                     if command == '':
                         continue
 
-                    instruction = int(command, 2)
+                    instruction = int(command)
                     self.ram[address] = instruction
 
                     address += 1
@@ -84,6 +84,8 @@ class CPU:
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
         #elif op == "SUB": etc
+        elif op == "MUL":
+            self.reg[reg_a] *= self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -113,28 +115,35 @@ class CPU:
         return int(binary_str, 2) 
 
     def ldi(self, reg_num, value):
-        index = self.get_index(reg_num)
-        self.reg[index] = value
+        self.reg[reg_num] = value
 
     def prn(self, reg_num):
-        index = self.get_index(reg_num)
-        print(self.reg[index])
+        print(self.reg[reg_num])
 
     def run(self):
         """Run the CPU."""
         # * `IR`: Instruction Register, contains a copy of the currently executing instruction
         ir = self.ram_read(self.pc)
-        HLT = 0b00000001
-        LDI = 0b10000010 
-        PRN = 0b01000111
+        HLT = 1
+        LDI = 10000010 
+        PRN = 1000111
 
         while ir != HLT:
             ir = self.ram_read(self.pc)
+            str_ir = str(ir)
             # Using ram_read(), read the bytes at PC+1 and PC+2 from RAM into variables operand_a and operand_b in case the instruction needs them.
-            operand_a = self.ram_read(self.pc+1)
-            operand_b = self.ram_read(self.pc+2)
+            operand_a = self.get_index(self.ram_read(self.pc+1))
+            operand_b = self.get_index(self.ram_read(self.pc+2))
 
-            if ir == LDI:
+            if len(str_ir) > 6 and str_ir[-6] == "1":
+            #this is an alu operator
+                if ir == 10100010:
+                    op = "MUL"
+                elif ir == 10100000:
+                    op = "ADD"
+                self.alu(op, operand_a, operand_b)
+                self.pc += 2
+            elif ir == LDI:
                 self.ldi(operand_a, operand_b)
                 self.pc += 2
             elif ir == PRN:
