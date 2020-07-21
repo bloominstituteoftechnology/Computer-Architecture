@@ -3,42 +3,11 @@
 import sys
 
 # Instructions
-ADD  = 0b10100000
-AND  = 0b10101000
-CALL = 0b01010000
-CMP  = 0b10100111
-DEC  = 0b01100110
-DIV  = 0b10100011
-HLT  = 0b00000001
-INC  = 0b01100101
-INT  = 0b01010010
-IRET = 0b00010011
-JEQ  = 0b01010101
-JGE  = 0b01011010
-JGT  = 0b01010111
-JLE  = 0b01011001
-JLT  = 0b01011000
-JMP  = 0b01010100
-JNE  = 0b01010110
-LD   = 0b10000011
-LDI  = 0b10000010
-MOD  = 0b10100100
-MUL  = 0b10100010
-NOP  = 0b00000000
-NOT  = 0b01101001
-OR   = 0b10101010
-POP  = 0b01000110
-PRA  = 0b01001000
-PRN  = 0b01000111
-PUSH = 0b01000101
-RET  = 0b00010001
-SHL  = 0b10101100
-SHR  = 0b10101101
-ST   = 0b10000100
-SUB  = 0b10100001
-XOR  = 0b10101011
-
-OPERANDS_OFFSET = 6
+LDI = 0b10000010 
+PRN = 0b01000111    # Print
+HLT = 0b00000001    # Halt
+MUL = 0b10100010    # Multiply
+ADD = 0b10100000    # Addition
 
 class CPU:
     """Main CPU class."""
@@ -49,47 +18,68 @@ class CPU:
         self.reg = [0] * 8
         self.pc = 0
         self.running = True
-        self.configure_dispatch_table()
 
-    def configure_dispatch_table(self):
-        self.dispatch_table = {}
-        self.dispatch_table[LDI] = self.ldi
-        self.dispatch_table[PRN] = self.prn
-
-    def ram_read(self, address) -> int:
+    def ram_read(self, address):
         return self.ram[address]
 
     def ram_write(self, address, value):
         self.ram[address] = value
     
+    def hlt(self):
+        self.running = False
+        self.pc += 1
+    
+    def ldi(self, reg_num, value):
+        self.reg[reg_num] = value
+        self.pc += 3
+
+    def prn(self, reg_num):
+        print(self.reg[reg_num])
+        self.pc += 2
+    
     def load(self):
         """Load a program into memory."""
+        # # hardcoded:
+        # address = 0
+        # program = [
+        #     # From print8.ls8
+        #     0b10000010, # LDI R0,8
+        #     0b00000000,
+        #     0b00001000,
+        #     0b01000111, # PRN R0
+        #     0b00000000,
+        #     0b00000001, # HLT
+        # ]
+        # for instruction in program:
+        #     self.ram[address] = instruction
+        #     address += 1
 
-        address = 0
+        # load an .ls8 file given the filename passed in as an argument
+        file_name = sys.argv[1]
+        try:
+            address = 0
+            with open(file_name) as file:
+                for line in file:
+                    split_line = line.split('#')[0]
+                    command = split_line.strip()
 
-        # For now, we've just hardcoded a program:
+                    if command == '':
+                        continue
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
-
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
-
+                    instruction = int(command, 2)
+                    self.ram[address] = instruction
+                    address += 1
+        except FileNotFoundError:
+            print(f'{sys.argv[0]}: {sys.argv[1]} file was not found')
+            sys.exit()
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
-        #elif op == "SUB": etc
+        elif op == "MUL":
+            self.reg[reg_a] *= self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -113,30 +103,28 @@ class CPU:
 
         print()
 
-    def ldi(self, reg_num, value):
-        self.reg[reg_num] = value
-
-    def prn(self, reg_num):
-        print(self.reg[reg_num])
-
     def run(self):
         """Run the CPU."""
-        # Read initial instruction
-        instruction_reg = self.ram_read(self.pc)
-        while instruction_reg != HLT:
-            # How many bytes in this instruction?
-            num_operands = instruction_reg >> OPERANDS_OFFSET
-            # Call function from dispatch based on number of operands
-            if num_operands == 0:
-                self.dispatch_table[instruction_reg]()
-                self.pc += 1
-            elif num_operands == 1:
-                self.dispatch_table[instruction_reg](self.ram_read(self.pc + 1))
-                self.pc += 2
-            elif num_operands == 2:
-                self.dispatch_table[instruction_reg](self.ram_read(self.pc + 1), self.ram_read(self.pc + 2))
+        # load the instructions file
+        self.load()
+        while self.running:
+            instruction_register = self.ram[self.pc]
+            reg_a = self.ram[self.pc+1]
+            reg_b = self.ram[self.pc+2]
+
+            if instruction_register == HLT:
+                self.hlt()
+            
+            elif instruction_register == LDI:
+                self.ldi(reg_a, reg_b)
+            
+            elif instruction_register == PRN:
+                self.prn(reg_a)
+            
+            elif instruction_register == MUL:
+                self.alu("MUL", reg_a, reg_b)
                 self.pc += 3
+            
             else:
-                print("I don't understant the command")
-            # Read next instruction
-            instruction_reg = self.ram_read(self.pc)
+                print(f"Instruction number {self.pc} not recognized!")
+                self.pc += 1
