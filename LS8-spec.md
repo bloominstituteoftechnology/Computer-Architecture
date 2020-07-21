@@ -172,7 +172,7 @@ Glossary:
 * **immediate**: takes a constant integer value as an argument
 * **register**: takes a register number as an argument
 
-* `iiiiiiii`: 8-bit immediate value
+* `iiiiiiii`: 8-bit immediate vaue
 * `00000rrr`: Register number
 * `00000aaa`: Register number
 * `00000bbb`: Register number
