@@ -7,11 +7,12 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        MEM = [0] * 256
-        PC = 0      # Program Counter, address of the currently executing instruction
-        IR = None   # Instruction Register, contains a copy of the currently executing instruction
-        MAR = None  # Memory Address Register, holds the memory address we're reading or writing
-        MDR = None  # Memory Data Register, holds the value to write or the value just read
+        reg = [0] * 256
+        ram = [0] * 256
+        PC = 0        # Program Counter, address of the currently executing instruction
+        IR = None     # Instruction Register, contains a copy of the currently executing instruction
+        # MAR = None  # Memory Address Register, holds the memory address we're reading or writing
+        # MDR = None  # Memory Data Register, holds the value to write or the value just read
 
         R0 = None
         R1 = None
@@ -22,11 +23,11 @@ class CPU:
         R6 = None  # R6 is reserved as the interrupt status (IS)
         R7 = None  # R7 is reserved as the stack pointer (SP)
 
-    def ram_read(self):
-        pass
+    def ram_read(self, MAR):
+        return self.reg[MAR]
 
-    def ram_write(self):
-        pass
+    def ram_write(self, MAR, MDR):
+        self.reg[MAR] = MDR
 
     def load(self):
         """Load a program into memory."""
@@ -82,3 +83,4 @@ class CPU:
     def run(self):
         """Run the CPU."""
         pass
+        self.IR = self.PC
