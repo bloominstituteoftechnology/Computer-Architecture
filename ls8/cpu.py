@@ -13,7 +13,8 @@ class CPU:
         self.instruction_set = {
             "HLT": 0b00000001,
             "LDI": 0b10000010,
-            "PRN": 0b01000111
+            "PRN": 0b01000111,
+            "MUL": 0b10100010
         }
 
     def ram_write(self, val, addy):
@@ -50,6 +51,8 @@ class CPU:
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
+        elif op == "MUL":
+            self.reg[reg_a] *= self.reg[reg_b]
         #elif op == "SUB": etc
         else:
             raise Exception("Unsupported ALU operation")
@@ -89,10 +92,16 @@ class CPU:
                 reg_a = self.ram_read(self.pc+1)
                 int = self.ram_read(self.pc+2)
                 self.reg[reg_a] = int
-                self.pc += 2
+                self.pc += 3
+            elif instruction is self.instruction_set["MUL"]:
+                print("We multiplied")
+                reg_a = self.ram_read(self.pc+1)
+                reg_b = self.ram_read(self.pc+2)
+                self.alu("MUL", reg_a, reg_b)
+                self.pc += 3
             elif instruction is self.instruction_set["PRN"]:
                 print(self.reg[self.ram_read(self.pc+1)])
-                self.pc += 1
+                self.pc += 2
             elif instruction is self.instruction_set["HLT"]:
                 running = False
-            self.pc += 1
+            # self.pc += 1
