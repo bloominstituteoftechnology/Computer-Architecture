@@ -1,0 +1,16 @@
+    00000001  # PRINT_TIM
+    00000001
+    00000011  #PRINT_NUM
+    00101010
+    00000100  # SAVE
+    00000010 # put into register 2
+    11111110  # number into register 2
+    00000100  # SAVE
+    00000011  # into register 3
+    00000001  # the number 1
+    00000110  # ADD
+    00000010  #R2
+    00000011  #R3
+    00000101 # PRINT_REG
+    00000010
+    00000010 #HALT
