@@ -12,7 +12,7 @@ class CPU:
         self.pc = 0
 
 
-    def load(self):
+    def load(self): 
         """Load a program into memory."""
 
         address = 0
