@@ -25,6 +25,7 @@ class CPU:
     instructionDefs= {
         'HLT': 0b00000001,
         'LDI': 0b10000010,
+        'PRN': 0b01000111,
     }
 
     def ram_read(self, MAR):
@@ -87,21 +88,7 @@ class CPU:
     def run(self):
         """Run the CPU."""
         self.isRunning= True
-        # OP-CODE
 
-        # Meanings of the bits in the first byte of each instruction: `AABCDDDD`
-        # * `AA` Number of operands for this opcode, 0-2
-        # * `B` 1 if this is an ALU operation
-        # * `C` 1 if this instruction sets the PC
-        # * `DDDD` Instruction identifier
-
-        # The number of operands `AA` is useful to know because the total number of bytes in any
-        # instruction is the number of operands + 1 (for the opcode). This
-        # allows you to know how far to advance the `PC` with each instruction.
-
-        # It might also be useful to check the other bits in an emulator implementation, but
-        # there are other ways to code it that don't do these checks.
-        
         # IR R0-R8
         IR= self.ram[self.pc]
 
@@ -129,19 +116,27 @@ class CPU:
             elif numOps == 1:
                 operand_a= self.ram[self.pc + 1]
 
-            # if HLT instruction
+            # HLT
             # no operands
             if to_decimal(opCode, 2) == self.instructionDefs['HLT']:
                 self.isRunning= False
                 self.pc+= pcStep
-                print('run HLT')
+                print('HLT run')
 
+            # LDI
             # takes 2 operands
             elif to_decimal(opCode, 2) == self.instructionDefs['LDI']:
                 self.reg[operand_a]= operand_b
                 self.isRunning= False
                 self.pc+= pcStep
-                print('reg: ', self.reg)
+                print('LDI run')
+
+            # PRN
+            # takes one operand
+            elif to_decimal(opCode, 2) == self.instructionDefs['PRN']:
+                self.pc+= pcStep
+                print('PRN run')
+                print('operand_a from PRN :', operand_a)
 
             else:
                 self.isRunning= False
