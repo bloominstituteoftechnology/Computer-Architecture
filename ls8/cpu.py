@@ -7,21 +7,16 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        reg = [0] * 256
+        reg = [0] * 8
         ram = [0] * 256
         PC = 0        # Program Counter, address of the currently executing instruction
         IR = None     # Instruction Register, contains a copy of the currently executing instruction
         # MAR = None  # Memory Address Register, holds the memory address we're reading or writing
         # MDR = None  # Memory Data Register, holds the value to write or the value just read
 
-        R0 = None
-        R1 = None
-        R2 = None
-        R3 = None
-        R4 = None
-        R5 = None  # R5 is reserved as the interrupt mask (IM)
-        R6 = None  # R6 is reserved as the interrupt status (IS)
-        R7 = None  # R7 is reserved as the stack pointer (SP)
+        # R5 is reserved as the interrupt mask (IM)
+        # R6 is reserved as the interrupt status (IS)
+        # R7 is reserved as the stack pointer (SP)
 
     def ram_read(self, MAR):
         return self.reg[MAR]
