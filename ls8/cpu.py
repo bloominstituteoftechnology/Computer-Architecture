@@ -71,17 +71,23 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        #Instruction Register
-        instuction = self.ram_read(self.pc)
         operand_a = 0
         operand_b = 0
 
         running = True
 
         while running:
-            pass
+
+            # Instruction Register
+            instruction = self.ram_read(self.pc)
+
+            if instruction is 0b00000001:
+                print("We done")
+                running = False
+            self.pc += 1
+
 
 
 cpu = CPU()
-
+cpu.load()
 cpu.run()
