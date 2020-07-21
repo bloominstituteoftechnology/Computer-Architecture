@@ -140,7 +140,8 @@ class CPU:
 
             # MUL
             elif ir == MUL:
-                self.reg[operand_b] *= self.reg[operand_b]
+                product = self.reg[operand_a] * self.reg[operand_b]
+                self.reg[operand_a] = product
                 self.pc += 3
 
             # Unknown instructions
