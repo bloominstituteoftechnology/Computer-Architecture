@@ -230,7 +230,7 @@ class CPU:
 
     def __handle_keypress(self, key):
         num = ord(key)
-        if num == 3 or num == 4:  # ctrl-C or ctrl-D; exit
+        if num == 27 or num == 4:  # esc or ctrl-D; exit
             self._hlt()
         self.ram[0xF4] = ord(key)
         self.reg[IS] |= 0b00000010
