@@ -2,16 +2,14 @@
 
 import sys
 
-
 def to_decimal(num_string, base):
     digit_list = list(num_string)
     digit_list.reverse()
     value = 0
     for i in range(len(digit_list)):
-        print(f"+({int(digit_list[i])} * {base ** i})")
+        # print(f"+({int(digit_list[i])} * {base ** i})")
         value += int(digit_list[i]) * (base ** i)
     return value
-
 
 class CPU:
     """Main CPU class."""
@@ -44,7 +42,7 @@ class CPU:
             with open(sys.argv[1]) as f:
                 for line in f:
                     try:
-                        print('line: ', line.split('#', 1)[0])
+                        # print('line: ', line.split('#', 1)[0])
                         line = line.split('#', 1)[0]
 
                         line = int(line, 2)
@@ -52,22 +50,9 @@ class CPU:
                         address += 1
                     except ValueError:
                         pass
-                    
+
         except FileNotFoundError:
             print(f"Couldn't find file {sys.argv[1]}")
-
-
-        # For now, we've just hardcoded a program:
-
-        # program = [
-        #     # From print8.ls8
-        #     0b10000010,  # LDI R0,8
-        #     0b00000000,
-        #     0b00001000,
-        #     0b01000111,  # PRN R0
-        #     0b00000000,
-        #     0b00000001,  # HLT
-        # ]
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -118,13 +103,6 @@ class CPU:
             setsPC = opCode[3:4]
             instID = opCode[4:]
 
-            # how far to step pc (from opCode)
-            # if instr doesn't do it for us
-            print('numOps: ', numOps)
-            pcStep = numOps+1 if setsPC == 0 else 0
-            print('opCode: ', to_decimal(opCode, 2))
-            print('self.instructions LDI: ', self.instructionDefs['LDI'])
-            # grab operands as specified
             if numOps == 2:
                 operand_a = self.ram[self.pc + 1]
                 operand_b = self.ram[self.pc + 2]
@@ -134,38 +112,22 @@ class CPU:
             # HLT
             # no operands
             if to_decimal(opCode, 2) == self.instructionDefs['HLT']:
-                self.isRunning = False
-                self.pc += pcStep
+                self.pc += 1
                 print('HLT run')
 
             # LDI
             # takes 2 operands
             elif to_decimal(opCode, 2) == self.instructionDefs['LDI']:
                 self.reg[operand_a] = operand_b
-                self.isRunning = False
-                self.pc += pcStep
+                self.pc += 3
                 print('LDI run')
 
             # PRN
             # takes one operand
             elif to_decimal(opCode, 2) == self.instructionDefs['PRN']:
-                self.pc += pcStep
+                self.pc += 2
+                print('PRN output: ', self.reg[operand_a])
                 print('PRN run')
-                print('operand_a from PRN :', operand_a)
 
             else:
                 self.isRunning = False
-
-        print('opCode', opCode)
-        print('numOps', numOps)
-        print('isALU', isALU)
-        print('setsPC', setsPC)
-        print('instID', instID)
-        # `LDI register immediate`
-        # Set the value of a register to an integer.
-        # Machine code:
-        # ```
-        # 10000010 00000rrr iiiiiiii
-        # 82 0r ii
-
-        # incase of LDI
