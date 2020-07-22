@@ -12,25 +12,32 @@ class CPU:
         self.ram = [0] * 256
         self.pc = 0
         self.reg = [0] * 8
+        self.LDI = 0b10000010
+        self.PRN = 0b01000111
         self.HLT = 0b00000001
         self.MUL = 0b10100010
         self.address = 0
 
-    def load(self):
+    def load(self, path):
         """Load a program into memory."""
 
-        with open(sys.argv[1]) as f:
+        with open(path) as f:
             for line in f:
-                try:
-                    line = line.strip().split("#",1)[0]
-                    # if line == '':
-                    #     continue
-                    line = int(line, 2)
-                    self.ram[self.address] = line
-                    self.address += 1
-                    # print(line)
-                except ValueError:
+            # try:              
+                line = line.strip().split("#",1)[0]
+                if line == '':
+                    continue
+                line = int(line, 2)
+                self.ram[self.address] = line
+                self.address += 1
+                # print(line)
+                if len(sys.argv) != 2:
+                    print("usage: ls8.py filename")
+                    sys.exit(1)
+                if ValueError:
                     pass
+            # except ValueError:
+            #     pass
 
         # address = 0
 
@@ -101,10 +108,10 @@ class CPU:
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
 
-            if IR ==  0b10000010:  # LDI instruction
+            if IR == self.LDI:
                 self.reg[operand_a] = operand_b
                 self.pc += 3
-            elif IR == 0b01000111:  # PRN instruction
+            elif IR == self.PRN:
                 print(self.reg[operand_a])
                 self.pc += 2
             elif IR == self.HLT:
