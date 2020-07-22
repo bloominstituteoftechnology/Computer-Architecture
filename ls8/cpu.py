@@ -80,8 +80,9 @@ class CPU:
     
     @stack_pointer.setter
     def stack_pointer(self, value):
+        value &= 0xff
         self.reg[7] = value
-
+        
     def ram_read(self, address) -> int:
         return self.ram[address]
 
@@ -138,6 +139,8 @@ class CPU:
             self.reg[a] = self.reg[a] ^ self.reg[b]
         else:
             raise Exception("Unsupported ALU operation")
+
+        self.reg[a] &= 0xff # Make sure we are staying within the 8 bit limit of our registers
 
     def trace(self):
         """
