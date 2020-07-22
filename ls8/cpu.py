@@ -8,6 +8,8 @@ PRN = 0b01000111    # Print
 HLT = 0b00000001    # Halt
 MUL = 0b10100010    # Multiply
 ADD = 0b10100000    # Addition
+PUSH = 0b01000101   # Push in stack
+POP = 0b01000110    # Pop from stack
 
 class CPU:
     """Main CPU class."""
@@ -16,6 +18,7 @@ class CPU:
         """Construct a new CPU."""
         self.ram = [0] * 256
         self.reg = [0] * 8
+        self.reg[7] = 0xF4
         self.pc = 0
         self.running = True
 
@@ -124,6 +127,38 @@ class CPU:
             elif instruction_register == MUL:
                 self.alu("MUL", reg_a, reg_b)
                 self.pc += 3
+            
+            elif instruction_register == PUSH:
+                # decrement stack pointer
+                self.reg[7] -= 1
+
+                # get the value from a given register
+                reg_a = self.ram[self.pc+1]
+                value = self.reg[reg_a]
+
+                # put it on the stack pointer address
+                sp = self.reg[7]
+                self.ram[sp] = value
+
+                # increment pc
+                self.pc += 2
+
+            elif instruction_register == POP:
+                # get the tack pointer
+                sp = self.reg[7]
+
+                # get register number to put value in
+                reg_a = self.ram[self.pc+1]
+
+                # use stack pointer to get the value
+                value = self.ram[sp]
+                # put the value into a given register
+                self.reg[reg_a] = value
+
+                # increment stack pointer
+                self.reg[7] += 1
+                # increment program counter
+                self.pc += 2
             
             else:
                 print(f"Instruction number {self.pc} not recognized!")
