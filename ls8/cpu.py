@@ -12,6 +12,7 @@ class CPU:
         self.ram = [0] * 256
         self.pc = 0
         self.reg = [0] * 8
+        self.flag = 0
         self.LDI = 0b10000010
         self.PRN = 0b01000111
         self.HLT = 0b00000001
@@ -114,12 +115,14 @@ class CPU:
             elif IR == self.PRN:
                 print(self.reg[operand_a])
                 self.pc += 2
+                self.trace()
             elif IR == self.HLT:
                 running = False
             elif IR == self.MUL:
                 # self.reg[operand_a] *= self.reg[operand_b]
                 self.alu(IR, operand_a, operand_b)
                 self.pc += 3
+                self.trace()            
             else:
                 print(f"Unknown instruction {IR}")
                 running = False       
