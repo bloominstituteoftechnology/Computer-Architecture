@@ -3,19 +3,24 @@ def NAND(a, b):
 
 def NOT(a):
     # Challenge: make this using only NAND
-    return ~(a)
+    # return ~(a)
+    return NAND(a, a)
 
 def AND(a, b):
-    return (a & b)
+    # return (a & b)
+    return NOT(NAND(a, b))
 
 def NOR(a, b):
-    return ~(a | b)
+    # return ~(a | b)
+    return (NOT(a) & NOT(b))
 
 def OR(a, b):
-    return (a | b)
+    # return (a | b)
+    return NOT(NOR(a, b))
 
 def XOR(a, b):
-    return (a ^ b)
+    # return (a ^ b)
+    return AND(OR(a, b), NOT(AND(a, b)))
 
 if __name__ == "__main__":
     assert(NAND(0, 0)&0x1 == 1)
