@@ -9,6 +9,8 @@ class CPU:
         """Construct a new CPU."""
         self.ram = [0] * 256
         self.reg = [0] * 8
+        # R07 STACK POINTER
+        self.reg[7] = 0xF4
         self.pc = 0
         self.isRunning = True
 
@@ -28,7 +30,9 @@ class CPU:
             0b00000001: self.HLT,
             0b10000010: self.LDI,
             0b01000111: self.PRN,
-            0b10100010: self.MUL
+            0b10100010: self.MUL,
+            0b01000110: self.POP,
+            0b01000101: self.PUSH
         }
 
     def ram_write(self, val, addy):
@@ -62,11 +66,10 @@ class CPU:
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
-
         if op == "ADD":
-            self.reg[reg_a] += self.reg[reg_b]
+            self.reg[reg_a] = 255 & (self.reg[reg_a] + self.reg[reg_b])
         elif op == "MUL":
-            self.reg[reg_a] *= self.reg[reg_b]
+            self.reg[reg_a] = 255 & (self.reg[reg_a] * self.reg[reg_b])
         #elif op == "SUB": etc
         else:
             raise Exception("Unsupported ALU operation")
@@ -93,10 +96,6 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        operand_a = 0
-        operand_b = 0
-
-        running = True
 
         while self.isRunning:
 
@@ -107,15 +106,28 @@ class CPU:
     def LDI(self):
         reg_a = self.ram_read(self.pc + 1)
         int = self.ram_read(self.pc + 2)
-        self.reg[reg_a] = int
+        self.reg[reg_a] = 255 & int
         self.pc += 3
+
     def MUL(self):
         reg_a = self.ram_read(self.pc + 1)
         reg_b = self.ram_read(self.pc + 2)
         self.alu("MUL", reg_a, reg_b)
         self.pc += 3
+
     def PRN(self):
         print(self.reg[self.ram_read(self.pc + 1)])
         self.pc += 2
+
     def HLT(self):
         self.isRunning = False
+
+    def POP(self):
+        self.reg[self.ram_read(self.pc + 1)] = self.ram_read(self.reg[7])
+        self.reg[7] += 1
+        self.pc += 2
+
+    def PUSH(self):
+        self.reg[7] -= 1
+        self.ram[self.reg[7]] = self.reg[self.ram_read(self.pc + 1)]
+        self.pc += 2
