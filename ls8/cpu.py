@@ -2,40 +2,38 @@
 
 import sys
 
+LDI = 0b10000010
+PRN = 0b01000111
+HLT = 0b00000001
+
 class CPU:
     """Main CPU class."""
-
     def __init__(self):
         """Construct a new CPU."""
-        # pass
-        memory = [0] * 256
-        
+        self.ram = [0] * 256
+        self.reg = [0] * 8
+        self.pc = 0
+        self.ir = 0
 
     def load(self):
         """Load a program into memory."""
-
         address = 0
-
         # For now, we've just hardcoded a program:
-
         program = [
             # From print8.ls8
-            0b10000010, # LDI R0,8
+            0b10000010, # LDI R0,8 
             0b00000000,
             0b00001000,
-            0b01000111, # PRN R0
+            0b01000111, # PRN R0    #PC
             0b00000000,
             0b00000001, # HLT
         ]
-
         for instruction in program:
             self.ram[address] = instruction
             address += 1
 
-
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
-
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
         #elif op == "SUB": etc
@@ -47,7 +45,6 @@ class CPU:
         Handy function to print out the CPU state. You might want to call this
         from run() if you need help debugging.
         """
-
         print(f"TRACE: %02X | %02X %02X %02X |" % (
             self.pc,
             #self.fl,
@@ -56,12 +53,47 @@ class CPU:
             self.ram_read(self.pc + 1),
             self.ram_read(self.pc + 2)
         ), end='')
-
         for i in range(8):
             print(" %02X" % self.reg[i], end='')
-
         print()
 
+    def ram_read(self, address):
+        return self.ram[address]
+
+    def ram_write(self, value, address):
+        pass
+    
     def run(self):
         """Run the CPU."""
-        pass
+        self.pc = 0
+
+        running = True
+        while running:
+            # grab instruction at address held by program counter
+            self.ir = self.ram_read(self.pc)
+
+            if self.ir == LDI:
+                #grab registry address from next RAM address after PC
+                reg_addr = self.ram_read(self.pc + 1)
+                # grab  value from 2nd address after PC
+                value = self.ram_read(self.pc + 2)
+                self.reg[reg_addr] = value
+                # print(f"set registry address {reg_addr} to value {value}")
+                #advance PC by 3 
+                self.pc += 3
+
+            elif self.ir == PRN:
+                reg_addr = self.ram_read(self.pc + 1)
+                value = self.reg[reg_addr]
+                print(value)
+                #advance pc
+                self.pc += 2
+
+            elif self.ir == HLT:
+                # print("Stopping!")
+                running = False
+
+            else:
+                # this will only trigger if PC lands on an invalid instruction
+                running = False
+                print(f"ERROR: invalid instruction {self.ir} at address {self.pc}")
