@@ -25,6 +25,7 @@ class CPU:
         'HLT': 0b00000001,
         'LDI': 0b10000010,
         'PRN': 0b01000111,
+        'MULT': 0b10100010
     }
 
     def ram_read(self, MAR):
@@ -128,6 +129,13 @@ class CPU:
                 self.pc += 2
                 print('PRN output: ', self.reg[operand_a])
                 print('PRN run')
+            
+            elif to_decimal(opCode, 2) == self.instructionDefs['MULT']:
+                product= self.reg[operand_a] * self.reg[operand_b]
+                self.reg[operand_a]= product
+                print('MULT output: ', self.reg[operand_a])
+                self.pc+= 3
+                print('MULT run')
 
             else:
                 self.isRunning = False
