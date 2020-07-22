@@ -56,8 +56,11 @@ class CPU:
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
         #elif op == "SUB": etc
-        elif op == "Mul":
-            self.reg[reg_a] *= self.reg[reg_b] 
+        elif op == "MUL":
+            self.reg[reg_a] *= self.reg[reg_b]
+            print("yes")
+        
+   
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -93,13 +96,28 @@ class CPU:
             elif instruction == 0b10000010: #LDI
                 # register is program counter + 1
                 register = self.ram[self.pc + 1]
+                # print(register)
                 # for integer value will be, program coutner + 2
                 integer = self.ram[self.pc + 2]
                 #save integer value at the register at the register specified
                 self.reg[register] = integer
-
                 self.pc +=3
                 print(self.ram)
+            elif instruction == 0b01000111: #PRN
+                print(self.reg)
+                register = self.ram_read(self.pc + 1)  
+                print(register)             
+                print(self.reg[register])
+                self.pc +=2    
+            elif instruction == 0b10100010: #mult
+                # self.pc += 1
+                reg_a = self.ram_read(self.pc + 1)
+                # self.pc += 1
+                reg_b = self.ram_read(self.pc + 2)
+                
+                self.alu("MUL", reg_a, reg_b)
+                print(reg_a,reg_b)
+                self.pc += 3
             else:
                 print("unknown instruction")
                 running = False
