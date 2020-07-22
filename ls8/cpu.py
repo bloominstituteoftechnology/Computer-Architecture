@@ -20,6 +20,7 @@ class CPU:
 
         # reg 7 = 0xF4
         self.reg[7] = 0xF4
+        
 
     def load(self, filename=None):
         """Load a program into memory."""
@@ -111,7 +112,14 @@ class CPU:
         LDI = 0b10000010
         PRN = 0b01000111
         MUL = 0b10100010
-
+        ADD = 0b10100000
+        PUSH = 0b01000101
+        POP = 0b01000110
+        CALL = 0b01010000
+        RET = 0b00010001
+        
+        SP = 7
+        
         running = True
 
         while running:
@@ -142,6 +150,29 @@ class CPU:
             elif ir == MUL:
                 product = self.reg[operand_a] * self.reg[operand_b]
                 self.reg[operand_a] = product
+                self.pc += 3
+                
+            # PUSH
+            elif ir == PUSH:
+                # decrement the stack pointer
+                self.reg[SP] -= 1
+                # store value from reg to ram
+                self.ram_write(self.reg[operand_a], self.reg[SP])
+                self.pc += 2
+
+            # POP
+            elif ir == POP:
+                # read value of SP and overwrite next register
+                value = self.ram_read(self.reg[SP])
+                self.reg[operand_a] = value
+                # increment SP
+                self.reg[SP] += 1
+                self.pc += 2
+
+            # ADD
+            elif ir == ADD:
+                add = self.reg[operand_a] + self.reg[operand_b]
+                self.reg[operand_a] = add
                 self.pc += 3
 
             # Unknown instructions
