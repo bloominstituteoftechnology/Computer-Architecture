@@ -32,7 +32,11 @@ class CPU:
             0b01000111: self.PRN,
             0b10100010: self.MUL,
             0b01000110: self.POP,
-            0b01000101: self.PUSH
+            0b01000101: self.PUSH,
+            0b01010000: self.CALL,
+            0b00010001: self.RET,
+            0b10100000: self.ADD
+
         }
 
     def ram_write(self, val, addy):
@@ -60,6 +64,9 @@ class CPU:
         # ]
 
         for instruction in program:
+            # print("{0:b}".format(instruction))
+            # print(instruction)
+            # print()
             self.ram[address] = instruction
             address += 1
 
@@ -97,16 +104,28 @@ class CPU:
     def run(self):
         """Run the CPU."""
 
+
         while self.isRunning:
 
             # Grab the bytecode instruction out of memory
             # Use the instruction to access or branch table
+            if self.ram_read(self.pc) not in self.instruction_set:
+                print("We found something out of the ordinary!")
+                print("{0:b}".format(self.ram_read(self.pc)))
+                print(self.ram_read(self.pc))
+                return 1
             self.instruction_set[self.ram_read(self.pc)]()
 
     def LDI(self):
         reg_a = self.ram_read(self.pc + 1)
         int = self.ram_read(self.pc + 2)
         self.reg[reg_a] = 255 & int
+        self.pc += 3
+
+    def ADD(self):
+        reg_a = self.ram_read(self.pc + 1)
+        reg_b = self.ram_read(self.pc + 2)
+        self.alu("ADD", reg_a, reg_b)
         self.pc += 3
 
     def MUL(self):
@@ -131,3 +150,29 @@ class CPU:
         self.reg[7] -= 1
         self.ram[self.reg[7]] = self.reg[self.ram_read(self.pc + 1)]
         self.pc += 2
+
+    def CALL(self):
+        # Subroutine Address
+        # - Instruction after PC contains register
+        # - Use that to access the value inside the register
+        # - Store it into a variable sub_add
+        sub_add = self.reg[self.ram_read(self.pc + 1)]
+
+        # Start at current instruction + 2
+        # keep moving forward until we find an instruction
+        # This is where we want to continue after we come back
+        ret_add = self.pc + 2
+        while self.ram_read(ret_add) not in self.instruction_set:
+            ret_add += 1
+
+        # PUSH the address we want to return to onto the stack
+        # So that we may access it from anywhere else
+        self.reg[7] -= 1
+        self.ram[self.reg[7]] = ret_add
+        # Set the PC to the address we extracted earlier
+        self.pc = sub_add
+
+    def RET(self):
+        # Store value at the current top of the stack into PC
+        self.pc = self.ram_read(self.reg[7])
+        self.reg[7] += 1
