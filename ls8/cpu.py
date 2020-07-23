@@ -20,13 +20,19 @@ class CPU:
         self.ram = [0] * 256
         self.pc = 0
         self.isRunning = False
+        #stack pointer
+        self.sp= 7
+        self.reg[self.sp]= 0xF4
 
     instructionDefs = {
         'HLT': 0b00000001,
         'LDI': 0b10000010,
         'PRN': 0b01000111,
-        'MULT': 0b10100010
+        'MULT': 0b10100010,
+        'PUSH': 0b01000101,
+        'POP': 0b01000110
     }
+
 
     def ram_read(self, MAR):
         storedValue = self.ram[MAR]
@@ -43,7 +49,6 @@ class CPU:
             with open(sys.argv[1]) as f:
                 for line in f:
                     try:
-                        # print('line: ', line.split('#', 1)[0])
                         line = line.split('#', 1)[0]
 
                         line = int(line, 2)
@@ -87,7 +92,6 @@ class CPU:
     def run(self):
         """Run the CPU."""
         # self.trace()
-
         self.isRunning = True
 
         # IR R0-R8
@@ -114,28 +118,46 @@ class CPU:
             # no operands
             if to_decimal(opCode, 2) == self.instructionDefs['HLT']:
                 self.pc += 1
-                print('HLT run')
 
             # LDI
             # takes 2 operands
             elif to_decimal(opCode, 2) == self.instructionDefs['LDI']:
                 self.reg[operand_a] = operand_b
                 self.pc += 3
-                print('LDI run')
 
             # PRN
             # takes one operand
             elif to_decimal(opCode, 2) == self.instructionDefs['PRN']:
                 self.pc += 2
-                print('PRN output: ', self.reg[operand_a])
-                print('PRN run')
+                print(self.reg[operand_a])
             
             elif to_decimal(opCode, 2) == self.instructionDefs['MULT']:
                 product= self.reg[operand_a] * self.reg[operand_b]
                 self.reg[operand_a]= product
                 print('MULT output: ', self.reg[operand_a])
                 self.pc+= 3
-                print('MULT run')
+            
+            elif to_decimal(opCode, 2) == self.instructionDefs['PUSH']:
+                # 1. Decrement the `SP`.
+                self.reg[self.sp]-= 1
+
+                # 2. Copy the value in the given register to the address pointed to by `SP`.
+                value= self.reg[operand_a]
+                pointer= self.reg[self.sp]
+                self.ram[pointer]= value
+
+                self.pc+= 2
+            elif to_decimal(opCode, 2) == self.instructionDefs['POP']:
+                # Pop the value at the top of the stack into the given register.
+                # 1. Copy the value from the address pointed to by `SP` to the given register.
+                pointer= self.reg[self.sp]
+                value= self.ram[pointer]
+                self.reg[operand_a]= value
+
+                # 2. Increment `SP`.
+                self.reg[self.sp]+= 1
+                self.pc+=2
 
             else:
                 self.isRunning = False
+
