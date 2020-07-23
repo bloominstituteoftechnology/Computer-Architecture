@@ -10,6 +10,8 @@ MUL = 0b10100010    # Multiply
 ADD = 0b10100000    # Addition
 PUSH = 0b01000101   # Push in stack
 POP = 0b01000110    # Pop from stack
+CALL = 0b01010000
+RET = 0b00010001
 
 class CPU:
     """Main CPU class."""
@@ -124,6 +126,10 @@ class CPU:
             elif instruction_register == PRN:
                 self.prn(reg_a)
             
+            elif instruction_register == ADD:
+                self.alu("ADD", reg_a, reg_b)
+                self.pc += 3
+            
             elif instruction_register == MUL:
                 self.alu("MUL", reg_a, reg_b)
                 self.pc += 3
@@ -133,7 +139,7 @@ class CPU:
                 self.reg[7] -= 1
 
                 # get the value from a given register
-                reg_a = self.ram[self.pc+1]
+                # reg_a = self.ram[self.pc+1]
                 value = self.reg[reg_a]
 
                 # put it on the stack pointer address
@@ -146,9 +152,8 @@ class CPU:
             elif instruction_register == POP:
                 # get the tack pointer
                 sp = self.reg[7]
-
                 # get register number to put value in
-                reg_a = self.ram[self.pc+1]
+                # reg_a = self.ram[self.pc+1]
 
                 # use stack pointer to get the value
                 value = self.ram[sp]
@@ -159,6 +164,29 @@ class CPU:
                 self.reg[7] += 1
                 # increment program counter
                 self.pc += 2
+            
+            elif instruction_register == CALL:
+                # get register number
+                # reg_a = self.ram[self.pc + 1]
+                # get the address to jump to, from the register
+                address = self.reg[reg_a]
+                # push command right after CALL onto the stack
+                return_address = self.pc + 2
+                # decrement stack pointer
+                self.reg[7] -= 1
+                sp = self.reg[7]
+                # put return_address on the stack
+                self.ram[sp] = return_address
+                # then look at register, jump to that address
+                self.pc = address
+            
+            elif instruction_register == RET:
+                # pop the return address off the stack
+                sp = self.reg[7]
+                return_address = self.ram[sp]
+                self.reg[7] += 1
+                # go to return address: set the pc to return address
+                self.pc = return_address
             
             else:
                 print(f"Instruction number {self.pc} not recognized!")
