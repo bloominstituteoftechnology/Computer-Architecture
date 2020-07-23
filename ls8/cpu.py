@@ -2,13 +2,6 @@
 
 import sys
 
-# op_codes = {
-#     "HLT": 0b00000001,
-#     "LDI": 0b10000010,
-#     "PRN": 0b01000111,
-#     "MUL": 0b10100010
-# }
-
 class CPU:
     """Main CPU class."""
 
@@ -18,6 +11,7 @@ class CPU:
         self.reg = [0] * 8
         self.pc = 0
         self.sp = 244
+        self.fl = 0
         self.running = False
         self.branchtable = {}
         self.branchtable["LDI"] = self.LDI
@@ -30,6 +24,8 @@ class CPU:
         self.branchtable["AND"] = self.AND
         self.branchtable["POP"] = self.POP
         self.branchtable["PUSH"] = self.PUSH
+        self.branchtable["CALL"] = self.CALL
+        self.branchtable["RET"] = self.RET
         self.op_codes = {}
         self.op_codes["HLT"] = 0b00000001
         self.op_codes["LDI"] = 0b10000010
@@ -41,6 +37,8 @@ class CPU:
         self.op_codes["AND"] = 0b10101000
         self.op_codes["POP"] = 0b01000110
         self.op_codes["PUSH"] = 0b01000101
+        self.op_codes["CALL"] = 0b01010000
+        self.op_codes["RET"] = 0b00010001
 
     def load(self):
         """Load a program into memory."""
@@ -50,7 +48,7 @@ class CPU:
             print("Please pass in a second file name: python3 ls8.py second_filename.py")
             sys.exit()
         file_name = sys.argv[1]
-        # file_name = "ls8/examples/stack.ls8"
+        # file_name = "ls8/examples/call.ls8"
         try:
             file = open(file_name, "r")
         except FileNotFoundError:
@@ -59,7 +57,6 @@ class CPU:
         
         for line in file.readlines():
             instruction = line.split("#", 1)[0].strip()
-            # print(f"Instruction: {instruction}")
             if len(instruction) > 5:
                 self.ram_write(address, int(instruction, 2))
             address += 1
@@ -79,7 +76,6 @@ class CPU:
             self.branchtable["DIV"]()
         elif self.op_codes["AND"] is op:
             self.branchtable["AND"]()
-        #elif op == "SUB": etc
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -111,23 +107,38 @@ class CPU:
 
             if IR is self.op_codes["LDI"]:
                 self.branchtable["LDI"]()
+                # print(f"Registers: {self.reg}")
 
             if IR is self.op_codes["PRN"]:
                 self.branchtable["PRN"]()
+                # print(f"Registers: {self.reg}")
             
             if IR is self.op_codes["HLT"]:
                 self.branchtable["HLT"]()
+                # print(f"Registers: {self.reg}")
                 
             if self.ALU_OP_CODE(IR):
                 self.alu(IR)
+                # print(f"Registers: {self.reg}")
 
             if IR is self.op_codes["POP"]:
                 self.branchtable["POP"]()
+                # print(f"Registers: {self.reg}")
             
             if IR is self.op_codes["PUSH"]:
                 self.branchtable["PUSH"]()
+                # print(f"Registers: {self.reg}")
 
-            self.pc += 1
+            if IR is self.op_codes["CALL"]:
+                self.branchtable["CALL"]()
+                # print(f"Registers: {self.reg}")
+            
+            if IR is self.op_codes["RET"]:
+                self.branchtable["RET"]()
+                # print(f"Registers: {self.reg}")
+
+            if self.fl is 0:
+                self.pc += 1
 
     def ram_read(self, MAR):
         return self.ram[MAR]
@@ -216,8 +227,7 @@ class CPU:
         self.sp += self.op_codes["POP"] >> 6
         self.pc += self.op_codes["POP"] >> 6
         
-
-    def PUSH(self):
+    def PUSH(self, ):
         self.sp -= self.op_codes["PUSH"] >> 6
         operand_a = self.ram_read(self.pc + 1)
         operand_b = self.reg[operand_a]
@@ -229,6 +239,19 @@ class CPU:
         alu = B & 0b001  
         if alu is 1:
             return True 
+
+    def CALL(self):
+        operand_a = self.pc + 1
+        self.sp -= self.op_codes["PUSH"] >> 6
+        self.ram_write(self.sp, operand_a)
+        operand_b = self.ram_read(self.pc + 1)
+        self.pc = self.reg[operand_b]
+        
+
+    def RET(self):
+        operand_a = self.ram_read(self.sp)
+        self.sp += self.op_codes["POP"] >> 6
+        self.pc = operand_a
 
 cpu = CPU()
 cpu.load()
