@@ -1,0 +1,47 @@
+00000001    # PRINT_TIM
+00000001    # PRINT_TIM
+00000011    # PRINT_NUM
+0b101010    # num to print
+00000100    # SAVE
+00000010    # put into register 2
+11111110    # 99, number to save
+00000100    # SAVE
+00000011    # 3, number of register
+00000001    # 1, number to save
+00000110    # ADD, registers[2] = registers[2] + registers[3]           
+00000010    # R2,
+00000011    # R3,
+00000101    # PRINT_REG,  # prints whatever is on specified register
+00000010    # R2,
+
+00000100    # SAVE
+00000010    # into a register
+00011110    # the address to jump to
+00001001    # CALL
+00000010    # the register
+
+00000100    # SAVE
+00000100    # the register R4
+00101010    # the number 42
+00000111    # PUSH
+00000100    # whatever is in R4
+00001000    # POP
+00000011    # register to pop into
+00000101    # PRINT_REG
+00000011    # R3
+00000010    # HALT
+
+            # begin our function!
+00000001    # PRINT_TIM
+00000100    # SAVE in a register
+00000000    # which register to use
+00100110    # address of function to call
+00001001    # CALL
+00000000    # register to look at
+00000001    # PRINT_TIM
+00001010    # RET 
+
+00000011    # PRINT_NUM
+01100011    # number to print
+00001010    # RET
+
