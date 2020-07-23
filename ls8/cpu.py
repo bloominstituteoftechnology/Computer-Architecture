@@ -287,25 +287,31 @@ class CPU:
         pass
 
     def _cmp(self, op1, op2):
-        pass
+        (a, b) = (reg[op1], reg[op2])
+        if a == b:
+            self.fl = 0b00000001
+        elif a < b:
+            self.fl = 0b00000010
+        elif a > b:
+            self.fl = 0b00000100
 
     def _and(self, op1, op2):
-        pass
+        reg[op1] = reg[op1] & reg[op2]
 
-    def _not(self, op1, op2):
-        pass
+    def _not(self, op1):
+        reg[op1] = ~reg[op1]
 
     def _or(self, op1, op2):
-        pass
+        reg[op1] = reg[op1] | reg[op2]
 
     def _xor(self, op1, op2):
-        pass
+        reg[op1] = reg[op1] ^ reg[op2]
 
     def _shl(self, op1, op2):
-        pass
+        reg[op1] = reg[op1] << reg[op2]
 
     def _shr(self, op1, op2):
-        pass
+        reg[op1] = reg[op1] >> reg[op2]
 
     def _push(self, adr):
         self.sp -= 1
