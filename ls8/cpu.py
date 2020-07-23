@@ -50,7 +50,7 @@ class CPU:
         """Run the CPU."""
         while True:
             IR = self.ram_read(self.pc)
-            print(IR,"\n")
+            # print(IR,"\n")
             if IR in self.branch_table:
                 self.branch_table[IR]()
 
@@ -88,9 +88,9 @@ class CPU:
         self.pc += 2
 
     def push_inst(self):
+        self.reg[7] -= 1
         operand_a = self.ram_read(self.pc + 1)
         self.ram[self.reg[7]] = self.reg[operand_a]
-        self.reg[7] -= 1
         self.pc += 2
 
     def pop_inst(self):
