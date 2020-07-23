@@ -39,8 +39,8 @@ class CPU:
                 self.ram[address] = inst
                 address += 1
 
-    # sprint challenge material
-    # Adding flag and CMP instruction to the alu
+    
+    
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
 
@@ -112,3 +112,50 @@ class CPU:
             0b01010110: 'JNE'   # if E fl==0 jmp to address in given register
             }
         alu_codes = set(['ADD', 'SUB', 'MUL', 'CMP'])
+
+        while True:
+
+            binary_op_code = self.ram_read(self.PC)
+            op = op_codes[binary_op_code]
+
+            if op == 'LDI':
+                reg_num = self.ram_read(self.PC + 1)
+                value = self.ram_read(self.PC + 2)
+                self.reg[reg_num] = value
+                self.PC += 3
+
+            elif op == 'PRN':
+                reg_num = self.ram_read(self.PC + 1)
+                value = self.reg[reg_num]
+                print(value)
+                self.PC += 2
+
+            elif op in alu_codes:
+                reg1 = self.ram_read(self.PC + 1)
+                reg2 = self.ram_read(self.PC + 2)
+                self.alu(op, reg1, reg2)
+                self.PC += 3
+
+            elif op == 'PUSH':
+                self.SP -= 1
+                reg_num = self.ram_read(self.PC + 1)
+                self.ram[self.SP] = self.reg[reg_num]
+                self.PC += 2
+
+            elif op == 'POP':
+                reg_num = self.ram_read(self.PC + 1)
+                self.reg[reg_num] = self.ram[self.SP]
+                self.SP += 1
+                self.PC += 2
+
+            elif op == 'CALL':
+                
+                self.SP -= 1
+                self.ram[self.SP] = self.PC + 2
+                
+                reg_num = self.ram_read(self.PC + 1)
+                self.PC = self.reg[reg_num]
+
+            elif op == 'RET':
+                self.PC = self.ram_read(self.SP)
+                self.SP += 1
