@@ -31,9 +31,10 @@ class CPU:
         HTL = 0b00000001
         LDI = 0b10000010
         PRN = 0b01000111
+        MUL = 0b10100010
 
         while True:
-            inst = bin(self.ram[self.pc])
+            # inst = bin(self.ram[self.pc])
             IR = self.ram_read(self.pc)
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
@@ -42,12 +43,20 @@ class CPU:
                 self.hlt_inst()
             elif IR is PRN:
                 self.prn_inst(operand_a)
+                self.pc += 2
             elif IR is LDI:
                 self.ldi_inst(operand_a, operand_b)
-            self.pc += 1
+                self.pc += 3
+            elif IR is MUL:
+                self.mul_inst(operand_a, operand_b)
+                self.pc += 3
 
     def hlt_inst(self):
         exit(1)
+
+    def mul_inst(self, reg_a, reg_b):
+        result = self.reg[reg_a] * self.reg[reg_b]
+        self.reg[reg_a] = result
 
     def ldi_inst(self, MAR, MDR):
         if MAR < len(self.ram):
@@ -70,7 +79,7 @@ class CPU:
                 for line in f:
                     try:
                         line = line.split("#", 1)[0]
-                        line = int(line, 2)  # int() is base 10 by default
+                        line = int(line, 2)
                         self.ram[address] = line
                         address += 1
                     except ValueError:
@@ -95,7 +104,7 @@ class CPU:
         # for instruction in program:
         #     self.ram[address] = instruction
         #     address += 1
-        print(self.ram)
+        # print(self.ram)
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
