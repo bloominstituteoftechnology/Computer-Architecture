@@ -1,0 +1,10 @@
+00000100    # SAVE
+00000100    # the register R4
+00101010    # the number 42
+00000111    # PUSH
+00000100    # whatever is in R4
+00001000    # POP
+00000011    # register to pop into
+00000101    # PRINT_REG
+00000011    # R3
+00000010    # HALT
