@@ -7,36 +7,64 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.reg = [0] * 8
+        self.PC = 0
+        self.IR = 0
+        self.MAR = 0
+        self.MDR = 0
+        self.FL = 0b00000000
+        self.IM = self.reg[5]
+        self.IS = self.reg[6]
+        self.SP = self.reg[7]
+        self.ram = [0] * 256
 
     def load(self):
         """Load a program into memory."""
-
         address = 0
+        if len(sys.argv) != 2:
+            print('Wrong amount of args. \nUsage example: python ls8.py aprogram.ls8')
+            sys.exit(1)
 
-        # For now, we've just hardcoded a program:
+        program_file = open(sys.argv[1])
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+        for line in program_file:
 
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+            inst = line.strip()
+            if not inst.startswith('#'):
+                inst = inst.split('#', 1)[0]
 
+                inst = inst.split()[0]
 
+                inst = int(inst, 2)
+                self.ram[address] = inst
+                address += 1
+
+    
+    
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
-        #elif op == "SUB": etc
+
+        elif op == "MUL":
+            x, y = self.reg[reg_a], self.reg[reg_b]
+            ans = 0
+            while y > 0:
+                if y & 1:
+                    ans = ans + x
+                x = x << 1
+                y = y >> 1
+            print(ans)
+
+        elif op == 'CMP':
+            # this instruction is used for comparison in values in other
+            # instructions
+            x, y = self.reg[reg_a], self.reg[reg_b]
+            if x == y:
+                self.FL = 1
+            else:
+                self.FL = 0
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -47,12 +75,11 @@ class CPU:
         """
 
         print(f"TRACE: %02X | %02X %02X %02X |" % (
-            self.pc,
-            #self.fl,
-            #self.ie,
-            self.ram_read(self.pc),
-            self.ram_read(self.pc + 1),
-            self.ram_read(self.pc + 2)
+            self.PC,
+
+            self.ram_read(self.PC),
+            self.ram_read(self.PC + 1),
+            self.ram_read(self.PC + 2)
         ), end='')
 
         for i in range(8):
@@ -60,6 +87,75 @@ class CPU:
 
         print()
 
+    def ram_read(self, address):
+        return self.ram[address]
+
+    def ram_write(self, address, value):
+        self.ram[address] = value
+
     def run(self):
         """Run the CPU."""
-        pass
+        op_codes = {
+            0b10000010: 'LDI',
+            0b01000111: 'PRN',
+            0b00000001: 'HLT',
+            0b10100000: 'ADD',
+            0b10100010: 'MUL',
+            0b01000101: 'PUSH',
+            0b01000110: 'POP',
+            0b01010000: 'CALL',
+            0b00010001: 'RET',
+            0b00010001: 'RET',
+            0b10100111: 'CMP',  # uses flags for comparisons in other inst
+            0b01010100: 'JMP',  # jumps to the address in the given register
+            0b01010101: 'JEQ',  # if E fl==1 jmp to address in given register
+            0b01010110: 'JNE'   # if E fl==0 jmp to address in given register
+            }
+        alu_codes = set(['ADD', 'SUB', 'MUL', 'CMP'])
+
+        while True:
+
+            binary_op_code = self.ram_read(self.PC)
+            op = op_codes[binary_op_code]
+
+            if op == 'LDI':
+                reg_num = self.ram_read(self.PC + 1)
+                value = self.ram_read(self.PC + 2)
+                self.reg[reg_num] = value
+                self.PC += 3
+
+            elif op == 'PRN':
+                reg_num = self.ram_read(self.PC + 1)
+                value = self.reg[reg_num]
+                print(value)
+                self.PC += 2
+
+            elif op in alu_codes:
+                reg1 = self.ram_read(self.PC + 1)
+                reg2 = self.ram_read(self.PC + 2)
+                self.alu(op, reg1, reg2)
+                self.PC += 3
+
+            elif op == 'PUSH':
+                self.SP -= 1
+                reg_num = self.ram_read(self.PC + 1)
+                self.ram[self.SP] = self.reg[reg_num]
+                self.PC += 2
+
+            elif op == 'POP':
+                reg_num = self.ram_read(self.PC + 1)
+                self.reg[reg_num] = self.ram[self.SP]
+                self.SP += 1
+                self.PC += 2
+
+            elif op == 'CALL':
+                
+                self.SP -= 1
+                self.ram[self.SP] = self.PC + 2
+                
+                reg_num = self.ram_read(self.PC + 1)
+                self.PC = self.reg[reg_num]
+
+            elif op == 'RET':
+                self.PC = self.ram_read(self.SP)
+                self.SP += 1
