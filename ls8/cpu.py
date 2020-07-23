@@ -125,6 +125,28 @@ class CPU:
                 self.alu("MUL", reg_a, reg_b)
                 self.pc += 3
             
+            elif instruction_register == PUSH:
+                self.reg[7] -= 1
+
+                reg_a = self.ram[self.pc+1]
+                value = self.reg[reg_a]
+
+                sp = self.reg[7]
+                self.ram[sp] = value
+
+                self.pc += 2
+
+            elif instruction_register == POP:
+                sp = self.reg[7]
+
+                reg_a = self.ram[self.pc+1]
+
+                value = self.ram[sp]
+                self.reg[reg_a] = value
+
+                self.reg[7] += 1
+                self.pc += 2
+            
             else:
                 print(f"Instruction number {self.pc} not recognized!")
                 self.pc += 1
