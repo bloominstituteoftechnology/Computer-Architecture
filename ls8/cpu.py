@@ -11,6 +11,7 @@ class CPU:
         self.ram = [0] * 256
         self.reg = [0] * 8
         self.PC = 0
+        self.SP = 7
 
     def ram_read(self, MAR):
         MDR = self.ram[MAR]
@@ -84,6 +85,8 @@ class CPU:
         PRN = 0b01000111
         HLT = 0b00000001
         MUL = 0b10100010
+        PUSH = 0b01000101
+        POP = 0b01000110
 
         running = True
         while running:
@@ -105,3 +108,17 @@ class CPU:
             if IR == MUL:
                 self.alu("MUL", operand_a, operand_b)
                 self.PC += 3
+
+            if IR == PUSH:
+                self.reg[self.SP] -= 1
+                reg_num = self.ram[self.PC+1]
+                val = self.reg[reg_num]
+                address = self.reg[self.SP]
+                self.ram[address] = val
+                self.PC += 2
+
+            if IR == POP:
+                val = self.ram_read(self.reg[self.SP])
+                self.reg[operand_a] = val
+                self.reg[self.SP] += 1
+                self.PC += 2
