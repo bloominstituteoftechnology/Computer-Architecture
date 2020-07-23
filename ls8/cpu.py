@@ -12,22 +12,22 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
+        self.branch_table = {}
         self.reg = [0] * 8
         self.ram = [0] * 256
-        self.pc = 0        # Program Counter, address of the currently executing instruction
-        self.IR = None     # Instruction Register, contains a copy of the currently executing instruction
-        # MAR = None  # Memory Address Register, holds the memory address we're reading or writing
-        # MDR = None  # Memory Data Register, holds the value to write or the value just read
 
-        # R5 is reserved as the interrupt mask (IM)
-        # R6 is reserved as the interrupt status (IS)
-        # R7 is reserved as the stack pointer (SP)
-
-        self.branch_table = {}
+        self.pc = 0          # Program Counter, address of the currently executing instruction
         self.branch_table[HTL] = self.hlt_inst
         self.branch_table[LDI] = self.ldi_inst
         self.branch_table[PRN] = self.prn_inst
         self.branch_table[MUL] = self.mul_inst
+
+        # self.IR = None     # Instruction Register, contains a copy of the currently executing instruction
+        # MAR = None         # Memory Address Register, holds the memory address we're reading or writing
+        # MDR = None         # Memory Data Register, holds the value to write or the value just read
+        # R5 is reserved as the interrupt mask (IM)
+        # R6 is reserved as the interrupt status (IS)
+        # R7 is reserved as the stack pointer (SP)
 
     def ram_read(self, MAR):
         if MAR < len(self.ram):
@@ -40,10 +40,8 @@ class CPU:
     def run(self):
         """Run the CPU."""
         while True:
-            # inst = bin(self.ram[self.pc])
             IR = self.ram_read(self.pc)
             self.branch_table[IR]()
-
 
     def hlt_inst(self):
         exit(1)
@@ -59,12 +57,14 @@ class CPU:
     def ldi_inst(self):
         MAR = self.ram_read(self.pc + 1)
         MDR = self.ram_read(self.pc + 2)
+
         if MAR < len(self.ram):
             self.reg[MAR] = MDR
         self.pc += 3
 
     def prn_inst(self):
         operand_a = self.ram_read(self.pc + 1)
+
         print(self.reg[operand_a])
         self.pc += 2
 
