@@ -6,6 +6,12 @@ HTL = 0b00000001
 LDI = 0b10000010
 PRN = 0b01000111
 MUL = 0b10100010
+POP = 0b01000110
+PUSH = 0b01000101
+#call, ret, add
+# 0b01010000
+# 0b00010001
+# 0b10100000
 
 class CPU:
     """Main CPU class."""
@@ -15,12 +21,15 @@ class CPU:
         self.branch_table = {}
         self.reg = [0] * 8
         self.ram = [0] * 256
+        self.reg[7] = 0xF4
 
         self.pc = 0          # Program Counter, address of the currently executing instruction
         self.branch_table[HTL] = self.hlt_inst
         self.branch_table[LDI] = self.ldi_inst
         self.branch_table[PRN] = self.prn_inst
         self.branch_table[MUL] = self.mul_inst
+        self.branch_table[PUSH] = self.push_inst
+        self.branch_table[POP] = self.pop_inst
 
         # self.IR = None     # Instruction Register, contains a copy of the currently executing instruction
         # MAR = None         # Memory Address Register, holds the memory address we're reading or writing
@@ -41,7 +50,9 @@ class CPU:
         """Run the CPU."""
         while True:
             IR = self.ram_read(self.pc)
-            self.branch_table[IR]()
+            print(IR,"\n")
+            if IR in self.branch_table:
+                self.branch_table[IR]()
 
     def hlt_inst(self):
         exit(1)
@@ -51,6 +62,14 @@ class CPU:
         reg_b = self.ram_read(self.pc + 2)
 
         result = self.reg[reg_a] * self.reg[reg_b]
+        self.reg[reg_a] = result
+        self.pc += 3
+
+    def add_inst(self):
+        reg_a = self.ram_read(self.pc + 1)
+        reg_b = self.ram_read(self.pc + 2)
+
+        result = self.reg[reg_a] + self.reg[reg_b]
         self.reg[reg_a] = result
         self.pc += 3
 
@@ -66,6 +85,18 @@ class CPU:
         operand_a = self.ram_read(self.pc + 1)
 
         print(self.reg[operand_a])
+        self.pc += 2
+
+    def push_inst(self):
+        operand_a = self.ram_read(self.pc + 1)
+        self.ram[self.reg[7]] = self.reg[operand_a]
+        self.reg[7] -= 1
+        self.pc += 2
+
+    def pop_inst(self):
+        operand_a = self.ram_read(self.pc + 1)
+        self.reg[operand_a] = self.ram_read(self.reg[7])
+        self.reg[7] += 1
         self.pc += 2
 
     def load(self, file):
