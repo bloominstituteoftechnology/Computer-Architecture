@@ -13,6 +13,10 @@ IM = 5     # interrupt mask (register address)
 IS = 6     # interrupt status (register address)
 IV = 0xF8  # interrupt vector(s) (ram address)
 
+_fl_l_mask = 0b00000100
+_fl_g_mask = 0b00000010
+_fl_e_mask = 0b00000001
+
 def cpr(text=''):
     print(text, end='\r\n')
 
@@ -50,21 +54,6 @@ class CPU:
 
     ops = {
         0x52: "INT",   # interrupt
-        0x55: "JEQ",   # if == flag true, jump to address in given reg
-        0x56: "JNE",   # if E flag is clear, jump to address in given reg
-        0x57: "JGT",   # if >, jump to address in given reg
-        0x58: "JLT",   # if <
-        0x59: "JLE",   # if < or ==
-        0x5A: "JGE",   # if > or ==
-        0x65: "INC",   # increment (ALU)
-        0x66: "DEC",   # decrement (ALU)
-        0xA7: "CMP",   # comparison (ALU)
-        0xA8: "AND",   # bitwise-and (ALU)
-        0x69: "NOT",   # bitwise-not (ALU)
-        0xAA: "OR",    # bitwise-or (ALU)
-        0xAB: "XOR",   # XOR (ALU)
-        0xAC: "SHL",   # bitshift left (ALU)
-        0xAD: "SHR",   # bitshift right (ALU)
     }
 
     def __init__(self):
@@ -82,6 +71,12 @@ class CPU:
             0x82: self._ldi,  # load integer
             0x50: self._call,
             0x54: self._jmp,
+            0x55: self._jeq,
+            0x56: self._jne,
+            0x57: self._jgt,
+            0x58: self._jlt,
+            0x59: self._jle,
+            0x5A: self._jge,
             0x11: self._ret,
             0x13: self._iret,
             0x45: self._push,
@@ -95,6 +90,15 @@ class CPU:
             0xA2: self._mul,
             0xA3: self._div,
             0xA4: self._mod,
+            0x65: self._inc,
+            0x66: self._dec,
+            0xA7: self._cmp,
+            0xA8: self._and,
+            0x69: self._not,
+            0xAA: self._or,
+            0xAB: self._xor,
+            0xAC: self._shl,
+            0xAD: self._shr
         }
         self.keyboard_poller = CPU.KeyboardPoller(self.__handle_keypress)
         self.sp = 0xF4  # stack pointer
@@ -171,6 +175,7 @@ class CPU:
 
         while self.running:
             # self.trace()
+            self._jumped = False
            
             # interrupt timer update
             now = datetime.now()
@@ -203,7 +208,7 @@ class CPU:
                     operation()
 
             # set program counter (if necessary)
-            if not (ir & 0b00010000):
+            if not self._jumped:
                 self.pc += args + 1
 
             # handle interrupt
@@ -251,9 +256,9 @@ class CPU:
     def _pra(self, reg_adr):
         item = self.reg[reg_adr]
         if isinstance(item, int):
-            cpr(chr(item))
+            print(chr(item), end='')
         else:
-            cpr(item)
+            print(item, end='')
 
     def _add(self, reg_a, reg_b):
         self.reg[reg_a] = self.reg[reg_a] + self.reg[reg_b]
@@ -281,37 +286,37 @@ class CPU:
         self.reg[reg_a] = self.reg[reg_a] % operand_b
 
     def _inc(self, op):
-        pass
+        self.reg[op] += 1
 
     def _dec(self, op):
-        pass
+        self.reg[op] -= 1
 
     def _cmp(self, op1, op2):
-        (a, b) = (reg[op1], reg[op2])
+        (a, b) = (self.reg[op1], self.reg[op2])
         if a == b:
-            self.fl = 0b00000001
+            self.fl = _fl_e_mask
         elif a < b:
-            self.fl = 0b00000010
+            self.fl = _fl_l_mask
         elif a > b:
-            self.fl = 0b00000100
+            self.fl = _fl_g_mask
 
     def _and(self, op1, op2):
-        reg[op1] = reg[op1] & reg[op2]
+        self.reg[op1] = self.reg[op1] & self.reg[op2]
 
     def _not(self, op1):
-        reg[op1] = ~reg[op1]
+        self.reg[op1] = ~self.reg[op1]
 
     def _or(self, op1, op2):
-        reg[op1] = reg[op1] | reg[op2]
+        self.reg[op1] = self.reg[op1] | self.reg[op2]
 
     def _xor(self, op1, op2):
-        reg[op1] = reg[op1] ^ reg[op2]
+        self.reg[op1] = self.reg[op1] ^ self.reg[op2]
 
     def _shl(self, op1, op2):
-        reg[op1] = reg[op1] << reg[op2]
+        self.reg[op1] = self.reg[op1] << self.reg[op2]
 
     def _shr(self, op1, op2):
-        reg[op1] = reg[op1] >> reg[op2]
+        self.reg[op1] = self.reg[op1] >> self.reg[op2]
 
     def _push(self, adr):
         self.sp -= 1
@@ -329,12 +334,14 @@ class CPU:
         self.reg[0] = reg0  # put old reg value back in register
         # jump to call site
         self.pc = self.reg[adr]
+        self._jumped = True
 
     def _ret(self):
         reg0 = self.reg[0]
         self._pop(0)
         self.pc = self.reg[0]
         self.reg[0] = reg0
+        self._jumped = True
 
     def _st(self, reg_a, reg_b):
         self.ram[self.reg[reg_a]] = self.reg[reg_b]
@@ -344,6 +351,37 @@ class CPU:
 
     def _jmp(self, reg_adr):
         self.pc = self.reg[reg_adr]
+        self._jumped = True
+
+    def _jeq(self, adr):
+        if self.__fl_equal():
+            self._jmp(adr)
+            self._jumped = True
+
+    def _jne(self, adr):
+        if not self.__fl_equal():
+            self._jmp(adr)
+            self._jumped = True
+
+    def _jlt(self, adr):
+        if self.__fl_less():
+            self._jmp(adr)
+            self._jumped = True
+
+    def _jgt(self, adr):
+        if self.__fl_greater():
+            self._jmp(adr)
+            self._jumped = True
+
+    def _jle(self, adr):
+        if self.__fl_less() or self.__fl_equal():
+            self._jmp(adr)
+            self._jumped = True
+
+    def _jge(self, adr):
+        if self.__fl_greater() or self.__fl_equal():
+            self._jmp(adr)
+            self._jumped = True
 
     def _iret(self):
         for r in range(6, -1, -1):
@@ -355,4 +393,13 @@ class CPU:
         (self.reg[0], self.reg[1]) = (temp0, temp1)
 
         self._can_interrupt = True
+        self._jumped = True
 
+    def __fl_equal(self):
+        return self.fl & _fl_e_mask == _fl_e_mask
+
+    def __fl_less(self):
+        return self.fl & _fl_l_mask == _fl_l_mask
+
+    def __fl_greater(self):
+        return self.fl & _fl_g_mask == _fl_g_mask
