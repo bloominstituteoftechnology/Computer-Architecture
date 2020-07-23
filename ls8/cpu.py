@@ -2,6 +2,11 @@
 
 import sys
 
+HTL = 0b00000001
+LDI = 0b10000010
+PRN = 0b01000111
+MUL = 0b10100010
+
 class CPU:
     """Main CPU class."""
 
@@ -18,6 +23,12 @@ class CPU:
         # R6 is reserved as the interrupt status (IS)
         # R7 is reserved as the stack pointer (SP)
 
+        self.branch_table = {}
+        self.branch_table[HTL] = self.hlt_inst
+        self.branch_table[LDI] = self.ldi_inst
+        self.branch_table[PRN] = self.prn_inst
+        self.branch_table[MUL] = self.mul_inst
+
     def ram_read(self, MAR):
         if MAR < len(self.ram):
             return self.ram[MAR]
@@ -28,42 +39,34 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        HTL = 0b00000001
-        LDI = 0b10000010
-        PRN = 0b01000111
-        MUL = 0b10100010
-
         while True:
             # inst = bin(self.ram[self.pc])
             IR = self.ram_read(self.pc)
-            operand_a = self.ram_read(self.pc + 1)
-            operand_b = self.ram_read(self.pc + 2)
+            self.branch_table[IR]()
 
-            if IR is HTL:
-                self.hlt_inst()
-            elif IR is PRN:
-                self.prn_inst(operand_a)
-                self.pc += 2
-            elif IR is LDI:
-                self.ldi_inst(operand_a, operand_b)
-                self.pc += 3
-            elif IR is MUL:
-                self.mul_inst(operand_a, operand_b)
-                self.pc += 3
 
     def hlt_inst(self):
         exit(1)
 
-    def mul_inst(self, reg_a, reg_b):
+    def mul_inst(self):
+        reg_a = self.ram_read(self.pc + 1)
+        reg_b = self.ram_read(self.pc + 2)
+
         result = self.reg[reg_a] * self.reg[reg_b]
         self.reg[reg_a] = result
+        self.pc += 3
 
-    def ldi_inst(self, MAR, MDR):
+    def ldi_inst(self):
+        MAR = self.ram_read(self.pc + 1)
+        MDR = self.ram_read(self.pc + 2)
         if MAR < len(self.ram):
             self.reg[MAR] = MDR
+        self.pc += 3
 
-    def prn_inst(self, reg):
-        print(self.reg[reg])
+    def prn_inst(self):
+        operand_a = self.ram_read(self.pc + 1)
+        print(self.reg[operand_a])
+        self.pc += 2
 
     def load(self, file):
         """Load a program into memory."""
