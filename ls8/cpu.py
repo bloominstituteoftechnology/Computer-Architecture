@@ -1,6 +1,15 @@
 """CPU functionality."""
 
+
 import sys
+
+HLT = 0b00000001
+LDI = 0b10000010
+PRN = 0b01000111
+MULT = 0b10100010
+POP = 0b01000110
+PUSH = 0b01000101
+
 
 class CPU:
     """Main CPU class."""
@@ -10,7 +19,18 @@ class CPU:
         self.ram = [0] * 256
         self.reg = [0] * 8
         self.pc = 0
+        self.stack_pointer = 7
+        self.branchtable = {}
+        self.branchtable[HLT] = self.hlt
+        self.branchtable[LDI] = self.ldi
+        self.branchtable[PRN] = self.prn
+        self.branchtable[MULT] = self.mult
+        self.branchtable[POP] = self.pop
+        self.branchtable[PUSH] = self.push
 
+        # self.hlt
+        
+        
     def ram_read(self, pc):
         return self.ram[pc]
 
@@ -58,7 +78,7 @@ class CPU:
         #elif op == "SUB": etc
         elif op == "MUL":
             self.reg[reg_a] *= self.reg[reg_b]
-            print("yes")
+            # print("MUL is going on", reg_a, reg_b)
         
    
         else:
@@ -84,40 +104,102 @@ class CPU:
 
         print()
 
+    def hlt(self): 
+        self.running = False
+    def ldi(self): 
+        # register is program counter + 1
+        register = self.ram[self.pc + 1]
+        # print(register)
+        # for integer value will be, program coutner + 2
+        integer = self.ram[self.pc + 2]
+        #save integer value at the register at the register specified
+        self.reg[register] = integer
+        self.pc +=3
+        # print(self.reg, self.ram)   
+        
+    def prn(self): #PRN
+        # print(self.reg)
+        register = self.ram_read(self.pc + 1)  
+        # print(register)             
+        print(self.reg[register])
+        self.pc +=2   
+    def mult(self): #MULT
+        # print(self.pc)
+        reg_a = self.ram_read(self.pc + 1)
+        # self.pc += 1
+        reg_b = self.ram_read(self.pc + 2)
+        
+        self.alu("MUL", reg_a, reg_b)
+        # print(reg_a,reg_b)
+        self.pc += 3
+    def pop(self): #POP
+        targ_reg = self.ram[self.pc + 1]
+        self.reg[targ_reg] = self.ram[self.reg[self.stack_pointer]]
+        self.reg[self.stack_pointer] += 1
+        # print("pop")
+        self.pc += 2
+    def push(self): #PUSH
+        targ_reg = self.ram[self.pc + 1]
+        #decrement the Stack Pointer
+        self.reg[self.stack_pointer] -= 1
+        self.ram[self.reg[self.stack_pointer]] = self.reg[targ_reg]
+        self.pc += 2
+        # print("push")        
+
     def run(self):
         """Run the CPU."""
         self.pc = 0
-        running = True
-        while running:
-            instruction = self.ram_read(self.pc)
-            if instruction == 0b00000001: #HLT
-                running = False
-                exit
-            elif instruction == 0b10000010: #LDI
-                # register is program counter + 1
-                register = self.ram[self.pc + 1]
-                # print(register)
-                # for integer value will be, program coutner + 2
-                integer = self.ram[self.pc + 2]
-                #save integer value at the register at the register specified
-                self.reg[register] = integer
-                self.pc +=3
-                print(self.ram)
-            elif instruction == 0b01000111: #PRN
-                print(self.reg)
-                register = self.ram_read(self.pc + 1)  
-                print(register)             
-                print(self.reg[register])
-                self.pc +=2    
-            elif instruction == 0b10100010: #mult
-                # self.pc += 1
-                reg_a = self.ram_read(self.pc + 1)
-                # self.pc += 1
-                reg_b = self.ram_read(self.pc + 2)
+        self.running = True
+        while self.running:
+            ir = self.pc
+            inst = self.ram[ir]
+            self.branchtable[inst]()
+            
+            # instruction = self.ram_read(self.pc)
+            # if instruction == 0b00000001: #HLT
+            #     running = False
+            #     exit
+            # elif instruction == 0b10000010: #LDI
+            #     # register is program counter + 1
+            #     register = self.ram[self.pc + 1]
+            #     # print(register)
+            #     # for integer value will be, program coutner + 2
+            #     integer = self.ram[self.pc + 2]
+            #     #save integer value at the register at the register specified
+            #     self.reg[register] = integer
+            #     self.pc +=3
+            #     # print(self.reg, self.ram)   
+         
+            # elif instruction == 0b01000111: #PRN
+            #     # print(self.reg)
+            #     register = self.ram_read(self.pc + 1)  
+            #     # print(register)             
+            #     print(self.reg[register])
+            #     self.pc +=2    
+       
+            # elif instruction == 0b10100010: #mult
+            #     # print(self.pc)
+            #     reg_a = self.ram_read(self.pc + 1)
+            #     # self.pc += 1
+            #     reg_b = self.ram_read(self.pc + 2)
                 
-                self.alu("MUL", reg_a, reg_b)
-                print(reg_a,reg_b)
-                self.pc += 3
-            else:
-                print("unknown instruction")
-                running = False
+            #     self.alu("MUL", reg_a, reg_b)
+            #     # print(reg_a,reg_b)
+                
+            #     self.pc += 3
+            # elif instruction == 0b01000110: #POP
+            #     targ_reg = self.ram[self.pc + 1]
+            #     self.reg[targ_reg] = self.ram[self.reg[self.stack_pointer]]
+            #     self.reg[self.stack_pointer] += 1
+            #     # print("pop")
+            #     self.pc += 2
+            # elif instruction == 0b01000101: #PUSH
+            #     targ_reg = self.ram[self.pc + 1]
+            #     #decrement the Stack Pointer
+            #     self.reg[self.stack_pointer] -= 1
+            #     self.ram[self.reg[self.stack_pointer]] = self.reg[targ_reg]
+            #     self.pc += 2
+            #     # print("push")
+            # else:
+            #     print("unknown instruction")
+            #     running = False
