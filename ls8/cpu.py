@@ -39,19 +39,16 @@ ST   = 0b10000100
 SUB  = 0b10100001
 XOR  = 0b10101011
 
-
-
-
 # Bit Masks
-OPERANDS_MASK = 0b11000000
+
 ALU_MASK      = 0b00100000
 PC_MASK       = 0b00010000
-ID_MASK       = 0b00001111
 
 # Offsets
 
 OPERANDS_OFFSET = 6
 ALU_OFFSET = 5
+PC_OFFSET = 4
 
 class CPU:
     """Main CPU class."""
@@ -67,12 +64,13 @@ class CPU:
     def configure_dispatch_table(self):
         self.dispatch_table = {}
 
+        self.dispatch_table[CALL] = self.call
         self.dispatch_table[HLT] = self.hlt
         self.dispatch_table[LDI] = self.ldi
         self.dispatch_table[POP] = self.pop
         self.dispatch_table[PRN] = self.prn
         self.dispatch_table[PUSH] = self.push
-        
+        self.dispatch_table[RET] = self.ret
 
     @property
     def stack_pointer(self):
@@ -162,6 +160,13 @@ class CPU:
 
         print()
 
+    def call(self, a):
+        # push address of instruction at pc + 2 to the stack
+        self.stack_pointer -= 1
+        self.ram_write(self.stack_pointer, self.pc + 2)
+        # set pc to address in reg a
+        self.pc = self.reg[a]
+
     def hlt(self):
         sys.exit()
 
@@ -178,7 +183,12 @@ class CPU:
     def push(self, a):
         self.stack_pointer -= 1
         self.ram_write(self.stack_pointer, self.reg[a])
-        
+    
+    def ret(self):
+        # Pop address from stack and set pc to that address
+        self.pc = self.ram_read(self.stack_pointer)
+        self.stack_pointer += 1
+
     def run(self):
         """Run the CPU."""
 
@@ -200,25 +210,27 @@ class CPU:
             if is_alu_operation:
                 if num_operands == 1:
                     self.alu(instruction_reg, self.ram_read(self.pc + 1))
-                    self.pc += 2
                 elif num_operands == 2:
                     self.alu(instruction_reg, self.ram_read(self.pc + 1), self.ram_read(self.pc + 2))
-                    self.pc += 3
                 else:
                     print("Bad instruction")
                 
             # If not, call appropriate function from dispatch table with proper number of operands
             elif num_operands == 0:
                 self.dispatch_table[instruction_reg]()
-                self.pc += 1
             elif num_operands == 1:
                 self.dispatch_table[instruction_reg](self.ram_read(self.pc + 1))
-                self.pc += 2
             elif num_operands == 2:
                 self.dispatch_table[instruction_reg](self.ram_read(self.pc + 1), self.ram_read(self.pc + 2))
-                self.pc += 3
             else:
                 print("Bad instruction")
+
+            # Detrmine if the instruction set the PC
+            sets_pc = (instruction_reg & PC_MASK) >> PC_OFFSET
+
+            # Increment the PC accordingly
+            if not sets_pc:
+                self.pc += num_operands + 1
 
             # Read next instruction
             instruction_reg = self.ram_read(self.pc)
