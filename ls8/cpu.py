@@ -109,10 +109,10 @@ class CPU:
             instID = opCode[4:]
 
             if numOps == 2:
-                operand_a = self.ram[self.pc + 1]
-                operand_b = self.ram[self.pc + 2]
+                operand_a= self.ram_read(self.pc + 1)
+                operand_b= self.ram_read(self.pc + 2)
             elif numOps == 1:
-                operand_a = self.ram[self.pc + 1]
+                operand_a= self.ram_read(self.pc + 1)
 
             # HLT
             # no operands
@@ -134,7 +134,7 @@ class CPU:
             elif to_decimal(opCode, 2) == self.instructionDefs['MULT']:
                 product= self.reg[operand_a] * self.reg[operand_b]
                 self.reg[operand_a]= product
-                print('MULT output: ', self.reg[operand_a])
+                print('self.reg[operand_a])
                 self.pc+= 3
             
             elif to_decimal(opCode, 2) == self.instructionDefs['PUSH']:
@@ -144,14 +144,14 @@ class CPU:
                 # 2. Copy the value in the given register to the address pointed to by `SP`.
                 value= self.reg[operand_a]
                 pointer= self.reg[self.sp]
-                self.ram[pointer]= value
+                self.ram_write(value, pointer)
 
                 self.pc+= 2
             elif to_decimal(opCode, 2) == self.instructionDefs['POP']:
                 # Pop the value at the top of the stack into the given register.
                 # 1. Copy the value from the address pointed to by `SP` to the given register.
                 pointer= self.reg[self.sp]
-                value= self.ram[pointer]
+                value= self.ram_read(pointer)
                 self.reg[operand_a]= value
 
                 # 2. Increment `SP`.
