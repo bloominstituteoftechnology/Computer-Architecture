@@ -44,29 +44,115 @@ class CPU:
         # standardize values for input
         reg_a = reg_a & 0b00000111
         reg_b = reg_b & 0b00000111
-        if op ==   0b10100000:  # ADD
-            self.reg[reg_a] += self.reg[reg_b]
-            self.reg[reg_a] = self.reg[reg_a] & 0b11111111
-        elif op == 0b10100001:  # SUB
-            self.reg[reg_a] -= self.reg[reg_b]
-            self.reg[reg_a] = self.reg[reg_a] & 0b11111111
-        elif op == 0b10100010:  # MUL
-            self.reg[reg_a] *= self.reg[reg_b]
-            self.reg[reg_a] = self.reg[reg_a] & 0b11111111
-        elif op == 0b10100011:  # DIV
-            self.reg[reg_a] //= self.reg[reg_b]
-            self.reg[reg_a] = self.reg[reg_a] & 0b11111111
-        elif op == 0b10100100:  # MOD
-            self.reg[reg_a] %= self.reg[reg_b]
-            self.reg[reg_a] = self.reg[reg_a] & 0b11111111
-        elif op == 0b01100101:  # INC
-            self.reg[reg_a] += 1
-            self.reg[reg_a] = self.reg[reg_a] & 0b11111111
-        elif op == 0b01100110:   # DEC
-            self.reg[reg_a] -= 1
-            self.reg[reg_a] = self.reg[reg_a] & 0b11111111
+        if (op & 0b00001000) >> 3 == 0: # check if arithmetic or logical
+            if op ==   0b10100000:  # ADD
+                self.reg[reg_a] += self.reg[reg_b]
+                self.reg[reg_a] = self.reg[reg_a] & 0b11111111
+            elif op == 0b10100001:  # SUB
+                self.reg[reg_a] -= self.reg[reg_b]
+                self.reg[reg_a] = self.reg[reg_a] & 0b11111111
+            elif op == 0b10100010:  # MUL
+                self.reg[reg_a] *= self.reg[reg_b]
+                self.reg[reg_a] = self.reg[reg_a] & 0b11111111
+            elif op == 0b10100011:  # DIV
+                self.reg[reg_a] //= self.reg[reg_b]
+                self.reg[reg_a] = self.reg[reg_a] & 0b11111111
+            elif op == 0b10100100:  # MOD
+                self.reg[reg_a] %= self.reg[reg_b]
+                self.reg[reg_a] = self.reg[reg_a] & 0b11111111
+            elif op == 0b01100101:  # INC
+                self.reg[reg_a] += 1
+                self.reg[reg_a] = self.reg[reg_a] & 0b11111111
+            elif op == 0b01100110:  # DEC
+                self.reg[reg_a] -= 1
+                self.reg[reg_a] = self.reg[reg_a] & 0b11111111
+            else:                   # CMP
+                # start by resetting the flags
+                self.fl = 0b00000000
+                # compate the values in reg a and reg b
+                if self.reg[reg_a] == self.reg[reg_b]:
+                    self.fl += 0b00000001
+                if self.reg[reg_a] > self.reg[reg_b]:
+                    self.fl += 0b00000010
+                if self.reg[reg_a] < self.reg[reg_b]:
+                    self.fl += 0b00000100
         else:
-            raise Exception(f"Unsupported ALU operation: {op}")
+            if op ==   0b10101000:  # AND
+                self.reg[reg_a] = self.reg[reg_a] & self.reg[reg_b]
+                self.reg[reg_a] = self.reg[reg_a] & 0b11111111
+            elif op == 0b01101001:  # NOT
+                self.reg[reg_a] = ~self.reg[reg_a]
+                self.reg[reg_a] = self.reg[reg_a] & 0b11111111
+            elif op == 0b10101010:  # OR
+                self.reg[reg_a] = self.reg[reg_a] | self.reg[reg_b]
+                self.reg[reg_a] = self.reg[reg_a] & 0b11111111
+            elif op == 0b10101010:  # XOR
+                self.reg[reg_a] = self.reg[reg_a] ^ self.reg[reg_b]
+                self.reg[reg_a] = self.reg[reg_a] & 0b11111111
+            elif op == 0b10101100:  # SHL
+                self.reg[reg_a] = self.reg[reg_a] << self.reg[reg_b]
+                self.reg[reg_a] = self.reg[reg_a] & 0b11111111
+            elif op == 0b10101100:  # SHR
+                self.reg[reg_a] = self.reg[reg_a] >> self.reg[reg_b]
+                self.reg[reg_a] = self.reg[reg_a] & 0b11111111
+            else:
+                raise Exception(f"Unsupported ALU operation: {op:b}")
+
+    def pcm(self, op, reg):
+        reg = reg & 0b00000111
+        if   op == 0b01010000:  # CALL
+            # push next instruction (pc + 2) onto stack
+            self.alu(0b01100110, 7, 0)  # decrement stack pointer
+            self.ram_write(self.pc + 2, self.reg[7]) # write to stack
+            # jump to address in reg a
+            self.pcm(0b01010100, reg)
+        elif op == 0b00010001:  # RET
+            # pop value from stack, store in PC
+            self.pc = self.ram_read(self.reg[7])
+            self.alu(0b01100101, 7, 0) # increment stack pointer
+        # elif op == 0b01010010:  # INT
+            # I don't know how to do this yet
+        elif op == 0b01010100:  # JMP
+            # set pc to address in register
+            self.pc = self.reg[reg]
+        elif op == 0b01010101:  # JEQ
+            # if equal flag is true, jump to addr in reg
+            if (self.fl & 0b00000001) > 0:
+                self.pc = self.reg[reg]
+            else:
+                self.pc += 2
+        elif op == 0b01010110:  # JNE
+            # if equal flag is false, jump to addr in reg
+            if (self.fl & 0b00000001) == 0:
+                self.pc = self.reg[reg]
+            else:
+                self.pc += 2
+        elif op == 0b01010111:  # JGT
+            # if greater flag is true, jump to addr in reg
+            if (self.fl & 0b00000010) > 0:
+                self.pc = self.reg[reg]
+            else:
+                self.pc += 2
+        elif op == 0b01011000:  # JLT
+            # if lesser flag is true, jump to addr in reg
+            if (self.fl & 0b00000100) > 0:
+                self.pc = self.reg[reg]
+            else:
+                self.pc += 2
+        elif op == 0b01011001:  # JLE
+            # if lesser or equal flag is true, jump to addr in reg
+            if (self.fl & 0b00000101) > 0:
+                self.pc = self.reg[reg]
+            else:
+                self.pc += 2
+        elif op == 0b01011010:  # JGE
+            # if lesser or equal flag is true, jump to addr in reg
+            if (self.fl & 0b00000110) > 0:
+                self.pc = self.reg[reg]
+            else:
+                self.pc += 2
+        else:
+            raise Exception(f'Unsupported PC mutator: {op:b}')
 
     def ldi(self, reg, val):
         reg = reg & 0b00000111 # bitwise AND to prevent out-of-index
@@ -144,7 +230,9 @@ class CPU:
                     self.pc += 1
             # if PC mutator func
             elif (ir & 0b00010000) >> 4 == 1:
-                pass
+                mem_addr_reg = self.ram_read(self.pc + 1) # reg a
+                # send the opcode to the PCM and it deal with it
+                self.pcm(ir, mem_addr_reg)
             # other funcs
             else:
                 if ir == 0b00000000:    # NOP: no operation
@@ -157,14 +245,34 @@ class CPU:
                 elif ir == 0b01000110:  # POP: pop val from stack, store in reg a
                     mem_addr_reg = self.ram_read(self.pc + 1)
                     self.pop(mem_addr_reg)
-                elif ir == 0b01000111:  # PRN: print from register
+                elif ir == 0b01000111:  # PRN: print numeric from register
                     mem_addr_reg = self.ram_read(self.pc + 1)
                     mem_addr_reg = mem_addr_reg & 0b00000111 # OoB limiter
                     print(self.reg[mem_addr_reg])
+                elif ir == 0b01001000:  # PRA: print ascii from register
+                    mem_addr_reg = self.ram_read(self.pc + 1)
+                    mem_addr_reg = mem_addr_reg & 0b00000111 # OoB limiter
+                    print(chr(self.reg[mem_addr_reg]))
                 elif ir == 0b10000010:  # LDI: set register value
                     mem_addr_reg = self.ram_read(self.pc + 1)
                     mem_data_reg = self.ram_read(self.pc + 2)
                     self.ldi(mem_addr_reg, mem_data_reg)
+                elif ir == 0b10000011:  # LD: load register value
+                    mem_addr_reg = self.ram_read(self.pc + 1)
+                    mem_data_reg = self.ram_read(self.pc + 2)
+                    # filter for register inputs
+                    mem_addr_reg = mem_addr_reg & 0b00000111
+                    mem_data_reg = mem_data_reg & 0b00000111
+                    # load reg a with value at mem addr in reg b
+                    self.reg[mem_addr_reg] = self.ram_read(self.reg[mem_data_reg])
+                elif ir == 0b10000100:  # ST: store register value
+                    mem_addr_reg = self.ram_read(self.pc + 1)
+                    mem_data_reg = self.ram_read(self.pc + 2)
+                    # filter for register inputs
+                    mem_addr_reg = mem_addr_reg & 0b00000111
+                    mem_data_reg = mem_data_reg & 0b00000111
+                    # store the value in reg b in RAM at address in reg a
+                    self.ram_write(self.reg[mem_data_reg], self.reg[mem_addr_reg])
                 else:
                     print(f'Unsupported opcode: {ir:b} at address: {self.pc}')
                     break
