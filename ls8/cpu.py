@@ -110,15 +110,33 @@ class CPU:
                 self.PC += 3
 
             if IR == PUSH:
+                # decrement the stack pointer
                 self.reg[self.SP] -= 1
-                reg_num = self.ram[self.PC+1]
-                val = self.reg[reg_num]
-                address = self.reg[self.SP]
-                self.ram[address] = val
+
+                # get the register number
+                reg = self.ram[self.PC + 1]
+                # get a value from the given register
+                value = self.reg[reg]
+
+                # put the value at the stack pointer address
+                sp = self.reg[self.SP]
+                self.ram[sp] = value
+
                 self.PC += 2
 
             if IR == POP:
-                val = self.ram_read(self.reg[self.SP])
-                self.reg[operand_a] = val
+                # get the stack pointer (where do we look?)
+                sp = self.reg[self.SP]
+
+                # get register number to put value in
+                reg = self.ram[self.PC + 1]
+
+                # use stack pointer to get the value
+                value = self.ram_read(sp)
+                # put the value into the given register
+                self.reg[reg] = value
+                # increment our stack pointer
                 self.reg[self.SP] += 1
+
+                # increment our program counter
                 self.PC += 2
