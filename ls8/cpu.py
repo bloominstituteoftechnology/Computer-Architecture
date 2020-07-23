@@ -8,10 +8,9 @@ PRN = 0b01000111
 MUL = 0b10100010
 POP = 0b01000110
 PUSH = 0b01000101
-#call, ret, add
-# 0b01010000
-# 0b00010001
-# 0b10100000
+CALL = 0b01010000
+RET = 0b00010001
+ADD = 0b10100000
 
 class CPU:
     """Main CPU class."""
@@ -30,6 +29,9 @@ class CPU:
         self.branch_table[MUL] = self.mul_inst
         self.branch_table[PUSH] = self.push_inst
         self.branch_table[POP] = self.pop_inst
+        self.branch_table[ADD] = self.add_inst
+        self.branch_table[RET] = self.ret_inst
+        self.branch_table[CALL] = self.call_inst
 
         # self.IR = None     # Instruction Register, contains a copy of the currently executing instruction
         # MAR = None         # Memory Address Register, holds the memory address we're reading or writing
@@ -98,6 +100,12 @@ class CPU:
         self.reg[operand_a] = self.ram_read(self.reg[7])
         self.reg[7] += 1
         self.pc += 2
+
+    def ret_inst(self):
+        pass
+
+    def call_inst(self):
+        pass
 
     def load(self, file):
         """Load a program into memory."""
