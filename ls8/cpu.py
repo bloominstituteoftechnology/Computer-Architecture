@@ -3,11 +3,15 @@
 import sys
 
 # Instructions
-HLT = 0b00000001    # Halt
 LDI = 0b10000010 
 PRN = 0b01000111    # Print
+HLT = 0b00000001    # Halt
 MUL = 0b10100010    # Multiply
 ADD = 0b10100000    # Addition
+PUSH = 0b01000101   # Push in stack
+POP = 0b01000110    # Pop from stack
+CALL = 0b01010000
+RET = 0b00010001
 
 class CPU:
     """Main CPU class."""
@@ -146,7 +150,18 @@ class CPU:
 
                 self.reg[7] += 1
                 self.pc += 2
-            
+            elif instruction_register == CALL:
+                address = self.reg[reg_a]
+                return_address = self.pc + 2
+                self.reg[7] -= 1
+                sp = self.reg[7]
+                self.ram[sp] = return_address
+                self.pc = address
+            elif instruction_register == RET:
+                sp = self.reg[7]
+                return_address = self.ram[sp]
+                self.reg[7] += 1
+                self.pc = return_address
             else:
                 print(f"Instruction number {self.pc} not recognized!")
                 self.pc += 1
