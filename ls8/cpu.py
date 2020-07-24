@@ -45,7 +45,6 @@ class CPU:
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
-        # elif op == "SUB": etc
 
         elif op == "MUL":
             self.reg[reg_a] *= self.reg[reg_b]
@@ -85,8 +84,11 @@ class CPU:
         PRN = 0b01000111
         HLT = 0b00000001
         MUL = 0b10100010
+        ADD = 0b10100000
         PUSH = 0b01000101
         POP = 0b01000110
+        CALL = 0b01010000
+        RET = 0b00010001
 
         running = True
         while running:
@@ -109,14 +111,18 @@ class CPU:
                 self.alu("MUL", operand_a, operand_b)
                 self.PC += 3
 
+            if IR == ADD:
+                self.alu("ADD", operand_a, operand_b)
+                self.PC += 3
+
             if IR == PUSH:
                 # decrement the stack pointer
                 self.reg[self.SP] -= 1
 
                 # get the register number
-                reg = self.ram[self.PC + 1]
+                reg_number = self.ram[self.PC + 1]
                 # get a value from the given register
-                value = self.reg[reg]
+                value = self.reg[reg_number]
 
                 # put the value at the stack pointer address
                 sp = self.reg[self.SP]
@@ -129,14 +135,32 @@ class CPU:
                 sp = self.reg[self.SP]
 
                 # get register number to put value in
-                reg = self.ram[self.PC + 1]
+                reg_number = self.ram[self.PC + 1]
 
                 # use stack pointer to get the value
                 value = self.ram_read(sp)
                 # put the value into the given register
-                self.reg[reg] = value
+                self.reg[reg_number] = value
                 # increment our stack pointer
                 self.reg[self.SP] += 1
 
                 # increment our program counter
                 self.PC += 2
+
+            if IR == CALL:
+                # decrement the stack pointer
+                self.reg[self.SP] -= 1
+
+                # store return address in ram
+                return_address = self.PC + 2
+                self.ram[self.reg[self.SP]] = return_address
+
+                # go to subroutine address
+                subroutine_reg = self.PC + 1
+                subroutine_address = self.ram[subroutine_reg]
+                self.PC = self.reg[subroutine_address]
+
+            if IR == RET:
+                return_address = self.ram[self.reg[self.SP]]
+                self.reg[self.SP] += 1
+                self.PC = return_address
