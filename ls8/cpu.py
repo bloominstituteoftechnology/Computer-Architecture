@@ -12,6 +12,11 @@ CALL = 0b01010000
 RET = 0b00010001
 ADD = 0b10100000
 
+CMP = 0b10100111
+JMP = 0b01010100
+JEQ = 0b01010101
+JNE = 0b01010110
+
 class CPU:
     """Main CPU class."""
 
@@ -21,8 +26,14 @@ class CPU:
         self.reg = [0] * 8
         self.ram = [0] * 256
         self.reg[7] = 0xF4   # Stack Pointer
-
         self.pc = 0          # Program Counter, address of the currently executing instruction
+
+        # Flags
+        self.E = None
+        self.L = None
+        self.G = None
+
+        # Instructions
         self.branch_table[HTL] = self.hlt_inst
         self.branch_table[LDI] = self.ldi_inst
         self.branch_table[PRN] = self.prn_inst
@@ -32,6 +43,12 @@ class CPU:
         self.branch_table[ADD] = self.add_inst
         self.branch_table[RET] = self.ret_inst
         self.branch_table[CALL] = self.call_inst
+
+        # Instructions - Sprint Challenge
+        self.branch_table[CMP] = self.cmp_inst
+        self.branch_table[JMP] = self.jmp_inst
+        self.branch_table[JEQ] = self.jeq_inst
+        self.branch_table[JNE] = self.jne_inst
 
         # IR    // Instruction Register, contains a copy of the currently executing instruction
         # MAR   // Memory Address Register, holds the memory address we're reading or writing
@@ -55,6 +72,8 @@ class CPU:
             # print(IR,"\n")
             if IR in self.branch_table:
                 self.branch_table[IR]()
+            else:
+                print("ERROR:", IR)
 
     def hlt_inst(self):
         exit(1)
@@ -116,6 +135,48 @@ class CPU:
         self.reg[7] -= 1
         self.ram[self.reg[7]] = ret
         self.pc = sub
+
+    def jmp_inst(self):
+        # print("JMP")
+        reg_a = self.ram_read(self.pc + 1)
+        self.pc = self.reg[reg_a]
+
+    def jeq_inst(self):
+        # print("JEQ")
+        if self.E == 1:
+            self.jmp_inst()
+        else:
+            self.pc += 2
+
+    def jne_inst(self):
+        # print("JNE")
+        if self.E == 0:
+            self.jmp_inst()
+        else:
+            self.pc += 2
+
+    def cmp_inst(self):
+        # print("CMP")
+        reg_a = self.ram_read(self.pc + 1)
+        reg_b = self.ram_read(self.pc + 2)
+
+        if self.reg[reg_a] == self.reg[reg_b]:
+            self.E = 1
+        else:
+            self.E = 0
+
+        # if self.reg[reg_a] < self.reg[reg_b]:
+        #     self.L = 1
+        # else:
+        #     self.L = 0
+        #
+        # if self.reg[reg_a] > self.reg[reg_b]:
+        #     self.G = 1
+        # else:
+        #     self.G = 0
+
+        self.pc += 3
+
 
     def load(self, file):
         """Load a program into memory."""
