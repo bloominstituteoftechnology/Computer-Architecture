@@ -112,11 +112,12 @@ class CPU:
         LDI = 0b10000010
         PRN = 0b01000111
         MUL = 0b10100010
-        ADD = 0b10100000
         PUSH = 0b01000101
         POP = 0b01000110
+        ADD = 0b10100000
         CALL = 0b01010000
         RET = 0b00010001
+        NOP = 0b00000000
         
         SP = 7
         
@@ -174,6 +175,23 @@ class CPU:
                 add = self.reg[operand_a] + self.reg[operand_b]
                 self.reg[operand_a] = add
                 self.pc += 3
+                
+            # NOP
+            elif ir == NOP:
+            # Do nothing and move on to next instruction    
+                self.pc += 1
+                continue
+            
+            # CALL
+            elif ir == CALL:
+                self.reg[SP] -= 1
+                self.ram_write(self.pc + 2, self.reg[SP])
+                self.pc = self.reg[operand_a]
+                
+            # RET
+            elif ir == RET:
+                self.pc = self.ram[self.reg[SP]]
+                self.reg[SP] += 1
 
             # Unknown instructions
             else:
