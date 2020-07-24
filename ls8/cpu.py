@@ -34,6 +34,7 @@ class CPU:
         self.branchtable["LD"] = self.LD
         self.branchtable["CMP"] = self.CMP
         self.branchtable["JEQ"] = self.JEQ
+        self.branchtable["JNE"] = self.JNE
         self.op_codes = {}
         self.op_codes["HLT"] = 0b00000001
         self.op_codes["LDI"] = 0b10000010
@@ -54,6 +55,7 @@ class CPU:
         self.op_codes["LD"] = 0b10000011
         self.op_codes["CMP"] = 0b10100111
         self.op_codes["JEQ"] = 0b01010101
+        self.op_codes["JNE"] = 0b01010110
 
     def load(self):
         """Load a program into memory."""
@@ -132,6 +134,10 @@ class CPU:
             self.branchtable["JEQ"]()
             if self.print_stuff:
                 self.print_out("JEQ")
+        if op is self.op_codes["JNE"]:
+            self.branchtable["JNE"]()
+            if self.print_stuff:
+                self.print_out("JNE")
 
     def standard_op(self, op):
         if op is self.op_codes["LDI"]:
@@ -348,6 +354,12 @@ class CPU:
     def JEQ(self):
         operand_a = self.ram_read(self.pc + 1)
         if self.fl & 1 is 1:
+            self.pc = self.reg[operand_a]
+            self.advance_pc = False
+
+    def JNE(self):
+        operand_a = self.ram_read(self.pc + 1)
+        if self.fl & 1 is 0:
             self.pc = self.reg[operand_a]
             self.advance_pc = False
 

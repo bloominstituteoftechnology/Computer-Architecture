@@ -88,7 +88,7 @@ def digital_root(n):
     if len(str(n)) is 1:
         return n
     return digital_root(reduce(lambda x, y: int(x) + int(y), [num for num in str(n)]))
-    print(f"Length: {len(str(n))}")
+    # print(f"Length: {len(str(n))}")
     
     
     # digital_root(result)
