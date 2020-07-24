@@ -20,7 +20,7 @@ class CPU:
         self.branch_table = {}
         self.reg = [0] * 8
         self.ram = [0] * 256
-        self.reg[7] = 0xF4
+        self.reg[7] = 0xF4   # Stack Pointer
 
         self.pc = 0          # Program Counter, address of the currently executing instruction
         self.branch_table[HTL] = self.hlt_inst
@@ -33,12 +33,12 @@ class CPU:
         self.branch_table[RET] = self.ret_inst
         self.branch_table[CALL] = self.call_inst
 
-        # self.IR = None     # Instruction Register, contains a copy of the currently executing instruction
-        # MAR = None         # Memory Address Register, holds the memory address we're reading or writing
-        # MDR = None         # Memory Data Register, holds the value to write or the value just read
-        # R5 is reserved as the interrupt mask (IM)
-        # R6 is reserved as the interrupt status (IS)
-        # R7 is reserved as the stack pointer (SP)
+        # IR    // Instruction Register, contains a copy of the currently executing instruction
+        # MAR   // Memory Address Register, holds the memory address we're reading or writing
+        # MDR   // Memory Data Register, holds the value to write or the value just read
+        # R5    // Reserved as the interrupt mask (IM)
+        # R6    // Reserved as the interrupt status (IS)
+        # R7    // Reserved as the stack pointer (SP)
 
     def ram_read(self, MAR):
         if MAR < len(self.ram):
