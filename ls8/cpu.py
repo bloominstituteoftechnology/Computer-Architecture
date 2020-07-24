@@ -26,7 +26,10 @@ class CPU:
         'POP': 0b01000110,
         'CALL': 0b01010000,
         'RET': 0b00010001,
-        'ADD': 0b10100000
+        'ADD': 0b10100000, 
+        'CMP': 0b10100111,
+        'JEQ': 0b01010101,
+        'JNE': 0b01010110
     }
 
     def ram_read(self, MAR):
@@ -60,7 +63,18 @@ class CPU:
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
-        # elif op == "SUB": etc
+
+        elif op == "MULT":
+            self.reg[reg_a] *= self.reg[reg_b]
+
+        elif op == "CMP":
+            if reg_a == reg_b:
+                return 'e'
+            elif reg_a > reg_b:
+                return 'g'
+            elif reg_a < reg_b:
+                return 'l'
+                
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -138,8 +152,7 @@ class CPU:
             # MULT
             # takes 2 operands
             elif IR == self.instructionDefs['MULT']:
-                product= self.reg[operand_a] * self.reg[operand_b]
-                self.reg[operand_a]= product
+                self.alu('MULT', operand_a, operand_b)
                 if setsPc ==  0:
                     self.pc+= 3
 
@@ -177,14 +190,54 @@ class CPU:
                 subAddr= self.reg[regNum]
                 self.pc= subAddr
 
-
             # RET
             # takes no operands
             elif IR == self.instructionDefs['RET']:
                 retAddr= self.stackPop()
                 self.pc= retAddr
+            
+            # CMP
+            # takes 2 operands
+            elif IR == self.instructionDefs['CMP']:
+                # `FL` bits: `00000LGE`
+                reg_a= self.reg[operand_a]
+                reg_b= self.reg[operand_b]
+                comp= self.alu('CMP', reg_a, reg_b)
+
+                if comp == 'e':
+                    # set flag 00000001
+                    self.fl[0]= 0b00000001
+
+                elif comp == 'g':
+                    # set flag 00000010
+                    self.fl[0]= 0b00000010
+
+                elif comp == 'l':
+                    # set flag 00000100
+                    self.fl[0]= 0b00000100
+
+                self.pc+= 3
+            
+            # JEQ
+            # takes one operand
+            elif IR == self.instructionDefs['JEQ']:
+                # If `equal` flag is set (true), jump to the address stored in the given register.
+                if self.fl[0] == 0b00000001:
+                    self.pc= self.reg[operand_a]
+                else: 
+                    self.pc+= 2
+
+            # JNE
+            # takes one operand
+            elif IR == self.instructionDefs['JNE']:
+                # If `E` flag is clear (false, 0), jump to the address stored in the given register.
+
+                if self.fl[0] != 0b00000001:
+                    # print('JNE jump to: ', operand_a)
+                    self.pc= self.reg[operand_a]
+                else: 
+                    self.pc+= 2
 
             else:
-                print('invalid inst')
                 self.isRunning = False
 
