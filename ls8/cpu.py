@@ -102,10 +102,20 @@ class CPU:
         self.pc += 2
 
     def ret_inst(self):
-        pass
+        self.pc = self.ram_read(self.reg[7])
+        self.reg[7] += 1
 
     def call_inst(self):
-        pass
+        temp = self.ram_read(self.pc + 1)
+        sub = self.reg[temp]
+
+        ret = self.pc + 2
+        while self.ram_read(ret) not in self.branch_table:
+            ret += 1
+
+        self.reg[7] -= 1
+        self.ram[self.reg[7]] = ret
+        self.pc = sub
 
     def load(self, file):
         """Load a program into memory."""
