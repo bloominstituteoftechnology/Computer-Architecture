@@ -161,5 +161,3 @@ def find_even_index(arr):
 
 x = find_even_index([1,2,3,4,3,2,1])
 print(f"This is x: {x}")
-
-print(f"Call: {0b01010000}")
