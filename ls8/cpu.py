@@ -9,7 +9,10 @@ PRN = 0b01000111
 MULT = 0b10100010
 POP = 0b01000110
 PUSH = 0b01000101
-
+CMP = 0b10100111
+JMP = 0b01010100
+JEQ = 0b01010101
+JNE = 0b01010110
 
 class CPU:
     """Main CPU class."""
@@ -27,6 +30,10 @@ class CPU:
         self.branchtable[MULT] = self.mult
         self.branchtable[POP] = self.pop
         self.branchtable[PUSH] = self.push
+        self.branchtable[CMP] = self.cmp
+        self.branchtable[JMP] = self.jmp
+        self.branchtable[JEQ] = self.jeq
+        self.branchtable[JNE] = self.jne
 
         # self.hlt
         
@@ -79,7 +86,23 @@ class CPU:
         elif op == "MUL":
             self.reg[reg_a] *= self.reg[reg_b]
             # print("MUL is going on", reg_a, reg_b)
-        
+        elif op == "CMP":
+            if self.reg[reg_a] == self.reg[reg_b]:
+                self.E = 1
+                self.L = 0
+                self.G = 0
+            elif reg_a < reg_b:
+                self.E = 0
+                self.L = 1
+                self.G = 0
+            elif reg_a > reg_b:
+                self.E = 0
+                self.L = 0
+                self.G = 1
+            else:
+                self.E = 0
+                self.L = 0
+                self.G = 0        
    
         else:
             raise Exception("Unsupported ALU operation")
@@ -146,6 +169,29 @@ class CPU:
         self.pc += 2
         # print("push")        
 
+
+    def cmp(self):
+        operand_a = self.ram_read(self.pc+1)
+        operand_b = self.ram_read(self.pc+2)
+
+        self.alu("CMP", operand_a, operand_b)
+        self.pc += 3
+        
+    def jmp(self):
+        reg_num = self.ram[self.pc+1]
+        addr = self.reg[reg_num]
+        self.pc = addr
+        
+    def jeq(self):
+        if self.E == 1:
+            self.jmp()
+        else:
+            self.pc += 2
+    def jne(self):
+        if self.E == 0:
+            self.jmp()
+        else: self.pc += 2
+        
     def run(self):
         """Run the CPU."""
         self.pc = 0
