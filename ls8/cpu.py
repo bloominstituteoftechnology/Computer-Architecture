@@ -29,7 +29,8 @@ class CPU:
         'ADD': 0b10100000, 
         'CMP': 0b10100111,
         'JEQ': 0b01010101,
-        'JNE': 0b01010110
+        'JNE': 0b01010110,
+        'JMP': 0b01010100
     }
 
     def ram_read(self, MAR):
@@ -238,6 +239,14 @@ class CPU:
                 else: 
                     self.pc+= 2
 
+            # JMP
+            # takes one operand
+            elif IR == self.instructionDefs['JMP']:
+                # Jump to the address stored in the given register.
+                # Set the `PC` to the address stored in the given register.
+                self.pc= self.reg[operand_a]
+
             else:
+                print('invalid instruction')
                 self.isRunning = False
 
