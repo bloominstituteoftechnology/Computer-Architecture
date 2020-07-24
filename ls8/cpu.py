@@ -35,6 +35,7 @@ class CPU:
         self.branchtable[JEQ] = self.jeq
         self.branchtable[JNE] = self.jne
 
+
         # self.hlt
         
         
@@ -86,23 +87,20 @@ class CPU:
         elif op == "MUL":
             self.reg[reg_a] *= self.reg[reg_b]
             # print("MUL is going on", reg_a, reg_b)
-        elif op == "CMP":
+        elif op == "CMP":          
+
             if self.reg[reg_a] == self.reg[reg_b]:
-                self.E = 1
-                self.L = 0
-                self.G = 0
-            elif reg_a < reg_b:
-                self.E = 0
-                self.L = 1
-                self.G = 0
-            elif reg_a > reg_b:
-                self.E = 0
-                self.L = 0
-                self.G = 1
+                flag = 0b00000001
+
+            elif self.reg[reg_a] < self.reg[reg_b]:
+                flag = 0b00000100
+
             else:
-                self.E = 0
-                self.L = 0
-                self.G = 0        
+                flag = 0b0000010 
+
+            self.stack_pointer -= 1
+            self.reg[self.stack_pointer] = flag
+  
    
         else:
             raise Exception("Unsupported ALU operation")
@@ -183,14 +181,30 @@ class CPU:
         self.pc = addr
         
     def jeq(self):
-        if self.E == 1:
-            self.jmp()
+        flag = self.reg[self.stack_pointer]
+
+        self.stack_pointer += 1
+
+        if flag == 1:
+
+            register = self.ram[self.pc + 1]
+            addr = self.reg[register]
+            self.pc = addr
+        
         else:
             self.pc += 2
     def jne(self):
-        if self.E == 0:
-            self.jmp()
-        else: self.pc += 2
+        flag = self.reg[self.stack_pointer]
+
+        self.stack_pointer += 1
+
+        if flag > 1:
+            register = self.ram[self.pc + 1]
+            self.pc = self.reg[register]
+
+        else:
+            self.pc += 2
+                
         
     def run(self):
         """Run the CPU."""
