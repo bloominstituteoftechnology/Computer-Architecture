@@ -110,13 +110,13 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        self.trace()
-        print('start')
+        # self.trace()
+        # print('start')
         self.reg[self.sp] = 0xf4
         running = True
         while running:
             IR = self.ram_read(self.pc)
-            # print('IR:', IR)
+            print('IR:', IR)
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
 
