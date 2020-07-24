@@ -2,27 +2,20 @@
 
 import sys
 
-def to_decimal(num_string, base):
-    digit_list = list(num_string)
-    digit_list.reverse()
-    value = 0
-    for i in range(len(digit_list)):
-        # print(f"+({int(digit_list[i])} * {base ** i})")
-        value += int(digit_list[i]) * (base ** i)
-    return value
-
 class CPU:
     """Main CPU class."""
 
     def __init__(self):
         """Construct a new CPU."""
         self.reg = [0] * 8
-        self.ram = [0] * 256
+        self.fl= [0] * 8
         self.pc = 0
+        self.ram = [0] * 256
         self.isRunning = False
         #stack pointer
         self.sp= 7
         self.reg[self.sp]= 0xF4
+        #TODO set up branch table
 
     instructionDefs = {
         'HLT': 0b00000001,
@@ -30,9 +23,11 @@ class CPU:
         'PRN': 0b01000111,
         'MULT': 0b10100010,
         'PUSH': 0b01000101,
-        'POP': 0b01000110
+        'POP': 0b01000110,
+        'CALL': 0b01010000,
+        'RET': 0b00010001,
+        'ADD': 0b10100000
     }
-
 
     def ram_read(self, MAR):
         storedValue = self.ram[MAR]
@@ -89,75 +84,107 @@ class CPU:
 
         print()
 
+    def stackPush(self, value):
+        # 1. Decrement the `SP`.
+        self.reg[self.sp]-= 1
+
+        pointer= self.reg[self.sp]
+        self.ram_write(value, pointer)
+    
+    def stackPop(self):
+        pointer= self.reg[self.sp]
+        value= self.ram_read(pointer)
+        # 2. Increment `SP`.
+        self.reg[self.sp]+= 1
+        return value
+
     def run(self):
         """Run the CPU."""
-        # self.trace()
         self.isRunning = True
-
-        # IR R0-R8
-        IR = self.ram[self.pc]
 
         # run the operations
         while self.isRunning == True:
-            # decode opcode
-            opCode = bin(self.ram_read(self.pc))
-            opCode = opCode[2:]
-            # does inst set pc or do we
-            numOps = to_decimal(opCode[:2], 2)
-            isALU = opCode[2:3]
-            setsPC = opCode[3:4]
-            instID = opCode[4:]
+            IR= self.ram[self.pc]
+            
+            # grab the set pc bit(4th bit)
+            setsPcMask= IR & 0b00010000
+            setsPc= setsPcMask >> 4
 
-            if numOps == 2:
+            if IR >> 6 == 2:
                 operand_a= self.ram_read(self.pc + 1)
                 operand_b= self.ram_read(self.pc + 2)
-            elif numOps == 1:
+            elif IR >> 6 == 1:
                 operand_a= self.ram_read(self.pc + 1)
 
-            # HLT
-            # no operands
-            if to_decimal(opCode, 2) == self.instructionDefs['HLT']:
-                self.pc += 1
+            # # HLT
+            # # no operands
+            if IR == self.instructionDefs['HLT']:
+                self.isRunning= False
 
             # LDI
             # takes 2 operands
-            elif to_decimal(opCode, 2) == self.instructionDefs['LDI']:
+            elif IR == self.instructionDefs['LDI']:
                 self.reg[operand_a] = operand_b
-                self.pc += 3
+                if setsPc ==  0:
+                    self.pc += 3
 
             # PRN
             # takes one operand
-            elif to_decimal(opCode, 2) == self.instructionDefs['PRN']:
-                self.pc += 2
+            elif IR == self.instructionDefs['PRN']:
+                if setsPc ==  0:
+                    self.pc += 2
                 print(self.reg[operand_a])
             
-            elif to_decimal(opCode, 2) == self.instructionDefs['MULT']:
+            # MULT
+            # takes 2 operands
+            elif IR == self.instructionDefs['MULT']:
                 product= self.reg[operand_a] * self.reg[operand_b]
                 self.reg[operand_a]= product
-                print('self.reg[operand_a])
+                if setsPc ==  0:
+                    self.pc+= 3
+
+            elif IR == self.instructionDefs['ADD']:
+                self.alu('ADD', operand_a, operand_b)
                 self.pc+= 3
-            
-            elif to_decimal(opCode, 2) == self.instructionDefs['PUSH']:
-                # 1. Decrement the `SP`.
-                self.reg[self.sp]-= 1
 
-                # 2. Copy the value in the given register to the address pointed to by `SP`.
+            # PUSH
+            # takes one operand
+            elif IR == self.instructionDefs['PUSH']:
                 value= self.reg[operand_a]
-                pointer= self.reg[self.sp]
-                self.ram_write(value, pointer)
+                self.stackPush(value)
 
-                self.pc+= 2
-            elif to_decimal(opCode, 2) == self.instructionDefs['POP']:
-                # Pop the value at the top of the stack into the given register.
-                # 1. Copy the value from the address pointed to by `SP` to the given register.
-                pointer= self.reg[self.sp]
-                value= self.ram_read(pointer)
+                if setsPc ==  0:
+                    self.pc+= 2
+
+            # POP
+            # takes one operand
+            elif IR == self.instructionDefs['POP']:
+                value= self.stackPop()
                 self.reg[operand_a]= value
 
-                # 2. Increment `SP`.
-                self.reg[self.sp]+= 1
-                self.pc+=2
+                if setsPc ==  0:
+                    self.pc+=2
+
+            # CALL
+            # takes one operand
+            #sets the pc
+            elif IR == self.instructionDefs['CALL']:
+                isntrAddr= self.pc + 2
+
+                self.stackPush(isntrAddr)
+
+                regNum= operand_a
+                subAddr= self.reg[regNum]
+                self.pc= subAddr
+
+
+            # RET
+            # takes no operands
+            elif IR == self.instructionDefs['RET']:
+                retAddr= self.stackPop()
+                self.pc= retAddr
 
             else:
+                print('invalid inst')
                 self.isRunning = False
 
