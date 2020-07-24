@@ -110,8 +110,8 @@ class CPU:
             # pop value from stack, store in PC
             self.pc = self.ram_read(self.reg[7])
             self.alu(0b01100101, 7, 0) # increment stack pointer
-        # elif op == 0b01010010:  # INT
-            # I don't know how to do this yet
+        elif op == 0b01010010:  # INT
+            self.reg[6] = self.reg[reg]
         elif op == 0b01010100:  # JMP
             # set pc to address in register
             self.pc = self.reg[reg]
@@ -211,6 +211,11 @@ class CPU:
         ir = 0 # instruction register
         
         while True: # use HLT to escape loop
+            # check interrupts first
+            maskedInterrupts = self.reg[5] & self.reg[6]
+            if maskedInterrupts > 0:
+                # TODO: didn't finish it
+                pass
             ir = self.ram_read(self.pc)
             # if ALU func
             if (ir & 0b00100000) >> 5 == 1:
@@ -253,6 +258,26 @@ class CPU:
                     mem_addr_reg = self.ram_read(self.pc + 1)
                     mem_addr_reg = mem_addr_reg & 0b00000111 # OoB limiter
                     print(chr(self.reg[mem_addr_reg]))
+                # Sprint Challenge Stretch Goal
+                elif ir == 0b10001001:  # ADDI: add immediate to register
+                    '''
+                    Spec:
+                    ADDI
+                    Increase the value of a register by an integer
+
+                    Machine code:
+                    10001001 00000rrr iiiiiiii
+                    89 0r ii
+                    '''
+                    # get values
+                    mem_addr_reg = self.ram_read(self.pc + 1)
+                    mem_data_reg = self.ram_read(self.pc + 2)
+                    # filter values
+                    mem_addr_reg = mem_addr_reg & 0b00000111
+                    mem_data_reg = mem_data_reg & 0b11111111
+                    self.reg[mem_addr_reg] += mem_data_reg
+                    # filter output
+                    self.reg[mem_addr_reg] = self.reg[mem_addr_reg] & 0b11111111
                 elif ir == 0b10000010:  # LDI: set register value
                     mem_addr_reg = self.ram_read(self.pc + 1)
                     mem_data_reg = self.ram_read(self.pc + 2)
