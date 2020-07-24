@@ -14,7 +14,7 @@ class CPU:
         self.sp = 7
         self.reg = [0] * 8
         self.address = 0
-        self.flag = 0
+        self.flag = 0b00000000
         self.LDI = 0b10000010
         self.PRN = 0b01000111
         self.HLT = 0b00000001
@@ -23,7 +23,11 @@ class CPU:
         self.PUSH = 0b01000101
         self.POP = 0b01000110
         self.CALL = 0b01010000
-        self.RET = 0b00010001    
+        self.RET = 0b00010001
+        self.CMP = 0b10100111
+        self.JMP = 0b01010100
+        self.JEQ = 0b01010101
+        self.JNE = 0b01010110 
 
     def load(self, path):
         """Load a program into memory."""
@@ -90,17 +94,17 @@ class CPU:
         from run() if you need help debugging.
         """
 
-        print(f"TRACE: %02X | %02X %02X %02X |" % (
+        print(
             self.pc,
-            #self.fl,
+            self.flag,
             #self.ie,
             self.ram_read(self.pc),
             self.ram_read(self.pc + 1),
             self.ram_read(self.pc + 2)
-        ), end='')
+        )
 
         for i in range(8):
-            print(" %02X" % self.reg[i], end='')
+            print(" %02X" % self.reg[i])
 
         print()    
 
@@ -185,7 +189,32 @@ class CPU:
                 self.reg[self.sp] += 1
 
                 # Set the PC to the return address
-                self.pc = return_addr        
+                self.pc = return_addr
+            elif IR == self.CMP:
+                if self.reg[operand_a] == self.reg[operand_b]:
+                    self.flag = 0b00000001
+                elif self.reg[operand_a] > self.reg[operand_b]:
+                    self.flag = 0b00000010
+                # elif self.reg[operand_a] < self.reg[operand_b]:
+                #     self.flag = 0b00000100
+                else:
+                    self.flag = 0b00000000
+                self.pc += 3
+            elif IR == self.JMP:                
+                self.address = self.reg[self.ram[self.pc + 1]]
+                self.pc = self.address
+            elif IR == self.JEQ:
+                if self.flag == 0b00000001:
+                    self.address = self.reg[self.ram[self.pc + 1]]
+                    self.pc = self.address
+                else:
+                    self.pc += 2
+            elif IR == self.JNE:
+                if self.flag == 0b00000000:
+                    self.address = self.reg[self.ram[self.pc + 1]]
+                    self.pc = self.address
+                else:
+                    self.pc += 2     
             else:
-                print(f"Unknown instruction {IR}")
+                print({IR})
                 running = False
