@@ -2,16 +2,6 @@
 
 import sys
 
-# Instructions
-LDI = 0b10000010 
-PRN = 0b01000111    # Print
-HLT = 0b00000001    # Halt
-MUL = 0b10100010    # Multiply
-ADD = 0b10100000    # Addition
-PUSH = 0b01000101   # Push in stack
-POP = 0b01000110    # Pop from stack
-CALL = 0b01010000
-RET = 0b00010001
 
 class CPU:
     """Main CPU class."""
@@ -84,6 +74,14 @@ class CPU:
             self.reg[reg_a] += self.reg[reg_b]
         elif op == "MUL":
             self.reg[reg_a] *= self.reg[reg_b]
+        
+        elif op == "CMP":
+            if self.reg[reg_a] == self.reg[reg_b]:
+                self.flag = 0b00000001
+            elif self.reg[reg_a] > self.reg[reg_b]:
+                self.flag = 0b10000010
+            else:
+                self.flag = 0b00000100
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -109,6 +107,20 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
+        LDI = 0b10000010
+        PRN = 0b01000111
+        HLT = 0b00000001
+        MUL = 0b10100010
+        ADD = 0b10100000
+        PUSH = 0b01000101
+        POP = 0b01000110
+        CALL = 0b01010000
+        RET = 0b00010001
+        CMP = 0b10100111
+        JMP = 0b01010100
+        JEQ = 0b01010101
+        JNE = 0b01010110
+
         # load the instructions file
         self.load()
         while self.running:
@@ -162,6 +174,25 @@ class CPU:
                 return_address = self.ram[sp]
                 self.reg[7] += 1
                 self.pc = return_address
+            elif instruction_register == CMP:
+                self.alu('CMP', reg_a, reg_b)
+                self.pc += 3
+
+            elif instruction_register== JMP:
+                break
+                self.pc == self.reg[reg_a]
+            
+            elif instruction_register == JEQ:
+                if (self.flag & HLT) == 1:
+                    self.pc = self.reg[reg_a]
+                else:
+                    self.pc += 2
+
+            elif instruction_register == JNE:
+                if (self.flag & HLT) == 0:
+                    self.pc = self.reg[reg_a]
+                else:
+                    self.pc += 2
             else:
                 print(f"Instruction number {self.pc} not recognized!")
                 self.pc += 1
