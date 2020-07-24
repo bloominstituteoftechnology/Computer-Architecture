@@ -165,15 +165,15 @@ class CPU:
         else:
             self.E = 0
 
-        # if self.reg[reg_a] < self.reg[reg_b]:
-        #     self.L = 1
-        # else:
-        #     self.L = 0
-        #
-        # if self.reg[reg_a] > self.reg[reg_b]:
-        #     self.G = 1
-        # else:
-        #     self.G = 0
+        if self.reg[reg_a] < self.reg[reg_b]:
+            self.L = 1
+        else:
+            self.L = 0
+
+        if self.reg[reg_a] > self.reg[reg_b]:
+            self.G = 1
+        else:
+            self.G = 0
 
         self.pc += 3
 
@@ -219,24 +219,45 @@ class CPU:
         #     address += 1
         # print(self.ram)
 
-    def alu(self, op, reg_a, reg_b):
+    def alu(self, op):
         """ALU operations."""
 
         if op == "AND":
-            # self.reg[reg_a] += self.reg[reg_b]
-            pass
+            reg_a = self.ram_read(self.pc + 1)
+            reg_b = self.ram_read(self.pc + 2)
+            self.reg[reg_a] = self.reg[reg_a] & self.reg[reg_b]
+            self.pc += 3
         elif op == "OR":
-            pass
+            reg_a = self.ram_read(self.pc + 1)
+            reg_b = self.ram_read(self.pc + 2)
+            self.reg[reg_a] = self.reg[reg_a] | self.reg[reg_b]
+            self.pc += 3
         elif op == "XOR":
-            pass
+            reg_a = self.ram_read(self.pc + 1)
+            reg_b = self.ram_read(self.pc + 2)
+            self.reg[reg_a] = self.reg[reg_a] ^ self.reg[reg_b]
+            self.pc += 3
         elif op == "NOT":
-            pass
+            reg_a = self.ram_read(self.pc + 1)
+            self.reg[reg_a] = ~self.reg[reg_a]
+            self.pc += 2
         elif op == "SHR":
-            pass
+            reg_a = self.ram_read(self.pc + 1)
+            reg_b = self.ram_read(self.pc + 2)
+            self.reg[reg_a] = self.reg[reg_a] >> self.reg[reg_b]
+            self.pc += 3
         elif op == "SHL":
-            pass
+            reg_a = self.ram_read(self.pc + 1)
+            reg_b = self.ram_read(self.pc + 2)
+            self.reg[reg_a] = self.reg[reg_a] << self.reg[reg_b]
+            self.pc += 3
         elif op == "MOD":
-            pass
+            reg_a = self.ram_read(self.pc + 1)
+            reg_b = self.ram_read(self.pc + 2)
+            if self.reg[reg_b] == 0:
+                self.hlt_inst()
+            self.reg[reg_a] = self.reg[reg_a] % self.reg[reg_b]
+            self.pc += 3
         else:
             raise Exception("Unsupported ALU operation")
 
