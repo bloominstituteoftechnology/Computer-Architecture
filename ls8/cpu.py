@@ -425,7 +425,7 @@ class CPU:
         with open(sys.argv[1]) as file:
             program = [int(line[:line.find('#')].strip(), 2)
                        for line in file
-                       if line != '\n' and line[0] != '#']
+                       if line.strip() != '' and line.strip()[0] != '#']
 
         for instruction in program:
             self.ram[address] = instruction
