@@ -1,5 +1,6 @@
 """CPU functionality."""
 
+import msvcrt
 import sys
 from datetime import datetime
 
@@ -48,7 +49,6 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-
         self.branch = {ADD: self.add,
                        AND: self.aand,
                        CALL: self.call,
@@ -504,6 +504,11 @@ class CPU:
             if (new_time - prev_time).total_seconds() >= 1:
                 prev_time = new_time
                 self.reg[IS] = self.reg[IS] | 0b00000001
+
+            # Check to see if keyboard interrupt needs setting.
+            if msvcrt.kbhit():
+                self.ram_write(ord(msvcrt.getch()), 0xF4)
+                self.reg[IS] = self.reg[IS] | 0b00000010
 
             # Check to see if ANY interesting interrupt IS set.
             interrupt_happened = False
