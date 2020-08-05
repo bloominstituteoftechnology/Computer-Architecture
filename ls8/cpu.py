@@ -327,7 +327,7 @@ class CPU:
         Print to the console the ASCII character corresponding to the value in
         the register.
         """
-        print(chr(self.reg[reg_num]))
+        print(chr(self.reg[reg_num]), end='')
 
     def prn(self, reg_num):
         """
@@ -505,7 +505,7 @@ class CPU:
                 prev_time = new_time
                 self.reg[IS] = self.reg[IS] | 0b00000001
 
-            # Check to see if keyboard interrupt needs setting.
+            # Set keyboard interrupt if a key has been pressed.
             if msvcrt.kbhit():
                 self.ram_write(ord(msvcrt.getch()), 0xF4)
                 self.reg[IS] = self.reg[IS] | 0b00000010
@@ -540,6 +540,7 @@ class CPU:
 
             num_args = (self.IR & 0b11000000) >> 6
             pc_set = (self.IR & 0b00010000) >> 4
+
             try:
                 if num_args == 0:
                     self.branch[self.IR]()
