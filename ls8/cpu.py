@@ -3,44 +3,45 @@
 import sys
 from datetime import datetime
 
-ADD = 0b10100000
-AND = 0b10101000
-CALL = 0b01010000
-CMP = 0b10100111
-DEC = 0b01100110
-DIV = 0b10100011
-HLT = 0b00000001
-INC = 0b01100101
-INT = 0b01010010
-IRET = 0b00010011
-JEQ = 0b01010101
-JGE = 0b01011010
-JGT = 0b01010111
-JLE = 0b01011001
-JLT = 0b01011000
-JMP = 0b01010100
-JNE = 0b01010110
-LD = 0b10000011
-LDI = 0b10000010
-MOD = 0b10100100
-MUL = 0b10100010
-NOP = 0b00000000
-NOT = 0b01101001
-OR = 0b10101010
-POP = 0b01000110
-PRA = 0b01001000
-PRN = 0b01000111
-PUSH = 0b01000101
-RET = 0b00010001
-ST = 0b10000100
-SUB = 0b10100001
-SHL = 0b10101100
-SHR = 0b10101101
-XOR = 0b10101011
+ADD = 0b10100000   # addition
+AND = 0b10101000   # bitwise and
+CALL = 0b01010000  # subroutine call
+CMP = 0b10100111   # compare
+DEC = 0b01100110   # decrement
+DIV = 0b10100011   # divide
+HLT = 0b00000001   # halt cpu and exit emulator
+INC = 0b01100101   # increment
+INT = 0b01010010   # issue interrupt
+IRET = 0b00010011  # return from an interrupt
+JEQ = 0b01010101   # jump if equal
+JGE = 0b01011010   # jump if greater than or equal
+JGT = 0b01010111   # jump if greater than
+JLE = 0b01011001   # jump if less than or equal
+JLT = 0b01011000   # jump if less than
+JMP = 0b01010100   # jump
+JNE = 0b01010110   # jump if not equal
+LD = 0b10000011    # load
+LDI = 0b10000010   # load immediate
+MOD = 0b10100100   # modulo
+MUL = 0b10100010   # multiply
+NOP = 0b00000000   # no operation
+NOT = 0b01101001   # bitwise not
+OR = 0b10101010    # bitwise or
+POP = 0b01000110   # pop from stack
+PRA = 0b01001000   # print ASCII
+PRN = 0b01000111   # print numeric
+PUSH = 0b01000101  # push to stack
+RET = 0b00010001   # return from subroutine
+SHL = 0b10101100   # shift left, fill with zeros
+SHR = 0b10101101   # shift right, fill with zeros
+ST = 0b10000100    # store in (write to) memory
+SUB = 0b10100001   # subtract
+XOR = 0b10101011   # bitwise exclusive or
 
-IM = 5 # register number for interrupt mask
-IS = 6 # register number for interrupt status
-SP = 7 # register number for stack pointer
+IM = 5  # register number for interrupt mask
+IS = 6  # register number for interrupt status
+SP = 7  # register number for stack pointer
+
 
 class CPU:
     """Main CPU class."""
@@ -88,11 +89,11 @@ class CPU:
 
         self.reg[SP] = 0xF4
 
-        self.PC = 0
-        self.IR = 0
-        self.MAR = 0
-        self.MDR = 0
-        self.FL = 0
+        self.PC = 0   # program counter
+        self.IR = 0   # instruction register
+        self.MAR = 0  # memory address register
+        self.MDR = 0  # memory data register
+        self.FL = 0   # flags
 
         self.interrupts_enabled = True
 
@@ -415,7 +416,6 @@ class CPU:
 
     def load(self):
         """Load a program into memory."""
-
         address = 0
 
         if len(sys.argv) != 2:
@@ -430,7 +430,6 @@ class CPU:
         for instruction in program:
             self.ram[address] = instruction
             address += 1
-
 
     def alu(self, op, reg_a, reg_b=None):
         """ALU operations."""
@@ -479,8 +478,8 @@ class CPU:
 
         print(f"TRACE: %02X | %02X %02X %02X |" % (
             self.PC,
-            #self.fl,
-            #self.ie,
+            # self.fl,
+            # self.ie,
             self.ram_read(self.PC),
             self.ram_read(self.PC + 1),
             self.ram_read(self.PC + 2)
