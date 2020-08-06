@@ -1,0 +1,24 @@
+* Make a list of files here.
+* Write a short 3-10-word description of what each file does.
+* Note what has been implemented, and what hasn't.
+* Read this whole file.
+* Skim the spec.
+
+asm folder - this is where the programs are stored?
+
+cpu.py - Main CPU class with functions(methods) - alu, trace, run
+
+ls8.py - This imports and runs the CPU 
+
+The LS8-spec.md - this has notes on
+Registers,
+Flags
+Memory,
+Stack,
+interrupts
+
+and a bunch of stuff it is going to take a long time to Read
+
+
+
+  
