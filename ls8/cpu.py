@@ -336,7 +336,7 @@ class CPU:
         Print to the console the decimal integer value that is stored in the
         given register.
         """
-        print(self.reg[reg_num])
+        print(self.reg[reg_num], end='')
 
     def push(self, reg_num):
         """
