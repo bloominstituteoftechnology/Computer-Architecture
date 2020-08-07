@@ -5,6 +5,7 @@ import sys
 from datetime import datetime
 
 ADD = 0b10100000   # addition
+ADDI = 0b10100101  # add immediate
 AND = 0b10101000   # bitwise and
 CALL = 0b01010000  # subroutine call
 CMP = 0b10100111   # compare
@@ -12,7 +13,7 @@ DEC = 0b01100110   # decrement
 DIV = 0b10100011   # divide
 HLT = 0b00000001   # halt cpu and exit emulator
 INC = 0b01100101   # increment
-INT = 0b01010010   # issue interrupt
+IINT = 0b01010010  # issue interrupt
 IRET = 0b00010011  # return from an interrupt
 JEQ = 0b01010101   # jump if equal
 JGE = 0b01011010   # jump if greater than or equal
@@ -50,13 +51,14 @@ class CPU:
     def __init__(self):
         """Construct a new CPU."""
         self.branch = {ADD: self.add,
+                       ADDI: self.addi,
                        AND: self.aand,
                        CALL: self.call,
                        CMP: self.cmp,
                        DEC: self.dec,
                        DIV: self.div,
                        INC: self.inc,
-                       INT: self.int,
+                       IINT: self.iint,
                        IRET: self.iret,
                        JEQ: self.jeq,
                        JGE: self.jge,
@@ -109,6 +111,12 @@ class CPU:
         Add the value in two registers and store the result in registerA.
         """
         self.alu('ADD', reg_a, reg_b)
+
+    def addi(self, reg_num, value):
+        """
+        Increase the contents of the given register by the given value.
+        """
+        self.alu('ADDI', reg_num, value)
 
     def call(self, reg_num):
         """
@@ -163,7 +171,7 @@ class CPU:
         """
         self.alu('INC', reg_num)
 
-    def int(self, reg_num):
+    def iint(self, reg_num):
         """
         Issue the interrupt number stored in the given register.
         """
@@ -431,42 +439,44 @@ class CPU:
             self.ram[address] = instruction
             address += 1
 
-    def alu(self, op, reg_a, reg_b=None):
+    def alu(self, op, arg_a=None, arg_b=None):
         """ALU operations."""
 
         if op == 'ADD':
-            self.reg[reg_a] += self.reg[reg_b]
+            self.reg[arg_a] += self.reg[arg_b]
+        elif op == 'ADDI':
+            self.reg[arg_a] += arg_b
         elif op == 'AND':
-            self.reg[reg_a] = self.reg[reg_a] & self.reg[reg_b]
+            self.reg[arg_a] = self.reg[arg_a] & self.reg[arg_b]
         elif op == 'CMP':
-            if self.reg[reg_a] < self.reg[reg_b]:
+            if self.reg[arg_a] < self.reg[arg_b]:
                 self.FL = 0b00000100
-            elif self.reg[reg_a] > self.reg[reg_b]:
+            elif self.reg[arg_a] > self.reg[arg_b]:
                 self.FL = 0b00000010
             else:
                 self.FL = 0b00000001
         elif op == 'DEC':
-            self.reg[reg_a] -= 1
+            self.reg[arg_a] -= 1
         elif op == 'DIV':
-            self.reg[reg_a] = self.reg[reg_a] // self.reg[reg_b]
+            self.reg[arg_a] = self.reg[arg_a] // self.reg[arg_b]
         elif op == 'INC':
-            self.reg[reg_a] += 1
+            self.reg[arg_a] += 1
         elif op == 'MOD':
-            self.reg[reg_a] = self.reg[reg_a] % self.reg[reg_b]
+            self.reg[arg_a] = self.reg[arg_a] % self.reg[arg_b]
         elif op == 'MUL':
-            self.reg[reg_a] = self.reg[reg_a] * self.reg[reg_b]
+            self.reg[arg_a] = self.reg[arg_a] * self.reg[arg_b]
         elif op == 'NOT':
-            self.reg[reg_a] = 0b11111111 - self.reg[reg_a]
+            self.reg[arg_a] = 0b11111111 - self.reg[arg_a]
         elif op == 'OR':
-            self.reg[reg_a] = self.reg[reg_a] | self.reg[reg_b]
+            self.reg[arg_a] = self.reg[arg_a] | self.reg[arg_b]
         elif op == 'SUB':
-            self.reg[reg_a] = self.reg[reg_a] - self.reg[reg_b]
+            self.reg[arg_a] = self.reg[arg_a] - self.reg[arg_b]
         elif op == 'SHL':
-            self.reg[reg_a] = self.reg[reg_a] << self.reg[reg_b]
+            self.reg[arg_a] = self.reg[arg_a] << self.reg[arg_b]
         elif op == 'SHR':
-            self.reg[reg_a] = self.reg[reg_a] >> self.reg[reg_b]
+            self.reg[arg_a] = self.reg[arg_a] >> self.reg[arg_b]
         elif op == 'XOR':
-            self.reg[reg_a] = self.reg[reg_a] ^ self.reg[reg_b]
+            self.reg[arg_a] = self.reg[arg_a] ^ self.reg[arg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
