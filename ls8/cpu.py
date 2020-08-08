@@ -7,8 +7,11 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
-
+        self.ram = [0] * 8
+        self.pc = 0
+        self.HLT = '1'
+        self.LDI = '10000010'        
+        
     def load(self):
         """Load a program into memory."""
 
@@ -60,6 +63,41 @@ class CPU:
 
         print()
 
+    def ram_read(self, addr):
+        return self.ram[addr]
+    
+    def ram_write(self, val, addr):
+        self.ram[addr] = val
+    
     def run(self):
         """Run the CPU."""
-        pass
+        memory = [0] * len(self.ram)
+        pc = self.pc
+        HLT = self.HLT
+        LDI = self.LDI
+        
+        while pc < len(memory):
+            command = (self.ram_read(pc))          
+            operand_a = self.ram_read(self.pc + 1)
+            operand_b = self.ram_read(self.pc + 2)
+            memory[pc] = bin(command)[2:]
+            pc += 1
+        
+        for instruction in memory:            
+            if instruction == HLT:
+                print("Program halted.")
+                return
+            if instruction == LDI:
+                print(operand_b)
+                
+          
+      
+        
+       
+                                  
+        
+       
+
+cpu = CPU()
+cpu.load()
+cpu.run()

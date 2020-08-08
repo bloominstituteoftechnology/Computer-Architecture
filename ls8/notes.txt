@@ -1,0 +1,20 @@
+Why different number bases?
+
+Hexidecimal
+- easier to write large numbers
+
+Binary
+- translate electricity into data
+- ternary computer (more difficult to calculate electricty into data due to electricity's fluctuating nature)
+- plays well with Boolean logic
+
+Arithmetic for Billy Goats (Book)
+Base 12 for time
+
+Octal 
+
+Place-based number systems
+
+I, II, III, IV, V, VI (Roman numbering system. Terrible for calculations.)
+
+"Logicomix" - Bertrand Russell
