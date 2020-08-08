@@ -7,7 +7,8 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.reg = [0] * 8 # 8 general-purpose registers.
+        self.ram = [0] * 256 # to hold 256 bytes of memory
 
     def load(self):
         """Load a program into memory."""
@@ -30,6 +31,11 @@ class CPU:
             self.ram[address] = instruction
             address += 1
 
+    def ram_read(self, mar):
+        return self.ram[mar]
+
+    def ram_write(self, mdr, mar):
+        self.ram[mar] = mdr
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -62,4 +68,29 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+
+        ir = None
+
+        pc = 0 #counter
+        ir = None # copy of currently execution instruction
+        mar = None # holds the address we're reading from
+        mdr = None # holds the value to write or just read
+        fl = None # flags, ?? what the heck is this for?
+
+        # It needs to read the memory address that's stored in register PC
+        # and store that result in IR
+
+        is_running = True
+
+        # Meanings of the bits in the first byte of each instruction: AABCDDDD
+
+        # AA Number of operands for this opcode, 0-2
+        # B 1 if this is an ALU operation
+        # C 1 if this instruction sets the PC
+        # DDDD Instruction identifier
+
+        while is_running:
+
+
+
+            pc += 1
