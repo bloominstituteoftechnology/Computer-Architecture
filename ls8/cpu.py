@@ -1,6 +1,7 @@
 """CPU functionality."""
 
 import sys
+import re
 
 class CPU:
     """Main CPU class."""
@@ -10,26 +11,24 @@ class CPU:
         self.reg = [0] * 8 # 8 general-purpose registers.
         self.ram = [0] * 256 # to hold 256 bytes of memory
 
-    def load(self):
+    def load(self, file):
         """Load a program into memory."""
 
         address = 0
 
-        # For now, we've just hardcoded a program:
+        # # For now, we've just hardcoded a program:
+        with open(file, 'r') as commands:
+            for command in commands:
+                is_command = re.match("^(0|1)\w+", command)
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+                if is_command == None:
+                    continue
 
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+                print(is_command.group(0))
+                self.ram[address] = int(is_command.group(0), 2)
+                address += 1
+
+
 
     def ram_read(self, mar):
         return self.ram[mar]
@@ -91,6 +90,28 @@ class CPU:
 
         while is_running:
 
+            # 01000111
+            ir = self.ram[pc] & 0b0001111
+            print(f"instruction: {ir}")
+            # PRN
+            # PRN register pseudo-instruction
 
+            # Print numeric value stored in the given register.
+
+            # Print to the console the decimal integer value that is stored in the given register.
+            if (ir == 0b0111):
+                mdr = self.reg
+                mar = self.ram[pc + 1]
+                pc += 1
+                print(f"Register {mar}: {mdr[mar]}")
+            elif (ir == 0b0010):
+                mdr = self.ram[pc + 2]
+                # print(f"Writing to {self.ram[pc + 1]}: value - {mdr}")
+                self.reg[self.ram[pc + 1]] = mdr
+                pc += 2
+            elif (ir == 0b01):
+                # print("HLT instruction")
+                is_running = False
+                break
 
             pc += 1

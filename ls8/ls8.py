@@ -6,9 +6,10 @@ import sys
 from cpu import *
 
 cpu = CPU()
-
-cpu.load()
-cpu.run()
+file_name = sys.argv[1]
+print(sys.argv)
+cpu.load(file_name)
+# cpu.run()
 
 # Get print8.ls8 running
 
