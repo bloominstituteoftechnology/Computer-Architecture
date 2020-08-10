@@ -7,6 +7,10 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
+        #Initial tracker for commands
+        self.pc = 0
+        self.reg = {i:'?' for i in range(8)}
+        self.ram = [[0]*8]*8
         pass
 
     def load(self):
