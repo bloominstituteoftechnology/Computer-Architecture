@@ -7,8 +7,29 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
-
+        # memory
+        self.ram = [0] * 256
+        # init registers
+        self.reg = [0] * 8
+        # general-purpose registers
+        self.IM = self.reg[5] # interrupt mask
+        self.IS = self.reg[6] # interrupt status 
+        self.SP = self.reg[7] # stack pointer 
+        # special-purpose registers 
+        # internal registers
+        self.PC = 0 # Program Counter
+        self.IR = 0 # Instruction Register
+        self.MAR = 0 # Memory Address Register
+        self.MDR = 0 # Memory Data Register
+        self.FL = 0 # Flags
+    
+    def ram_read(self, address):
+        return self.ram[address] 
+    
+    def ram_write(self, address, value):
+        self.ram[address] = value
+ 
+       
     def load(self):
         """Load a program into memory."""
 
@@ -47,12 +68,12 @@ class CPU:
         """
 
         print(f"TRACE: %02X | %02X %02X %02X |" % (
-            self.pc,
+            self.PC,
             #self.fl,
             #self.ie,
-            self.ram_read(self.pc),
-            self.ram_read(self.pc + 1),
-            self.ram_read(self.pc + 2)
+            self.ram_read(self.PC),
+            self.ram_read(self.PC + 1),
+            self.ram_read(self.PC + 2)
         ), end='')
 
         for i in range(8):
@@ -62,4 +83,20 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+
+        HLT = 0b00000001 # instruction handler
+        LDI = 0b10000010 # instruction
+        PRN = 0b01000111 # instruction
+
+        if self.ram[self.PC] == LDI:
+            self.reg[self.ram[self.PC + 1]] = self.ram[self.PC + 2]
+            self.PC += 3
+
+        elif self.ram[self.PC] == PRN:
+            print(self.reg[self.ram[self.PC + 1]])
+            self.PC += 2    
+
+        elif self.ram[self.PC] == HLT:
+            self.PC += 1
+            
+        
