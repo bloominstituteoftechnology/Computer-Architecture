@@ -10,7 +10,7 @@ class CPU:
         #Initial tracker for commands
         self.pc = 0
         self.reg = {i:'?' for i in range(8)}
-        self.ram = [[0]*8]*8
+        self.ram = [0]*8
         pass
 
     def load(self):
@@ -34,6 +34,12 @@ class CPU:
             self.ram[address] = instruction
             address += 1
 
+    def ram_write(self, MAR, MDR):
+        self.reg[MAR] = MDR
+
+    def ram_read(self, MAR):
+        MDR = self.reg[MAR]
+        return print(MDR)
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
