@@ -92,7 +92,7 @@ class CPU:
             if command == LDI:
                 self.ldi()
             if command == PRN:
-                PRN
+                self.prn()
             if command == HLT:
                 False
 
