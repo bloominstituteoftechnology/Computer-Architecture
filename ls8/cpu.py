@@ -9,9 +9,8 @@ class CPU:
         """Construct a new CPU."""
         #Initial tracker for commands
         self.pc = 0
-        self.reg = {i:'?' for i in range(8)}
-        self.ram = [0]*8
-        pass
+        self.reg = [None]*8
+        self.ram = [0]*256
 
     def load(self):
         """Load a program into memory."""
@@ -39,7 +38,7 @@ class CPU:
 
     def ram_read(self, MAR):
         MDR = self.reg[MAR]
-        return print(MDR)
+        return MDR
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -70,6 +69,30 @@ class CPU:
 
         print()
 
+    def ldi(self):
+        address = self.ram[self.pc+1]
+        value = self.ram[self.pc+2]
+        self.reg[address] = value
+        self.pc+=3
+        print(self.reg[address])
+
+    def prn(self):
+        address = self.ram[self.pc+1]
+        print(self.reg[address])
+        self.pc+=2
+
     def run(self):
         """Run the CPU."""
-        pass
+        self.load()
+        LDI = 0b10000010
+        PRN = 0b01000111
+        HLT = 0b00000001
+        while True:
+            command = self.ram[self.pc]
+            if command == LDI:
+                self.ldi()
+            if command == PRN:
+                PRN
+            if command == HLT:
+                False
+

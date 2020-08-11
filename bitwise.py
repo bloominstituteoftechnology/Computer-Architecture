@@ -51,3 +51,33 @@ b=True
  ~0b10101010
  ------------
   0b01010101
+
+
+
+  0b10101010
+& 0b00000011
+--------------
+  0b00000010
+
+1. Move them to the side
+  -Rightshift the first nibble
+2. Mask out the other Bits
+  -Mask out the other two
+
+0b10101010 >> 4
+
+ 0b00001010
+&0b00000011
+------------
+ 0b00000010
+
+
+#Apply all this to extract instruction length aka num operands
+ ADD = 0b10100000
+ num_operands = ADD>>6
+ is_alu_operation = (ADD>>5)&0b1
+
+ pc+=num_operands + 1
+
+ 0b10100000>>5
+ 0b101 & 0b001--> 0b1
