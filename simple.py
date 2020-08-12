@@ -35,11 +35,21 @@ memory = [Print_yaya, Print_yaya,print_num,99, SAVE, 42, 2,ADD, 42, SAVE,42, 3,A
 
 running = True
 counter = 0
+import sys
 
 #REGISTERS ( Use them as variables)
 #R0 - R7
 
 registers = [None] *  8
+memory = [None] * 8 
+
+
+def load_program(): 
+    address  = 0 
+    
+
+
+
 while running:                          #This is like an interpreter ---> A program that that prints programs.
                                         #The purpose of this program is to replicate a computers processes  in an abstracted way
                                         #Registers act as easy to access =points of memor
