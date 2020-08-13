@@ -7,7 +7,19 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        # We need 256 bytes of Ram, 8 registers, a counter, and continuous variable
+        self.ram = [None] * 256
+        self.registers = [None] * 8
+        self.running = True
+        self.pc = 0
+
+    def ram_read(self, address):
+        # Accepts the address and returns the value from Ram
+        return(self.ram[address])    
+
+    def ram_write(self, value, address):
+        # Accepts a value and address and assigns to Ram
+        self.ram[address] = value
 
     def load(self):
         """Load a program into memory."""
@@ -35,7 +47,7 @@ class CPU:
         """ALU operations."""
 
         if op == "ADD":
-            self.reg[reg_a] += self.reg[reg_b]
+            self.registers[reg_a] += self.registers[reg_b]
         #elif op == "SUB": etc
         else:
             raise Exception("Unsupported ALU operation")
@@ -56,10 +68,30 @@ class CPU:
         ), end='')
 
         for i in range(8):
-            print(" %02X" % self.reg[i], end='')
+            print(" %02X" % self.registers[i], end='')
 
         print()
 
     def run(self):
         """Run the CPU."""
-        pass
+        LDI = 0b10000010
+        PRN = 0b01000111
+        HLT = 0b00000001
+
+        while self.running:
+            # The HLT instruction
+            if self.ram[self.pc] == HLT:
+                self.running = False
+            
+            # The LDI instruction
+            if self.ram[self.pc] == LDI:
+                num_to_load = self.ram[self.pc + 2]
+                reg_index = self.ram[self.pc + 1]
+                self.registers[reg_index] = num_to_load
+                self.pc += 3
+            
+            # The PRN instruction
+            if self.ram[self.pc] == PRN:
+                reg_to_print = self.ram[self.pc + 1]
+                print(self.registers[reg_to_print])
+                self.pc += 2
