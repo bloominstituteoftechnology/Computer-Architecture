@@ -1,6 +1,11 @@
 """CPU functionality."""
 
 import sys
+program_filename = sys.argv[0]
+
+HLT = 0b00000001 
+LDI = 0b10000010
+PRN = 0b01000111
 
 class CPU:
     """Main CPU class."""
@@ -9,22 +14,39 @@ class CPU:
         """Construct a new CPU."""
         self.reg = [0] * 8
         self.ram = [0] * 256
-        self.PC = 0
-        self.IR = 0
-        self.MAR = 0
-        self.MDR = 0
-        self.FL = 0
+        self.running = True
+        self.address = 0
+        self.pc = 0
+        
 
-    def ram_read():
-        pass
+    def ram_read(self, MAR):
+        '''
+        accept address to read
+        returns value stored
+        '''
+        return self.ram[MAR]
 
-    def ram_write():
-        pass
+    def ram_write(self, MDR, MAR):
+        '''
+        accepts value to write
+        and address to write it to
+        '''
+        self.ram[MAR] = MDR
 
     def load(self):
         """Load a program into memory."""
+        with open(program_filename) as f:
+            for line in f:
+                line = line.split('#')
+                line = line[0].strip()
 
-        address = 0
+                if line == '':
+                    continue
+
+            self.ram[self.address] = int(line, 2) # converts to base 2
+
+            self.address += 1
+        
 
         # For now, we've just hardcoded a program:
 
@@ -74,4 +96,29 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        
+        while self.running:
+            IR = self.ram_read(self.pc) # command, where pc is
+            operand_a = self.ram_read(self.pc + 1) #pc + 1
+            operand_b = self.ram_read(self.pc + 2) #pc + 
+            
+            #update program counter
+            #look at the first two bits of the instruction
+            self.pc += 1 + (IR >> 6)
+            #get command
+
+
+            #conditional for HLT, LDI, PRN
+            if IR == HLT:
+                self.running = False
+                # could also use sys.exit()
+            elif IR == LDI: #set register to a value
+                #what is the register number? - operand_a What is the value? - operand_b How do I set register? - change self.reg
+                self.reg[operand_a] = [operand_b]
+
+            elif IR == PRN: #takes register number, prints out it's content
+                #where to get register number? operand_a How to get contents? from inside self.reg
+                print(self.reg[operand_a])
+
+
+                
