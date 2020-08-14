@@ -30,26 +30,17 @@ class CPU:
         self.ram[address] = value
  
        
-    def load(self):
+    def load(self,program):
         """Load a program into memory."""
 
         address = 0
 
-        # For now, we've just hardcoded a program:
-
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
-
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+        with open(program) as f:   
+            for instruction in f:
+                instruction = instruction.split(' ')[0]
+                instruction = instruction.split('#')[0].strip()
+                self.ram[address] = int(instruction, 2)
+                address += 1
 
 
     def alu(self, op, reg_a, reg_b):
@@ -97,7 +88,8 @@ class CPU:
         HLT = 0b00000001 # instruction handler
         LDI = 0b10000010 # instruction
         PRN = 0b01000111 # instruction
-
+        MUL = 0b10100010 # multiply instruction
+        
         if self.ram[self.PC] == LDI:
             self.reg[self.ram[self.PC + 1]] = self.ram[self.PC + 2]
             self.PC += 3
@@ -108,5 +100,12 @@ class CPU:
 
         elif self.ram[self.PC] == HLT:
             self.PC += 1
+
+        elif self.ram[self.PC] == MUL:      
+            self.alu(MUL, self.ram[self.PC + 1], self.ram[self.PC + 2])
+            self.PC += 3
+        else:
+                print('unknown instruction')
+                  
             
         
