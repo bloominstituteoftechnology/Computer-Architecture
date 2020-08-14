@@ -74,7 +74,7 @@ class CPU:
         value = self.ram[self.pc+2]
         self.reg[address] = value
         self.pc+=3
-        print(self.reg[address])
+        
 
     def prn(self):
         address = self.ram[self.pc+1]
