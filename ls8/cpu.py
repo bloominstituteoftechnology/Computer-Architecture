@@ -14,7 +14,7 @@ class CPU:
         # general-purpose registers
         self.IM = self.reg[5] # interrupt mask
         self.IS = self.reg[6] # interrupt status 
-        self.SP = self.reg[7] # stack pointer 
+        self.SP = 0xF4 # self.reg[7] # stack pointer 
         # special-purpose registers 
         # internal registers
         self.PC = 0 # Program Counter
@@ -62,6 +62,16 @@ class CPU:
         else:
             raise Exception("Unsupported ALU operation")
 
+    def push(self, reg_a):
+        self.SP -= 1
+        self.ram[self.SP] = self.reg[reg_a]
+        self.PC += 2
+
+    def pop(self, reg_a):
+        self.reg[reg_a] = self.ram[self.SP]
+        self.SP += 1
+        self.PC += 2          
+
     def trace(self):
         """
         Handy function to print out the CPU state. You might want to call this
@@ -89,6 +99,8 @@ class CPU:
         LDI = 0b10000010 # instruction
         PRN = 0b01000111 # instruction
         MUL = 0b10100010 # multiply instruction
+        PUSH = 0b01000101 # stack
+        POP = 0b01000110  # stack
         
         if self.ram[self.PC] == LDI:
             self.reg[self.ram[self.PC + 1]] = self.ram[self.PC + 2]
@@ -104,8 +116,15 @@ class CPU:
         elif self.ram[self.PC] == MUL:      
             self.alu(MUL, self.ram[self.PC + 1], self.ram[self.PC + 2])
             self.PC += 3
+
+        elif self.ram[self.PC] == PUSH: 
+            self.push(self.ram[self.PC + 1])
+
+        elif self.ram[self.PC] == POP:
+            self.pop(self.ram[self.PC + 1])     
+
         else:
-                print('unknown instruction')
-                  
-            
-        
+            print('unknown instruction')
+
+
+  
