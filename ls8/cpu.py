@@ -70,7 +70,17 @@ class CPU:
     def pop(self, reg_a):
         self.reg[reg_a] = self.ram[self.SP]
         self.SP += 1
-        self.PC += 2          
+        self.PC += 2       
+
+    def call(self, reg_a):
+        self.SP -= 1
+        self.ram[self.reg[self.SP]] = self.PC + 2
+        self.PC = self.reg[reg_a]
+
+    def ret(self):    
+        self.PC = self.ram[self.reg[self.SP]]
+        self.SP += 1     
+
 
     def trace(self):
         """
@@ -101,6 +111,9 @@ class CPU:
         MUL = 0b10100010 # multiply instruction
         PUSH = 0b01000101 # stack
         POP = 0b01000110  # stack
+        CALL = 0b01010000 # call 
+        RET = 0b00010001 # return
+
         
         if self.ram[self.PC] == LDI:
             self.reg[self.ram[self.PC + 1]] = self.ram[self.PC + 2]
@@ -121,7 +134,13 @@ class CPU:
             self.push(self.ram[self.PC + 1])
 
         elif self.ram[self.PC] == POP:
-            self.pop(self.ram[self.PC + 1])     
+            self.pop(self.ram[self.PC + 1])  
+
+        elif self.ram[self.PC] == CALL: 
+            self.call(self.ram_read(self.PC + 1))
+
+        elif self.ram[self.PC] == RET:    
+            self.ret()       
 
         else:
             print('unknown instruction')
