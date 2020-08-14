@@ -23,24 +23,48 @@ class CPU:
 
     def load(self):
         """Load a program into memory."""
+        # We're going to un-hardcode the machine code
+        if len(sys.argv) < 2:
+            print("Insufficient arguments")
+            print("Usage: filename file_to_open")
+            sys.exit()
 
         address = 0
+        
+        try:
+            with open(sys.argv[1]) as file:
+                for line in file:
+                    comment_split = line.split('#')
+                    potential_num = comment_split[0]
 
-        # For now, we've just hardcoded a program:
+                    if potential_num == '':
+                        continue
+                    
+                    if potential_num[0] == '1' or potential_num[0] == '0':
+                        num = potential_num[:8]
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+                        self.ram[address] = int(num, 2)
+                        address += 1
+        
+        except FileNotFoundError:
+            print(f'{sys.argv[0]}: {sys.argv[1]} not found')
 
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+
+        # # For now, we've just hardcoded a program:
+
+        # program = [
+        #     # From print8.ls8
+        #     0b10000010, # LDI R0,8
+        #     0b00000000,
+        #     0b00001000,
+        #     0b01000111, # PRN R0
+        #     0b00000000,
+        #     0b00000001, # HLT
+        # ]
+
+        # for instruction in program:
+        #     self.ram[address] = instruction
+        #     address += 1
 
 
     def alu(self, op, reg_a, reg_b):
@@ -77,6 +101,7 @@ class CPU:
         LDI = 0b10000010
         PRN = 0b01000111
         HLT = 0b00000001
+        MUL = 0b10100010
 
         while self.running:
             # The HLT instruction
@@ -95,3 +120,13 @@ class CPU:
                 reg_to_print = self.ram[self.pc + 1]
                 print(self.registers[reg_to_print])
                 self.pc += 2
+            
+            # THe MUL instruction
+            if self.ram[self.pc] == MUL:
+                first_reg = self.ram[self.pc + 1]
+                sec_reg = self.ram[self.pc + 2]
+                first_factor = self.registers[first_reg]
+                sec_factor = self.registers[sec_reg]
+                product = first_factor * sec_factor
+                print(product)
+                self.pc += 3
