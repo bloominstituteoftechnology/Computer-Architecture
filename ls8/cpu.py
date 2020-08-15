@@ -23,6 +23,7 @@ class CPU:
         self.MAR = 0 # Memory Address Register
         self.MDR = 0 # Memory Data Register
         self.FL = 0 # Flag
+        self.halt = False
     
     def ram_read(self, address):
         return self.ram[address] 
@@ -45,6 +46,8 @@ class CPU:
                 self.ram[address] = int(instruction, 2)
 
                 address += 1 
+
+        print(self.ram)        
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -94,6 +97,7 @@ class CPU:
 
     def hlt(self):
         self.halt = True 
+        sys.exit(0)
 
     def jmp(self, reg_a):
         self.PC = self.reg[reg_a]
@@ -145,49 +149,50 @@ class CPU:
         JEQ = 0b01010101
         JNE = 0b01010110
         
-        
-        if self.ram[self.PC] == LDI:
-            self.reg[self.ram[self.PC + 1]] = self.ram[self.PC + 2]
-            self.PC += 3
+        self.halt = False
+        while self.halt is False:
+            if self.ram[self.PC] == LDI:
+                self.reg[self.ram[self.PC + 1]] = self.ram[self.PC + 2]
+                self.PC += 3
 
-        elif self.ram[self.PC] == PRN:
-            print(self.reg[self.ram[self.PC + 1]])
-            self.PC += 2    
+            elif self.ram[self.PC] == PRN:
+                print(self.reg[self.ram[self.PC + 1]])
+                self.PC += 2    
 
-        elif self.ram[self.PC] == MUL:      
-            self.alu(MUL, self.ram[self.PC + 1], self.ram[self.PC + 2])
-            self.PC += 3
+            elif self.ram[self.PC] == MUL:      
+                self.alu(MUL, self.ram[self.PC + 1], self.ram[self.PC + 2])
+                self.PC += 3
 
-        elif self.ram[self.PC] == PUSH: 
-            self.push(self.ram[self.PC + 1])
+            elif self.ram[self.PC] == PUSH: 
+                self.push(self.ram[self.PC + 1])
 
-        elif self.ram[self.PC] == POP:
-            self.pop(self.ram[self.PC + 1])  
+            elif self.ram[self.PC] == POP:
+                self.pop(self.ram[self.PC + 1])  
 
-        elif self.ram[self.PC] == CALL: 
-            self.call(self.ram_read(self.PC + 1))
+            elif self.ram[self.PC] == CALL: 
+                self.call(self.ram_read(self.PC + 1))
 
-        elif self.ram[self.PC] == RET:    
-            self.ret() 
+            elif self.ram[self.PC] == RET:    
+                self.ret() 
 
-        elif self.ram[self.PC] == CMP:      
-            self.alu(CMP, self.ram[self.PC + 1], self.ram[self.PC + 2])
-            self.PC += 3       
+            elif self.ram[self.PC] == CMP:      
+                self.alu(CMP, self.ram[self.PC + 1], self.ram[self.PC + 2])
+                self.PC += 3       
 
-        elif self.ram[self.PC] == JMP:   
-            self.jmp(self.ram[self.PC + 1]) 
+            elif self.ram[self.PC] == JMP:   
+                self.jmp(self.ram[self.PC + 1]) 
 
-        elif self.ram[self.PC] == JEQ:   
-            self.jeq(self.ram[self.PC + 1])    
+            elif self.ram[self.PC] == JEQ:   
+                self.jeq(self.ram[self.PC + 1])    
 
-        elif self.ram[self.PC] == JNE:   
-            self.jne(self.ram[self.PC + 1])           
+            elif self.ram[self.PC] == JNE:   
+                self.jne(self.ram[self.PC + 1])           
 
-        elif self.ram[self.PC] == HLT:
-            self.hlt()         
+            elif self.ram[self.PC] == HLT:
+                self.hlt()         
 
-        else:
-            print('unknown instruction')
+            else:
+                print('unknown instruction')
 
 
   
