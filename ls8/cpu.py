@@ -2,6 +2,7 @@
 
 import sys
 
+
 class CPU:
     """Main CPU class."""
 
@@ -21,7 +22,7 @@ class CPU:
         self.IR = 0 # Instruction Register
         self.MAR = 0 # Memory Address Register
         self.MDR = 0 # Memory Data Register
-        self.FL = 0 # Flags
+        self.FL = 0 # Flag
     
     def ram_read(self, address):
         return self.ram[address] 
@@ -29,7 +30,7 @@ class CPU:
     def ram_write(self, address, value):
         self.ram[address] = value
  
-       
+    
     def load(self,program):
         """Load a program into memory."""
 
@@ -37,11 +38,13 @@ class CPU:
 
         with open(program) as f:   
             for instruction in f:
-                instruction = instruction.split(' ')[0]
                 instruction = instruction.split('#')[0].strip()
-                self.ram[address] = int(instruction, 2)
-                address += 1
+                if instruction == '':
+                    continue
 
+                self.ram[address] = int(instruction, 2)
+
+                address += 1 
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -79,8 +82,33 @@ class CPU:
 
     def ret(self):    
         self.PC = self.ram[self.reg[self.SP]]
-        self.SP += 1     
+        self.SP += 1    
 
+    def ldi(self,reg_a,reg_b):
+        self.reg[reg_a] = self.ram[reg_b]
+        self.PC += 3
+
+    def prn(self,reg_a,reg_b):
+        print(self.reg[self.ram[reg_a]])
+        self.PC += 2    
+
+    def hlt(self):
+        self.halt = True 
+
+    def jmp(self, reg_a):
+        self.PC = self.reg[reg_a]
+
+    def jeq(self, reg_a):
+        if self.FL == 1:
+            self.jmp(reg_a)
+        else: 
+            self.PC += 2
+
+    def jne(self, reg_a):
+        if self.FL == 0:
+            self.jmp(reg_a)
+        else:
+            self.PC += 2
 
     def trace(self):
         """
@@ -104,7 +132,6 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-
         HLT = 0b00000001 # instruction handler
         LDI = 0b10000010 # instruction
         PRN = 0b01000111 # instruction
@@ -113,7 +140,11 @@ class CPU:
         POP = 0b01000110  # stack
         CALL = 0b01010000 # call 
         RET = 0b00010001 # return
-
+        CMP = 0b10100111
+        JMP = 0b01010100
+        JEQ = 0b01010101
+        JNE = 0b01010110
+        
         
         if self.ram[self.PC] == LDI:
             self.reg[self.ram[self.PC + 1]] = self.ram[self.PC + 2]
@@ -122,9 +153,6 @@ class CPU:
         elif self.ram[self.PC] == PRN:
             print(self.reg[self.ram[self.PC + 1]])
             self.PC += 2    
-
-        elif self.ram[self.PC] == HLT:
-            self.PC += 1
 
         elif self.ram[self.PC] == MUL:      
             self.alu(MUL, self.ram[self.PC + 1], self.ram[self.PC + 2])
@@ -140,7 +168,23 @@ class CPU:
             self.call(self.ram_read(self.PC + 1))
 
         elif self.ram[self.PC] == RET:    
-            self.ret()       
+            self.ret() 
+
+        elif self.ram[self.PC] == CMP:      
+            self.alu(CMP, self.ram[self.PC + 1], self.ram[self.PC + 2])
+            self.PC += 3       
+
+        elif self.ram[self.PC] == JMP:   
+            self.jmp(self.ram[self.PC + 1]) 
+
+        elif self.ram[self.PC] == JEQ:   
+            self.jeq(self.ram[self.PC + 1])    
+
+        elif self.ram[self.PC] == JNE:   
+            self.jne(self.ram[self.PC + 1])           
+
+        elif self.ram[self.PC] == HLT:
+            self.hlt()         
 
         else:
             print('unknown instruction')
