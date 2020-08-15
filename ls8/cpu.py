@@ -13,6 +13,9 @@ class CPU:
         self.registers[7] = 0xF0 # 240. I need to ask if it's better to use a consistent number base if possible
         self.running = True
         self.pc = 0
+        # Adding flags register 
+        self.fl = [False] * 8
+
 
     def ram_read(self, address):
         # Accepts the address and returns the value from Ram
@@ -74,6 +77,26 @@ class CPU:
         if op == "ADD":
             self.registers[reg_a] += self.registers[reg_b]
         #elif op == "SUB": etc
+
+        elif op == "CMP":
+            equal = self.fl[7]
+            greater_than = self.fl[6]
+            less_than = self.fl[5]
+            if self.registers[reg_a] == self.registers[reg_b]:
+                equal = True
+                greater_than = False
+                less_than = False
+            elif self.registers[reg_a] > self.registers[reg_b]:
+                equal = False
+                greater_than = True
+                less_than = False
+            else:
+                equal = False
+                greater_than = False
+                less_than = True
+
+            self.fl[5:] = [less_than, greater_than, equal]
+            
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -108,6 +131,10 @@ class CPU:
         CALL = 0b01010000
         RET = 0b00010001
         ADD =  0b10100000
+        CMP = 0b10100111
+        JMP = 0b01010100
+        JEQ = 0b01010101
+        JNE = 0b01010110
 
         while self.running:
             # The HLT instruction
@@ -143,6 +170,54 @@ class CPU:
                 sec_reg = self.ram[self.pc + 2]
                 self.alu('ADD', first_reg, sec_reg)
                 self.pc += 3
+            
+            # The CMP instruction
+            if self.ram[self.pc] == CMP:
+                # CMP is handled by ALU, so we need the arguments for alu
+                # IE the registers that carry the values that will be used
+                first_reg = self.ram[self.pc + 1]
+                sec_reg = self.ram[self.pc + 2]
+                # Next we call the alu
+                self.alu('CMP', first_reg, sec_reg)
+                # Finally we increment the pc by 3 to the next instruction
+                self.pc += 3
+            
+            # The JMP instruction
+            if self.ram[self.pc] == JMP:
+                # First we need the register that holds the to-jump address
+                reg_to_jump = self.ram[self.pc + 1]
+                # and then we need the address
+                addr_to_jump = self.registers[reg_to_jump]
+                # Finally we set the PC to that address
+                self.pc = addr_to_jump
+            
+            # The JEQ instruction
+            if self.ram[self.pc] == JEQ:
+                # JEQ's argument is a register that contains an address that may be jumped to
+                # First we need that register and the address that it holds
+                reg_to_jump = self.ram[self.pc + 1]
+                addr_to_jump = self.registers[reg_to_jump]
+                # Next we check the equality flag
+                if self.fl[7] is True:
+                    # If the flag is set, we jump
+                    self.pc = addr_to_jump
+                else:
+                    # If not, we move to the next instruction
+                    self.pc += 2
+            
+            # The JNE instruction
+            if self.ram[self.pc] == JNE:
+                # JNE works much like JEQ
+                # First we need the register and the address that it holds
+                reg_to_jump = self.ram[self.pc + 1]
+                addr_to_jump = self.registers[reg_to_jump]
+                # Next we check the equality flag
+                if self.fl[7] is False:
+                    # If the flag is clear, we jump
+                    self.pc = addr_to_jump
+                else:
+                    # If not, we move to the next instruction
+                    self.pc += 2
 
             # The PUSH instruction
             if self.ram[self.pc] == PUSH:
