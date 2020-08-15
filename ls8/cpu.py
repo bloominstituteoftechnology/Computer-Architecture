@@ -7,9 +7,10 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        # We need 256 bytes of Ram, 8 registers, a counter, and continuous variable
+        # We need 256 bytes of Ram, 8 registers, a counter, to assign memory for the stack, and continuous variable
         self.ram = [None] * 256
         self.registers = [None] * 8
+        self.registers[7] = 0xF0 # 240. I need to ask if it's better to use a consistent number base if possible
         self.running = True
         self.pc = 0
 
@@ -102,6 +103,8 @@ class CPU:
         PRN = 0b01000111
         HLT = 0b00000001
         MUL = 0b10100010
+        PUSH = 0b01000101
+        POP = 0b01000110
 
         while self.running:
             # The HLT instruction
@@ -130,3 +133,28 @@ class CPU:
                 product = first_factor * sec_factor
                 print(product)
                 self.pc += 3
+            
+            # The PUSH instruction
+            if self.ram[self.pc] == PUSH:
+                # When PUSHing, we must first we decrement the stack pointer
+                self.registers[7] -= 1
+                # Next we find the register for PUSHing and that register's value
+                reg_to_push = self.ram[self.pc + 1]
+                num_to_push = self.registers[reg_to_push]
+                # Next we copy the number to memory (ram)
+                SP = self.registers[7]
+                self.ram[SP] = num_to_push
+                self.pc += 2
+            
+            # The POP instruction
+            if self.ram[self.pc] == POP:
+                # When POPping, we don't decrement the Stack Pointer...
+                SP = self.registers[7]
+                # ...because we want the value at the most recent position of the Stack Pointer
+                num_to_pop = self.ram[SP]
+                # Next we find the register for POPping and copy the number into that register
+                reg_to_pop = self.ram[self.pc + 1]
+                self.registers[reg_to_pop] = num_to_pop
+                # After we POP we increment the Stack Pointer to the new 'most recent' position
+                self.registers[7] += 1 
+                self.pc += 2
