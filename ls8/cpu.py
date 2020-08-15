@@ -105,6 +105,9 @@ class CPU:
         MUL = 0b10100010
         PUSH = 0b01000101
         POP = 0b01000110
+        CALL = 0b01010000
+        RET = 0b00010001
+        ADD =  0b10100000
 
         while self.running:
             # The HLT instruction
@@ -134,6 +137,13 @@ class CPU:
                 print(product)
                 self.pc += 3
             
+            # The ADD instruction
+            if self.ram[self.pc] == ADD:
+                first_reg = self.ram[self.pc + 1]
+                sec_reg = self.ram[self.pc + 2]
+                self.alu('ADD', first_reg, sec_reg)
+                self.pc += 3
+
             # The PUSH instruction
             if self.ram[self.pc] == PUSH:
                 # When PUSHing, we must first we decrement the stack pointer
@@ -158,3 +168,29 @@ class CPU:
                 # After we POP we increment the Stack Pointer to the new 'most recent' position
                 self.registers[7] += 1 
                 self.pc += 2
+            
+            # The CALL instruction
+            if self.ram[self.pc] == CALL:
+                # We will be PUSHing so we must decrement the Stack Pointer
+                self.registers[7] -= 1
+                SP = self.registers[7]
+                # Then we want the address of the next instruction, for when the subroutine has completed
+                addr_next_instruction = self.pc + 2
+                # And we put that address on the stack
+                self.ram[SP] = addr_next_instruction
+                # Next we find register we'll be CALLing from and the address that is in that register
+                reg_to_call = self.ram[self.pc + 1]
+                addr_to_goto = self.registers[reg_to_call]
+                # And we set the PC to that address
+                self.pc = addr_to_goto
+
+            # The RET instruction
+            if self.ram[self.pc] == RET:
+                # We will be POPping so we don't decrement the Stack Pointer
+                SP = self.registers[7]
+                # We want the address at the top of the stack...
+                addr_to_pop = self.ram[SP]
+                # ...So that we can set PC to that address
+                self.pc = addr_to_pop
+                # After we pop we increment the Stack Pointer
+                self.registers[7] += 1
