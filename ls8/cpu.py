@@ -7,7 +7,19 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.reg = [0] * 8 # Variablesfor cpu to use with instructions
+        self.ram = [None] * 256 # memory slots to keep track of variables
+        self.pc = 0 # pointer to track operations in RAM
+        self.running = True
+
+    def ram_read(self, MAR): # Memory Address Register
+        # get the value at ram address
+        return self.ram[MAR]
+    
+    def ram_write(self, MAR, MDR): # Memory Data Register
+        # write over a specified address in ram
+        self.ram[MAR] = MDR
+        print(f"Address: {MAR} = {MDR}")
 
     def load(self):
         """Load a program into memory."""
@@ -36,7 +48,8 @@ class CPU:
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
-        #elif op == "SUB": etc
+        elif op == "SUB":
+            self.reg[reg_a] += -self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -62,4 +75,33 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        """
+        10000010 # LDI R0,8
+        00000000
+        00001000
+        01000111 # PRN R0
+        00000000
+        00000001 # HLT
+        """
+        # should be similar to lecture
+        LDI  = 0b10000010 # These are instructions we need to translate
+        PRN = 0b01000111
+        HLT = 0b00000001
+
+
+        while self.running:
+            IR = self.ram[self.pc] # Instruction Register
+            operand_a = self.ram_read(self.pc + 1)
+            operand_b = self.ram_read(self.pc + 2)
+
+            if IR == HLT:
+                self.running = False
+
+            elif IR == LDI: # set the value of a register to an integer
+               self.ram_write(self.pc + 1, operand_b)
+               self.pc += 3
+
+            elif IR == PRN: # psuedo instr. Print value stored at register
+                print(operand_a)
+                self.pc += 2
+
