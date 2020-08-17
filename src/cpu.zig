@@ -1,19 +1,31 @@
 const std = @import("std");
 
-const PROGRAM = [_]u8{
-    // From print8.ls8
-    0b10000010, // LDI R0,8
-    0b00000000,
-    0b00001000,
-    0b01000111, // PRN R0
-    0b00000000,
-    0b00000001, // HLT
-};
+const MAX_FILE_SIZE = 1024 * 1024 * 1024;
 
 pub fn main() !void {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer std.debug.assert(!gpa.deinit());
+    const allocator = &gpa.allocator;
+
+    if (std.os.argv.len != 2) {
+        std.log.err(.LS8ToBin, "Incorrect usage. Correct usage:\n\n\t{} ./<filename>.ls8.bin", .{std.os.argv[0]});
+        std.os.exit(1);
+    }
+
+    // Get the input filepath
+    const filename_len = std.mem.len(std.os.argv[1]);
+    const filename = std.os.argv[1][0..filename_len];
+
+    // Get the contents of the input file
+    const cwd = std.fs.cwd();
+    const program = try cwd.readFileAlloc(allocator, filename, MAX_FILE_SIZE);
+    defer allocator.free(program);
+
+    // Initialize CPU
     var cpu = Cpu.init();
 
-    std.mem.copy(u8, &cpu.memory, &PROGRAM);
+    // Load program into memory
+    std.mem.copy(u8, &cpu.memory, program);
 
     try cpu.run();
 }
