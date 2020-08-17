@@ -1,0 +1,16 @@
+SAVE
+*number to SAVE - or the number to jump TO
+*register to save
+
+CALL
+* TAKES REGISTER NUMBER - HOLDS ADDRESS TO JUMP TO
+
+EXAMPLE:
+PRINT_NUMBER
+99
+
+HALT
+        ___
+PRINT_JENN |
+PRINT_JENN | -----This whole thing is the subroutine  
+RETURN  ___|
