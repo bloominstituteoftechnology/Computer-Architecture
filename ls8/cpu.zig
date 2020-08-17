@@ -77,12 +77,22 @@ pub const Cpu = struct {
     }
 
     pub fn run(this: *@This()) !void {
+        const stdout = std.io.getStdOut().writer();
         while (true) {
             const instruction = try Instruction.decode(this.memory[this.program_counter]);
-            std.log.debug(.Cpu, "Instruction: {}", .{instruction});
             switch (instruction) {
                 .NOP => {},
                 .HLT => break,
+                .LDI => {
+                    const register = this.memory[this.program_counter + 1];
+                    const immediate = this.memory[this.program_counter + 2];
+                    this.registers[register] = immediate;
+                },
+                .PRN => {
+                    const register = this.memory[this.program_counter + 1];
+                    const value = this.registers[register];
+                    try stdout.print("{}", .{value});
+                },
                 else => {},
             }
             if (!instruction.sets_program_counter()) {
