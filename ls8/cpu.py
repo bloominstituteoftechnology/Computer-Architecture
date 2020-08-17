@@ -7,10 +7,12 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.ram = [0] * 256     # ram = [0,0,0,0,0,0,0,0]
+        self.reg = [0] * 8       # register 
+        self.pc = 0              # Program Counter - the index into memory of the currently-executing instruction
 
     def load(self):
-        """Load a program into memory."""
+        """Load a program into ram."""
 
         address = 0
 
@@ -30,7 +32,16 @@ class CPU:
             self.ram[address] = instruction
             address += 1
 
-
+    # ask for tomorrow, not needed for day 1
+    
+    def ram_read(self, address):
+        return self.ram[address]
+        
+    
+    def ram_write(self, value, address):
+        self.ram[adress] = value
+        return value
+    
     def alu(self, op, reg_a, reg_b):
         """ALU / Math operations."""
 
@@ -62,4 +73,45 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        
+        # Codes
+        HLT = 0b00000001
+        LDI = 0b10000010
+        PRN = 0b01000111
+        
+        running = True
+        
+        while running:
+            ir = self.ram[self.pc] # Instruction Register
+            
+            if ir == HLT:
+                running = False
+                self.pc += 1
+            
+            elif ir == LDI:
+                reg_num = self.ram[self.pc + 1]
+                value = self.ram[self.pc + 2]
+                self.reg[reg_num] = value
+                # increment 
+                self.pc += 3
+            
+            elif ir == PRN:
+                reg_num = self.ram[self.pc + 1]
+                print(f"PRN- Numeric value stored in given register -> {self.reg[reg_num]}")
+                self.pc += 2
+            
+            
+            
+                
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+        
