@@ -1,30 +1,37 @@
 const std = @import("std");
 const cpu = @import("./cpu.zig");
 
-const TEST_LS8 =
-    \\ 10000010 # LDI R0,8
-    \\ 00000000
-    \\ 00001000
-    \\ 10000010 # LDI R1,9
-    \\ 00000001
-    \\ 00001001
-    \\ 10100010 # MUL R0,R1
-    \\ 00000000
-    \\ 00000001
-    \\ 01000111 # PRN R0
-    \\ 00000000
-    \\ 00000001 # HLT
-;
+const MAX_FILE_SIZE = 1024 * 1024 * 1024;
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer std.debug.assert(!gpa.deinit());
     const allocator = &gpa.allocator;
 
-    const bytes = try ls8_to_bin(allocator, TEST_LS8);
+    if (std.os.argv.len != 2) {
+        std.log.err(.LS8ToBin, "Incorrect usage. Correct usage:\n\n\t{} ./<filename>.ls8", .{std.os.argv[0]});
+        std.os.exit(1);
+    }
+
+    // Get the input filepath
+    const filename_len = std.mem.len(std.os.argv[1]);
+    const filename = std.os.argv[1][0..filename_len];
+
+    // Append `.bin` to the filepath to get the output file path
+    const output_filepath = try std.fmt.allocPrint(allocator, "{}.bin", .{filename});
+    defer allocator.free(output_filepath);
+
+    // Get the contents of the input file
+    const cwd = std.fs.cwd();
+    const contents = try cwd.readFileAlloc(allocator, filename, MAX_FILE_SIZE);
+    defer allocator.free(contents);
+
+    // Convert the LS8 text into actually binary LS8
+    const bytes = try ls8_to_bin(allocator, contents);
     defer allocator.free(bytes);
 
-    std.log.debug(.LS8ToBin, "{x}", .{bytes});
+    // Write the binary file
+    try cwd.writeFile(output_filepath, bytes);
 }
 
 pub fn ls8_to_bin(allocator: *std.mem.Allocator, text: []const u8) ![]u8 {
