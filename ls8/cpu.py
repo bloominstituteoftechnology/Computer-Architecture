@@ -47,7 +47,7 @@ class CPU:
 
                 address += 1 
 
-        print(self.ram)        
+        # print(self.ram)        
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -160,7 +160,7 @@ class CPU:
                 self.PC += 2    
 
             elif self.ram[self.PC] == MUL:      
-                self.alu(MUL, self.ram[self.PC + 1], self.ram[self.PC + 2])
+                self.alu('MUL', self.ram[self.PC + 1], self.ram[self.PC + 2])
                 self.PC += 3
 
             elif self.ram[self.PC] == PUSH: 
@@ -176,7 +176,7 @@ class CPU:
                 self.ret() 
 
             elif self.ram[self.PC] == CMP:      
-                self.alu(CMP, self.ram[self.PC + 1], self.ram[self.PC + 2])
+                self.alu('CMP', self.ram[self.PC + 1], self.ram[self.PC + 2])
                 self.PC += 3       
 
             elif self.ram[self.PC] == JMP:   
@@ -193,6 +193,8 @@ class CPU:
 
             else:
                 print('unknown instruction')
+                
+                
 
 
   
