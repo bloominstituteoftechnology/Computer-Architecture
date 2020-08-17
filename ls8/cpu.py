@@ -75,9 +75,9 @@ class CPU:
         """Run the CPU."""
         
         # Codes
-        HLT = 0b00000001
-        LDI = 0b10000010
-        PRN = 0b01000111
+        HLT = 0b00000001 # Halt/ Stop
+        LDI = 0b10000010 # Assign 
+        PRN = 0b01000111 # Print numeric value stored in the given register.
         
         running = True
         
