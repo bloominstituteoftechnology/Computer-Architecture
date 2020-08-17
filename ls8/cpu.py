@@ -11,6 +11,8 @@ class CPU:
         self.ram = [0] * 256
         self.reg = [0] * 8
         self.pc = 0
+        self.mar = 0
+        self.mdr = 0
 
     def load(self):
         """Load a program into memory."""
@@ -70,32 +72,34 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
+
+        # Microcode
         def HLT():
             return False
 
         def LDI():
-            self.pc += 1
-            reg = self.ram[self.pc]
-            self.pc += 1
-            val = self.ram[self.pc]
-            self.reg[reg] = val
-            self.pc += 1
-            return True
+            self.mar = self.ram[self.pc + 1]
+            self.mdr = self.ram[self.pc + 2]
+            self.reg[self.mar] = self.mdr
+            return 3
 
         def PRN():
-            self.pc += 1
-            reg = self.ram[self.pc]
-            print(self.reg[reg])
-            self.pc += 1
-            return True
+            self.mar = self.ram[self.pc + 1]
+            self.mdr = self.reg[self.mar]
+            print(self.mdr)
+            return 2
 
+        # Instruction mapping
         instructions = {
             0x01: HLT,
             0x82: LDI,
             0x47: PRN,
         }
-
+        
+        # Execution loop
         while True:
             ir = self.ram[self.pc]
-            if not instructions[ir]():
+            step = instructions[ir]()
+            if not step:
                 break
+            self.pc += step
