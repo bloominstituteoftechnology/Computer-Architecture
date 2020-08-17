@@ -9,7 +9,7 @@ class CPU:
         """Construct a new CPU."""
         self.reg = [0] * 8 # Variablesfor cpu to use with instructions
         self.ram = [None] * 256 # memory slots to keep track of variables
-        self.pc = 0 # pointer to track operations in RAM
+        self.pc = 0 # pointer to track operations in register
         self.running = True
 
     def ram_read(self, MAR): # Memory Address Register
@@ -50,6 +50,8 @@ class CPU:
             self.reg[reg_a] += self.reg[reg_b]
         elif op == "SUB":
             self.reg[reg_a] += -self.reg[reg_b]
+        elif op == "MUL":
+            self.reg[reg_a] *= self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -98,10 +100,12 @@ class CPU:
                 self.running = False
 
             elif IR == LDI: # set the value of a register to an integer
-               self.ram_write(self.pc + 1, operand_b)
+               self.reg[self.pc] = operand_b
                self.pc += 3
 
             elif IR == PRN: # psuedo instr. Print value stored at register
                 print(self.reg[operand_a])
                 self.pc += 2
+        # print(self.reg)
+        self.trace()
 
