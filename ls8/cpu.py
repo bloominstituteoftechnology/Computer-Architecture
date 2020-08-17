@@ -8,7 +8,7 @@ class CPU:
         self.pc = 0 
 
         # Internal registers (values between 0-255)
-        self.pc = 0 # Program Counter, address of the currently executing instruction
+        self.PC = self.register[0] # Program Counter, address of the currently executing instruction
         self.IR = self.register[1] # Instruction Register, contains a copy of the currently executing instruction
         self.MAR = self.register[2] # contains the address that is being read or written to
         self.MDR = self.register[3] # contains the data that was read or the data to write
@@ -86,8 +86,7 @@ class CPU:
                 #print('Number', instruction)
                 #print("Binary{0:b}".format(instruction))
 
-         
-        program_counter = self.pc # Program Counter (This PC registry is initialized at 0)
+        program_counter = self.pc
         instruction = self.ram[program_counter] # Grabbing instruction from memory based on program counter
         self.register[1] = instruction # Saving to instruction register
         run = True
@@ -97,22 +96,20 @@ class CPU:
             operand_a = self.ram_read(program_counter + 1)
             operand_b = self.ram_read(program_counter + 2)
 
-            # PRINT OPERANDS
-            #print(operand_a, operand_b)
-
-            ''' IF CLAUSES '''
+            ''' IF/ELSE CLAUSES '''
             # HLT - Halt command
             if instruction == 0b00000001:
                 run = False
+
             # LDI - Set the value of a register to an integer.
             elif instruction == 0b10000010:
                 self.register[operand_a] = operand_b # This sets register a with the value b (0,8)
                 self.pc += 3
+
             # PRN - Prints the next opcode    
             elif instruction == 0b01000111:
-                value = self.ram[program_counter + 1]
                 self.pc += 2
-                print(self.register[value])
+                print(self.register[operand_a])
 
             # Point Counter Update/Run update
             program_counter = self.pc # Get new Program Counter
