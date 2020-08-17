@@ -11,8 +11,6 @@ class CPU:
         self.ram = [0] * 256
         self.reg = [0] * 8
         self.pc = 0
-        self.mar = 0
-        self.mdr = 0
 
     def load(self):
         """Load a program into memory."""
@@ -78,15 +76,15 @@ class CPU:
             return False
 
         def LDI():
-            self.mar = self.ram[self.pc + 1]
-            self.mdr = self.ram[self.pc + 2]
-            self.reg[self.mar] = self.mdr
+            addr = self.ram[self.pc + 1]
+            val = self.ram[self.pc + 2]
+            self.reg[addr] = val
             return 3
 
         def PRN():
-            self.mar = self.ram[self.pc + 1]
-            self.mdr = self.reg[self.mar]
-            print(self.mdr)
+            addr = self.ram[self.pc + 1]
+            val = self.reg[addr]
+            print(val)
             return 2
 
         # Instruction mapping
