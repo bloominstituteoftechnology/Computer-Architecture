@@ -102,6 +102,6 @@ class CPU:
                self.pc += 3
 
             elif IR == PRN: # psuedo instr. Print value stored at register
-                print(operand_a)
+                print(self.reg[operand_a])
                 self.pc += 2
 
