@@ -2,41 +2,57 @@
 
 import sys
 
-"""Instruction Variables"""
+"""ALU ops"""
 ADD = 0b10100000
-AND = 0b10101000
-CALL = 0b01010000
-CMP = 0b10100111
-DEC = 0b011001100
-DIV = 0b10100011
-HLT = 0b00000001
-INC = 0b01100101
-INT = 0b01010010
-IRET = 0b00010011
-JEQ = 0b01010101
-JGE = 0b01011010
-JGT = 0b01010111
-JLE = 0b01011001
-JLT = 0b01011000
-JMP = 0b01010100
-JNE = 0b01010110
-LD = 0b10000011
-LDI = 0b10000010
-MOD = 0b10100100
+SUB = 0b10100001
 MUL = 0b10100010
-NOP = 0b00000000
+DIV = 0b10100011
+MOD = 0b10100100
+
+INC = 0b01100101
+DEC = 0b011001100
+
+CMP = 0b10100111
+
+
+AND = 0b10101000
 NOT = 0b01101001
 OR = 0b10101010
-POP = 0b01000110
-PRA = 0b01001000
-PRN = 0b01000111
-PUSH = 0b01000101
-RET = 0b00010001
+XOR = 0b10101011
 SHL = 0b10101100
 SHR = 0b10101101
+
+"""PC Mutators"""
+CALL = 0b01010000
+RET = 0b00010001
+
+INT = 0b01010010
+IRET = 0b00010011
+
+JMP = 0b01010100
+JEQ = 0b01010101
+JNE = 0b01010110
+JGT = 0b01010111
+JLT = 0b01011000
+JLE = 0b01011001
+
+JGE = 0b01011010
+
+"""Other"""
+NOP = 0b00000000
+
+HLT = 0b00000001
+
+LDI = 0b10000010
+
+LD = 0b10000011
 ST = 0b10000100
-SUB = 0b10100001
-XOR = 0b10101011
+
+PUSH = 0b01000101
+POP = 0b01000110
+
+PRN = 0b01000111
+PRA = 0b01001000
 
 
 class CPU:
@@ -44,7 +60,17 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.reg = [0] * 8
+        self.ram = [0] * 256
+        self.pc = 0
+        self.fl = 0
+        self.running = True
+
+    def ram_read(self, MAR):
+        return self.ram[MAR]
+
+    def ram_write(self, MDR, MAR):
+        self.ram[MAR] = MDR
 
     def load(self):
         """Load a program into memory."""
@@ -98,4 +124,10 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+
+        while self.running:
+
+            IR = self.ram_read(self.pc)
+
+            operand_a = self.ram_read(self.pc + 1)
+            operand_b = self.ram_read(self.pc + 2)
