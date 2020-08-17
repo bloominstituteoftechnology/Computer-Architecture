@@ -9,8 +9,8 @@ class CPU:
         """Construct a new CPU."""
         self.ram = [0] * 256
         self.reg = [0] * 8
-        self.running = False
-        self.PC = 0
+        self.running = True
+        self.pc = 0
 
     def ram_read(self, MAR):
         """
@@ -90,8 +90,30 @@ class CPU:
     def run(self):
         """Run the CPU."""
 
-        # Set running status to true
-        self.running = True
+        # Using binary codes
+        LDI = 0b10000010
+        PRN = 0b01000111
+        HLT = 0b00000001
+
+        while self.running:
+
+            # HLT Instruction - aka halt, stop running
+            if self.ram[self.pc] == HLT:
+                self.running = False
+            
+            # LDI Instruction - Set the value of a register to an integer.
+            if self.ram[self.pc] == LDI:
+                num_to_load = self.ram[self.pc + 2]
+                reg_index = self.ram[self.pc + 1]
+                self.reg[reg_index] = num_to_load
+                self.pc += 3
+            
+            # PRN Instruction -Print numeric value stored in the given register. 
+            # Print to the console the decimal integer value that is stored in the given register.
+            if self.ram[self.pc] == PRN:
+                reg_to_print = self.ram[self.pc + 1]
+                print(self.reg[reg_to_print])
+                self.pc += 2
 
 
 if __name__ == "__main__":
