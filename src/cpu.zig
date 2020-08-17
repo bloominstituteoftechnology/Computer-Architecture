@@ -95,6 +95,11 @@ pub const Cpu = struct {
             switch (instruction) {
                 .NOP => {},
                 .HLT => break,
+                .MUL => {
+                    const a = this.memory[this.program_counter + 1];
+                    const b = this.memory[this.program_counter + 2];
+                    this.registers[a] *= this.registers[b];
+                },
                 .LDI => {
                     const register = this.memory[this.program_counter + 1];
                     const immediate = this.memory[this.program_counter + 2];
