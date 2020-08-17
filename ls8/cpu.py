@@ -7,7 +7,34 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.ram = [0] * 256
+        self.reg = [0] * 8
+        self.running = False
+        self.PC = 0
+
+    def ram_read(self, MAR):
+        """
+        Accepts the address to read and returns the value stored
+        there.
+
+        Input: MAR: _Memory Address Register_ ... address to read
+        """
+        if MAR < len(self.ram) - 1:
+            return self.ram[MAR]
+
+        else:
+            return "INDEX ERROR: Requested address out of memory range."
+
+    
+    def ram_write(self, MDR, MAR):
+        """
+        Accepts a value to write, and the address to write it to.
+
+        Inputs: MAR: _Memory Address Register_ ... address to write to
+                MDR: _Memory Data Register_ ... data to write
+        """
+        self.ram[MAR] = MDR
+
 
     def load(self):
         """Load a program into memory."""
@@ -62,4 +89,18 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+
+        # Set running status to true
+        self.running = True
+
+
+if __name__ == "__main__":
+    
+    
+    cpu = CPU()
+
+    print("Before write:", cpu.ram_read(250))
+
+    cpu.ram_write(3, 250)
+
+    print("After write:", cpu.ram_read(250))
