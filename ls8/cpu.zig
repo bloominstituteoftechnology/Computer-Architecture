@@ -11,15 +11,15 @@ const PROGRAM = [_]u8{
 };
 
 pub fn main() !void {
-    std.log.info(.LS8_CpuMain, "Hello, world!", .{});
-
     var cpu = Cpu.init();
 
-    std.mem.copy(u8, &cpu.ram, &PROGRAM);
+    std.mem.copy(u8, &cpu.memory, &PROGRAM);
+
+    try cpu.run();
 }
 
 pub const Cpu = struct {
-    ram: [256]u8,
+    memory: [256]u8,
     registers: [8]u8,
 
     /// Address of the currently executing instruction
@@ -62,7 +62,7 @@ pub const Cpu = struct {
 
         return .{
             // Initialize ram to 0
-            .ram = [_]u8{0} ** 256,
+            .memory = [_]u8{0} ** 256,
             .registers = registers,
             .program_counter = 0,
             .instruction_register = 0,
@@ -73,6 +73,122 @@ pub const Cpu = struct {
                 .greater_than = false,
                 .equal = false,
             },
+        };
+    }
+
+    pub fn run(this: *@This()) !void {
+        while (true) {
+            const instruction = try Instruction.decode(this.memory[this.program_counter]);
+            std.log.debug(.Cpu, "Instruction: {}", .{instruction});
+            switch (instruction) {
+                .NOP => {},
+                .HLT => break,
+                else => {},
+            }
+            if (!instruction.sets_program_counter()) {
+                var result: u8 = 0;
+                const did_overflow = @addWithOverflow(u8, this.program_counter, instruction.number_operands() + 1, &result);
+                this.program_counter = result;
+            }
+        }
+    }
+};
+
+pub const Instruction = enum(u8) {
+    /// Perform no operation
+    NOP = 0b00000000,
+
+    /// Halt execution
+    HLT = 0b00000001,
+
+    /// Add
+    ADD = 0b10100000,
+
+    /// Divide
+    DIV = 0b10100011,
+
+    /// Multiply
+    MUL = 0b10100010,
+
+    /// Modulus
+    MOD = 0b10100100,
+
+    /// Bitwise AND
+    AND = 0b10101000,
+
+    /// Bitwise NOT
+    NOT = 0b01101001,
+
+    /// Bitwise OR
+    OR = 0b10101010,
+
+    /// Call subroutine
+    CALL = 0b01010000,
+
+    /// Compare
+    CMP = 0b10100111,
+
+    /// If equal flag is set, jump to the given address
+    JEQ = 0b01010101,
+
+    /// If greater than flag or the equal flag are set, jump to the given address
+    JGE = 0b01011010,
+
+    /// If greater than flag is set, jump to the given address
+    JGT = 0b01010111,
+
+    /// If less than flag or the equal flag are set, jump to the given address
+    JLE = 0b01011001,
+
+    /// If less than flag is set, jump to the given address
+    JLT = 0b01011000,
+
+    /// Loads the data into registerA from the address in registerB
+    LD = 0b10000011,
+
+    /// Set registerA to the immediate value
+    LDI = 0b10000010,
+
+    /// Decrement
+    DEC = 0b01100110,
+
+    /// Increment
+    INC = 0b01100101,
+
+    /// Run an interrupt
+    INT = 0b01010010,
+
+    /// Return from an interrupt handler
+    IRET = 0b00010011,
+
+    /// Print the register as an ASCII value
+    PRA = 0b01001000,
+
+    /// Print the register as a number
+    PRN = 0b01000111,
+
+    pub fn number_operands(this: @This()) u2 {
+        const val = @enumToInt(this);
+        return @intCast(u2, (0b11000000 & val) >> 6);
+    }
+
+    pub fn alu_instruction(this: @This()) bool {
+        const val = @enumToInt(this);
+        return (0b00100000 & val) != 0;
+    }
+
+    pub fn sets_program_counter(this: @This()) bool {
+        const val = @enumToInt(this);
+        return (0b00010000 & val) != 0;
+    }
+
+    pub fn decode(val: u8) !@This() {
+        return switch (val) {
+            @enumToInt(@This().NOP) => .NOP,
+            @enumToInt(@This().HLT) => .HLT,
+            @enumToInt(@This().LDI) => .LDI,
+            @enumToInt(@This().PRN) => .PRN,
+            else => error.InvalidInstruction,
         };
     }
 };
