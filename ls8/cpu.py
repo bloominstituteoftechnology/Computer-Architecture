@@ -3,6 +3,7 @@
 import sys
 program_filename = sys.argv[1]
 
+'''Set Instruction variables'''
 HLT = 0b00000001 
 LDI = 0b10000010
 PRN = 0b01000111
@@ -14,6 +15,15 @@ POP = 0b01000110
 PUSH = 0b01000101
 CALL = 0b01010000
 RET = 0b00010001
+CMP = 0b10100111
+JMP = 0b01010100
+JEQ = 0b01010101
+JNE = 0b01010110
+
+''' Set Flags'''
+EFLAG = 0b001
+GFLAG = 0b010
+LFLAG = 0b100
 
 class CPU:
     """Main CPU class."""
@@ -26,6 +36,7 @@ class CPU:
         self.address = 0
         self.pc = 0
         self.reg[6] = 0xF4
+        self.flag = 0
 
 
     def ram_read(self, MAR):
@@ -94,7 +105,18 @@ class CPU:
         elif op == "MUL":
             self.reg[reg_a] *= self.reg[reg_b]
         elif op == "DIV":
-            self.reg[reg_a] /= self.reg[reg_b] 
+            self.reg[reg_a] /= self.reg[reg_b]
+        elif op == "CMP":
+             a = self.reg[reg_a]
+             b = self.reg[reg_b]
+             if a < b:
+                 
+                 self.flag = LFLAG
+             elif a > b:
+                 
+                 self.flag = GFLAG
+             else:
+                 self.flag = EFLAG                 
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -164,6 +186,10 @@ class CPU:
                 self.alu("DIV", operand_a, operand_b)
                 self.pc += 3
                 
+            elif IR == CMP:
+                self.alu("CMP", operand_a, operand_b)
+                self.pc += 3
+                                
             elif IR == PUSH:
                 #decrement the pointer
                 self.reg[6] -= 1
@@ -202,6 +228,21 @@ class CPU:
                 self.pc = SP
                 #increment the pointer
                 self.reg[6] += 1
+                
+            elif IR == JMP:
+                self.pc = self.reg[operand_a]
+            
+            elif IR == JEQ:
+                if self.flag == EFLAG:
+                    self.pc = self.reg[operand_a]
+                else:
+                    self.pc += 2
+            
+            elif IR == JNE:
+                if self.flag != EFLAG:
+                    self.pc = self.reg[operand_a]
+                else:
+                    self.pc += 2
                 
                 
                 
