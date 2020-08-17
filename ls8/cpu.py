@@ -1,13 +1,30 @@
-"""CPU functionality."""
-
 import sys
 
 class CPU:
-    """Main CPU class."""
-
     def __init__(self):
-        """Construct a new CPU."""
-        pass
+        # Memory and general pupose registers
+        self.ram = [None] * 256
+        self.register = [0] * 8
+        self.pc = 0 
+
+        # Internal registers (values between 0-255)
+        self.pc = 0 # Program Counter, address of the currently executing instruction
+        self.IR = self.register[1] # Instruction Register, contains a copy of the currently executing instruction
+        self.MAR = self.register[2] # contains the address that is being read or written to
+        self.MDR = self.register[3] # contains the data that was read or the data to write
+        self.FL = self.register[4] # Flags
+
+        # Reserved internal registers
+        self.IM = self.register[5] # Interupt mask
+        self.IS = self.register[6] # Interupt status
+        self.IP = self.register[7] # Stack pointer
+
+    def ram_read(self, MAR):
+        return self.ram[MAR]
+
+    def ram_write(self, MAR, MDR):
+        self.ram[MAR] = MDR
+        return None
 
     def load(self):
         """Load a program into memory."""
@@ -50,7 +67,7 @@ class CPU:
             self.pc,
             #self.fl,
             #self.ie,
-            self.ram_read(self.pc),
+            self.ram_read(self.pp),
             self.ram_read(self.pc + 1),
             self.ram_read(self.pc + 2)
         ), end='')
@@ -62,4 +79,44 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        
+        # PRINT TO SEE WHAT IS LOADED INTO RAM (OPCODES)
+        #for instruction in self.ram:
+            #if instruction != None:
+                #print('Number', instruction)
+                #print("Binary{0:b}".format(instruction))
+
+         
+        program_counter = self.pc # Program Counter (This PC registry is initialized at 0)
+        instruction = self.ram[program_counter] # Grabbing instruction from memory based on program counter
+        self.register[1] = instruction # Saving to instruction register
+        run = True
+
+        while run:
+            # Grabbing next two instructions in case they're needed using ram_read
+            operand_a = self.ram_read(program_counter + 1)
+            operand_b = self.ram_read(program_counter + 2)
+
+            # PRINT OPERANDS
+            #print(operand_a, operand_b)
+
+            ''' IF CLAUSES '''
+            # HLT - Halt command
+            if instruction == 0b00000001:
+                run = False
+            # LDI - Set the value of a register to an integer.
+            elif instruction == 0b10000010:
+                self.register[operand_a] = operand_b # This sets register a with the value b (0,8)
+                self.pc += 3
+            # PRN - Prints the next opcode    
+            elif instruction == 0b01000111:
+                value = self.ram[program_counter + 1]
+                self.pc += 2
+                print(self.register[value])
+
+            # Point Counter Update/Run update
+            program_counter = self.pc # Get new Program Counter
+            instruction = self.ram[program_counter] # Grab Instruction
+            self.register[1] = instruction # Saving to instruction register
+
+        return None
