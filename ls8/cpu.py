@@ -7,7 +7,23 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        # This will hold our 256 bytes of memory
+        self.ram = [0] * 256
+        
+        # This will hold out 8 general purpose registers
+        self.reg = [0] * 8
+        self.pc = 0
+
+    def ram_read(self, MAR):
+        # MAR = Memory Address Register
+            # This will accept the address to read and return the value stored
+        return self.ram[MAR]
+
+    def ram_write(self, MAR, MDR):
+        # MDR = Memory Data Register
+            # This will accept the value to write, and the address to write it to
+        self.ram[MAR] = MDR
+
 
     def load(self):
         """Load a program into memory."""
@@ -60,6 +76,38 @@ class CPU:
 
         print()
 
+    def ldi(self, operand_a, operand_b):
+        self.reg[operand_a] = operand_b
+
+    def prn(self, operand_a):
+        print(operand_a)
+
     def run(self):
         """Run the CPU."""
-        pass
+        LDI = 0b10000010
+        PRN = 0b01000111
+        HLT = 0b00000001
+
+        running = True
+        
+        while running:
+            # Instruction register
+            IR = self.ram_read(self.pc)
+            operand_a = self.ram_read(self.pc + 1)
+            operand_b = self.ram_read(self.pc + 2)
+
+            if IR == HLT:
+                running = False
+                self.pc += 1
+            
+            elif IR == LDI:
+                self.ldi(operand_a, operand_b)
+                self.pc += 3
+
+            elif IR == PRN:
+                self.prn(operand_a)
+                self.pc += 2
+            
+            else:
+                print(f"Bad input: {bin(IR)}")
+                running = False
