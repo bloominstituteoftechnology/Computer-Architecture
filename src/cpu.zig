@@ -196,6 +196,7 @@ pub const Instruction = enum(u8) {
         return switch (val) {
             @enumToInt(@This().NOP) => .NOP,
             @enumToInt(@This().HLT) => .HLT,
+            @enumToInt(@This().MUL) => .MUL,
             @enumToInt(@This().LDI) => .LDI,
             @enumToInt(@This().PRN) => .PRN,
             else => error.InvalidInstruction,
