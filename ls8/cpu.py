@@ -1,5 +1,6 @@
 """CPU functionality."""
 
+import time
 import sys
 
 class CPU:
@@ -82,4 +83,27 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        self.running = True
+
+        while self.running:
+
+            # Ensures we won't need to restart Anaconda Prompt
+            # every time that something goes wrong.
+            start = time.time()
+            if time.time() - start > 0.5:
+                return
+
+            # LDI - sets value of register to integer
+            if self.ram_read(self.pc) == 0b10000010:
+                self.reg[0] = self.ram_read(self.pc + 2)
+
+                self.pc += 3
+
+            if self.ram_read(self.pc) == 0b01000111:
+                print(self.reg[0])
+
+                self.pc += 2
+
+            if self.ram_read(self.pc) == 0b00000001:
+                break
+
