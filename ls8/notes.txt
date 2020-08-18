@@ -1,0 +1,18 @@
+files in project:
+-cpu.py
+-ls8.py
+-README.md
+
+Short descriptions:
+cpu.py
+--Contains the main cpu logic. A few functions for adding or printing values.
+--Also contains internal variables to track memory locations
+--Contains a function for getting cpu state
+
+ls8.py
+--Imports sys and everything from the cpu.py file.
+--Instantiates, loads, then runs the CPU class.
+
+README.md
+--Contains all the instructions for this assignment
+--including the one to make these notes.

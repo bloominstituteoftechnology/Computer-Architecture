@@ -1,0 +1,50 @@
+Use a stack to store more variables
+
+-Enables nested function calls
+-Use for storage, to store more variables than the registers can hold
+
+What do we need to make a stack?
+-Push 
+--First Decrement the stack_pointer
+--Copy value in given register into that position
+---R0: 42
+---push R0 
+---R7 is decremented 1
+---stack_pointer is decremented when it looks to R7
+---R0 is assigned to F3
+-Pop
+--Get value at current pointer and put into given register
+--increment the pointer
+-Storage
+
+Where do we store our stack? memory, RAM
+
+
+FF: 00
+FE: 00
+FD: 00
+FC: 00
+FB: 00
+FA: 00
+F9: 00
+F8: 00
+F7: 00
+F6: 00
+F5: 00
+F4: 00 <----Stack Pointer
+F3: 00
+F2: 00
+F1: 00
+.
+.
+.
+03: 42
+02: PRINT_NUM
+01: PRINT_GWEN
+00: PRINT_GWEN
+
+stack_pointer: memory address that points to the top of our stack(last item that was pushed)
+
+Store stack_pointer in register(more permanent)
+
+R7 is the chosen address: F4 
