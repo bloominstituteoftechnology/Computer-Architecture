@@ -1,0 +1,19 @@
+# my test program, formatted in 
+# a messy way trying to break code
+
+  3 # save_reg 1, 99
+
+  1
+  99
+  3 # save reg 2, 11
+  2
+     11
+   5 # add reg1 and reg 2
+     1
+    2
+# comment
+
+4 # print_reg
+1
+2 # halt
+# 101

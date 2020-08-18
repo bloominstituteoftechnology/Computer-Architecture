@@ -16,22 +16,40 @@ class CPU:
 
     def load(self):
         """Load a program into memory."""
-        address = 0
-        # For now, we've just hardcoded a program:
+        address = 0 # for temporary load program
+        # read program file 
+        filename = "./examples/test.ls8"
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+        filename = sys.argv[1]
 
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+        with open(filename)as f:
+            for address, line in enumerate(f):
+
+                line = line.split("#")
+                
+                try:
+                    v = int(line[0])
+                except ValueError:
+                    continue
+                
+                self.ram[address] = v
+                
+        print(self.ram[:15])
+        print(sys.argv)
+        sys.exit(0)
+        # program = [
+        #     # From print8.ls8
+        #     0b10000010, # LDI R0,8
+        #     0b00000000,
+        #     0b00001000,
+        #     0b01000111, # PRN R0
+        #     0b00000000,
+        #     0b00000001, # HLT
+        # ]
+
+        # for instruction in program:
+        #     self.ram[address] = instruction
+        #     address += 1
 
     def ram_read(self, ram_idx):
         return self.ram[ram_idx]
@@ -87,3 +105,7 @@ class CPU:
             else:
                 print(f"unknow instruction {ir} at address {self.pc}")
                 sys.exit(1)
+
+if __name__=="__main__":
+    cpu = CPU()
+    cpu.load()
