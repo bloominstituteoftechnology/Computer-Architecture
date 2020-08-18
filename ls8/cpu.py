@@ -24,7 +24,6 @@ class CPU:
                 self.reg[r]= 0xF4
         self.isRunning= True
 
-
     # MAR contains the address that is being read or written to. The MDR contains the data that was read or the data to write.
     def ram_read(self, MAR):
         return self.ram[MAR]
@@ -34,24 +33,36 @@ class CPU:
 
     def load(self):
         """Load a program into memory."""
-
         address = 0
 
-        # For now, we've just hardcoded a program:
+        if len(sys.argv) != 2:
+            print('Usage: ls8.py "program name"')
+            sys.exit(1)
 
-        program = [
-            # From print8.ls8
-            0b10000010,  # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111,  # PRN R0
-            0b00000000,
-            0b00000001,  # HLT
-        ]
+        try:
+            with open(f'examples/{sys.argv[1]}') as f:
+                for line in f:
+                    line= line.strip()
+                    temp= line.split()
 
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+                    if len(temp) == 0:
+                        continue
+                        
+                    if temp[0][0] == '#':
+                        continue
+                    
+                    try:
+                        self.ram_write(temp[0], address)
+
+                    except ValueError:
+                        print(f'Invalild number: {temp[0]}')
+                        sys.exit(1)
+
+                    address+= 1
+
+        except FileNotFoundError: 
+            print(f'Couldn\'t open: {sys.argv[1]}')
+            sys.exit(2)
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -85,45 +96,41 @@ class CPU:
     def run(self):
         """Run the CPU."""
 
-        # print('numOps: ', numOps)
-        # print('isALU: ', isALU)
-        # print('setsPc: ', setsPc)
-        # print('isntID: ', isntID)
-
         while self.isRunning:
             # Instruction Register
-            IR_bin= self.ram_read(self.pc)
-            IR= bin(self.ram_read(self.pc))
+            IR_int= self.ram_read(self.pc)
+            IR= str(self.ram_read(self.pc))
 
             # `AABCDDDD`
             #  `AA` Number of operands for this opcode, 0-2
-            numOps= IR[2:4]
+            numOps= IR[:2]
             # * `B` 1 if this is an ALU operation
-            isALU= IR[4:5]
+            isALU= IR[2:3]
             # * `C` 1 if this instruction sets the PC
-            setsPc= IR[5:6]
+            setsPc= IR[3:4]
             # * `DDDD` Instruction identifier
-            isntID= IR[6:]
+            isntID= IR[4:]
 
-            if 
+            # set the operands as needed
+            operand_a= self.pc+ 1
+            operand_b= self.pc+ 2
 
             # HTL 00000001 
-            if IR_bin == 0b00000001:
+            if IR_int == '00000001':
                 self.isRunning= False
                 self.pc+= 1
                 # print('HLT')
 
             # LDI 10000010 00000rrr iiiiiiii
-            elif IR_bin == 0b10000010:
-                mar= self.pc+ 1
-                mdr= self.pc+ 2
+            elif IR_int == '10000010':
+                mar= operand_a
+                mdr= operand_b
                 self.ram_write(mdr, mar)
                 self.pc+= 3
                 # print('LDI')
 
             # PRN 01000111 00000rrr
-            elif IR_bin == 0b01000111:
-                val= self.pc+1
-                print(val)
+            elif IR_int == '01000111':
+                print(operand_a)
                 self.pc+= 2
                 # print('PRN')
