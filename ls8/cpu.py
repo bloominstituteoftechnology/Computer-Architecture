@@ -9,6 +9,7 @@ class CPU:
     def __init__(self):
         """Construct a new CPU."""
         self.reg = [0]*8
+        self.reg[7] = 0xF4
         self.ram = [0]*256
         self.pc = 0
 
@@ -63,7 +64,7 @@ class CPU:
         return self.ram[address]
 
     def ram_write(self, address, value):
-        self.ram[address] = value
+        self.reg[address] = value
 
     def trace(self):
         """
@@ -91,19 +92,43 @@ class CPU:
         while self.pc < len(self.ram):
             command = self.ram[self.pc]
             HLT = 0b00000001
+            operand1 = self.ram_read(self.pc+1)
+            operand2 = self.ram_read(self.pc+2)
 
             if command == HLT:  # stops program
                 break
 
-            if command == 0b10000010:  # registers the next line as the index inserting the line after that one as the value
-                self.ram_write(self.ram[self.pc+1], self.ram[self.pc+2])
+            if command == 0b10000010:  # LDI/Save
+                # registers the next line as the index inserting the line after that one as the value
+                self.ram_write(operand1, operand2)
 
             if command == 0b01000111:  # prints next line
-                print(self.ram_read(self.ram[self.pc+1]))
+                print(self.reg[operand1])
 
             if command == 0b10100010:  # multiplies the numbers of the indexes of the next 2 lines
-                print(self.ram_read(self.ram[self.pc+1])
-                      * self.ram_read(self.ram[self.pc+2]))
+                self.reg[operand1] *= self.reg[operand2]
+
+            if command == 0b01000101:  # Push
+                self.reg[7] -= 1  # decrement stack pointer
+                self.reg[7] &= 0xff
+
+                # get the index
+                reg_index = self.ram[self.pc+1]
+                # get the value at the pointer's address
+                value = self.reg[reg_index]
+                self.ram[self.reg[7]] = value
+
+            if command == 0b01000110:  # Pop
+                # get the stack pointer
+                sp = self.reg[7]
+                # get register number to put value in
+                reg = self.ram[self.pc+1]
+                # use stack pointer to get the value
+                value = self.ram[sp]
+                # put the value into the given register
+                self.reg[reg] = value
+
+                self.reg[7] += 1
 
             self.pc += command >> 6
             self.pc += 1
