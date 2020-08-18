@@ -32,8 +32,30 @@ class CPU:
 
     def load(self):
         """Load a program into memory."""
+        if len(sys.argv) < 2:
+            print("Insufficient arguments, re-evaluate and try again")
+            print("Usage: filename file_to_open")
 
         address = 0
+
+        try:
+            with open(sys.argv[1]) as file:
+                for line in file:
+                    comment_split = line.split('#')
+                    potential_num = comment_split[0]
+
+                    if potential_num == "":
+                        continue
+
+                    if potential_num[0] == "1" or potential_num[0] == "0":
+                        num = potential_num[:8]
+                        
+                        self.ram[address] = int(num, 2)
+                        address += 1
+                    
+        except FileNotFoundError:
+            print(f"{sys.argv[0]}: {sys.argv[1]} not found")
+            
 
         # For now, we've just hardcoded a program:
 
@@ -47,9 +69,9 @@ class CPU:
         #     0b00000001, # HLT
         # ]
 
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+        # for instruction in program:
+        #     self.ram[address] = instruction
+        #     address += 1
 
 
     def alu(self, op, reg_a, reg_b):
@@ -57,7 +79,7 @@ class CPU:
 
         if op == "ADD":
             self.registers[reg_a] += self.registers[reg_b]
-        #elif op == "SUB": etc
+        
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -83,9 +105,10 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        LDI = 0b0000010
+        LDI = 0b10000010
         PRN = 0b01000111
         HLT = 0b00000001
+        MUL = 0b10100010
 
         while self.running:
             # the HLT instruction
@@ -105,6 +128,17 @@ class CPU:
                 reg_to_print = self.ram[self.pc +1]
                 print(self.registers[reg_to_print])
                 self.pc += 2
+
+            # the MUL instruction
+            if self.ram[self.pc] == MUL:
+                first_reg = self.ram[self.pc + 1]
+                sec_reg = self.ram[self.pc + 2]
+                first_factor = self.registers[first_reg]
+                sec_factor = self.registers[sec_reg]
+                product = first_factor * sec_factor
+                print(product)
+                self.pc += 3
+
     
             
             # elif IR == inst["PRN"]:
