@@ -2,33 +2,43 @@
 
 import sys
 
+program_file = "6. Architecture/Computer-Architecture/ls8/examples/print8.ls8"
+
 class CPU:
     """Main CPU class."""
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.ram = [0] * 256
+        self.reg = [0] * 8
+        self.pc = 0 
+        self.running = True
 
     def load(self):
         """Load a program into memory."""
+        # print(f"SYS.ARGV: {sys.argv}")
+
+        # if len(sys.argv) != 2:
+        #     print("usage: 02_fileio2.py filename")
 
         address = 0
 
-        # For now, we've just hardcoded a program:
+        try:
+            with open(program_file) as f:
+                for line in f:
+                    comment_split = line.split("#")
+                    n = comment_split[0].strip()
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+                    if n == "":
+                        continue
 
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+                    x = int(n, 2)
+                    print(f"{x:08b}: {x:d}")
+                    self.ram[address] = x
+                    address += 1
+
+        except:
+            print(f"{sys.argv[0]} / {sys.argv[1]} not found")
 
 
     def alu(self, op, reg_a, reg_b):
@@ -36,10 +46,19 @@ class CPU:
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
-        #elif op == "SUB": etc
+        elif op == "SUB":
+            self.reg[reg_a] -= self.reg[reg_b]
+        elif op == "MUL":
+            self.reg[reg_a] *= self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
+    def ram_read(self, MAR):
+        return self.ram[MAR]
+
+    def ram_write(self, MAR, MDR):
+        self.ram[MAR] = MDR
+        
     def trace(self):
         """
         Handy function to print out the CPU state. You might want to call this
@@ -62,4 +81,40 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        HLT = 0b00000001
+        LDI = 0b10000010
+        PRN = 0b01000111
+        MUL = 0b10100010
+        ADD  = 0b10100000
+
+        while self.running:
+            IR = self.ram[self.pc]
+            print(f"Bad imput: {IR}")
+            operand_a = self.ram_read(self.pc + 1)
+            operand_b = self.ram_read(self.pc + 2)
+
+            if IR == HLT:
+                self.running = False
+                self.pc += 1
+            elif IR == LDI:
+                self.reg[operand_a] = operand_b
+                print(operand_a)
+                self.pc += 3   
+            elif IR == PRN:
+                print(operand_a)
+                self.pc += 2
+            elif IR == MUL:
+                res = self.reg[operand_a] * self.reg[operand_b]
+                print(res)
+                self.pc += 3
+            elif IR == ADD:
+                res = self.reg[operand_a] + self.reg[operand_b]
+                print(res)
+            else:
+                self.running = False
+                print(f"Bad imput: {IR}")        
+            
+        
+cpu = CPU()
+cpu.load()
+cpu.run()
