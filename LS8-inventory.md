@@ -2,6 +2,7 @@
 
 ## Directory Map
 
+```
 Computer-Architechture\
 	.gitignore
 	FAQ.md
@@ -35,6 +36,7 @@ Computer-Architechture\
             sctest.ls8
             stack.ls8
             stackoverflow.ls8
+```
 
 ## File Descriptions
 
@@ -81,11 +83,18 @@ Loads and runs instance of cpu from cpu.py.
 ### examples
 
 - call.ls8
+
+Contains memory array elements for implementing subroutine calls.
+In higher-level jargon, these elements define functions and allow them to be used by the cpu.py and ls8.py programs.
+
 - interrupts.ls8
 
 Contains memeory array elements for imitating time library functionality.
 
 - keyboard.ls8
+
+Program for testing if the a key was pressed at any given time.
+
 - mult.ls8
 
 Contains memory array elements for multiplying 8 and 9 together.
@@ -95,9 +104,17 @@ Contains memory array elements for multiplying 8 and 9 together.
 Contains memory array elements for printing the number 8.
 
 - printstr.ls8
+
+Contains memory array elements for printing a string.
+
 - sctest.ls8
+
+Used in completing the Histogram Stretch Goal
+
 - stack.ls8
 
 Contains memory array elements for implementing a stack.
 
 - stackoverflow.ls8
+
+Contains memory array elements for testing what happens when the call stack pointer is out of bounds.
