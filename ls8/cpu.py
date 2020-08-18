@@ -112,8 +112,11 @@ class CPU:
             isntID= IR[4:]
 
             # set the operands as needed
-            operand_a= self.pc+ 1
-            operand_b= self.pc+ 2
+            if int(numOps,2 ) == 2:
+                operand_a= int(self.ram_read(self.pc+ 1), 2)
+                operand_b= int(self.ram_read(self.pc+ 2), 2)
+            elif int(numOps, 2) == 1:
+                operand_a= int(self.ram_read(self.pc+ 1), 2)
 
             # HTL 00000001 
             if IR_int == '00000001':
@@ -123,14 +126,20 @@ class CPU:
 
             # LDI 10000010 00000rrr iiiiiiii
             elif IR_int == '10000010':
-                mar= operand_a
-                mdr= operand_b
-                self.ram_write(mdr, mar)
+                self.reg[operand_a]= operand_b
                 self.pc+= 3
                 # print('LDI')
 
             # PRN 01000111 00000rrr
             elif IR_int == '01000111':
-                print(operand_a)
+                val= self.reg[operand_a]
+                print(val)
                 self.pc+= 2
-                # print('PRN')
+            
+            # MUL 10100010 00000aaa 00000bbb
+            elif IR_int == '10100010':
+                a= self.reg[operand_a]
+                b= self.reg[operand_b]
+                self.reg[operand_a]= a*b
+                # print('MUL')
+                self.pc+= 3
