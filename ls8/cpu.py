@@ -1,5 +1,5 @@
 """CPU functionality."""
-
+import re
 import sys
 
 class CPU:
@@ -21,26 +21,36 @@ class CPU:
         self.ram[MAR] = MDR
         print(f"Address: {MAR} = {MDR}")
 
-    def load(self):
-        """Load a program into memory."""
+    def load(self, argument):
+        """Load a program into memory.
+        Bonus: check to make sure the user has put a command line argument
+         where you expect, and print an error and exit if they didn’t."""
 
-        address = 0
 
-        # For now, we've just hardcoded a program:
+        # # For now, we've just hardcoded a program:
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+        # program = [
+        #     # From print8.ls8
+        #     0b10000010, # LDI R0,8
+        #     0b00000000,
+        #     0b00001000,
+        #     0b01000111, # PRN R0
+        #     0b00000000,
+        #     0b00000001, # HLT
+        # ]
+        try:
+            with open(argument, "r") as f:
+               program = f.read()
 
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+            instructions = re.findall(r'\d{8}', program) # match first block of numbers
+            for address, instruction in enumerate(instructions):
+                x = int(instruction, 2)  # Convert binary string to integer
+                self.ram[address] = x
+
+                #    if instruction[0].isdigit():
+                #         line = instruction.split("#")
+        except FileNotFoundError:
+            print("Error with file from command line")
 
 
     def alu(self, op, reg_a, reg_b):
@@ -51,7 +61,8 @@ class CPU:
         elif op == "SUB":
             self.reg[reg_a] += -self.reg[reg_b]
         elif op == "MUL":
-            self.reg[reg_a] *= self.reg[reg_b]
+            product = self.reg[reg_a] * self.reg[reg_b]
+            self.reg[reg_a] = product
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -86,26 +97,35 @@ class CPU:
         00000001 # HLT
         """
         # should be similar to lecture
-        LDI  = 0b10000010 # These are instructions we need to translate
+        LDI = 0b10000010 # These are instructions we need to translate
         PRN = 0b01000111
         HLT = 0b00000001
+        MUL = 0b10100010
 
 
         while self.running:
-            IR = self.ram[self.pc] # Instruction Register
+            IR = self.ram_read(self.pc) # Instruction Register
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
-
+            # print(self.reg)
             if IR == HLT:
                 self.running = False
 
-            elif IR == LDI: # set the value of a register to an integer
-               self.reg[self.pc] = operand_b
+            elif IR == LDI: # next value is the pc, one after is the value to set register to
+               self.reg[operand_a] = operand_b
                self.pc += 3
+               
 
             elif IR == PRN: # psuedo instr. Print value stored at register
                 print(self.reg[operand_a])
                 self.pc += 2
-        # print(self.reg)
-        self.trace()
+            
+            elif IR == MUL: # multiply the next two
+               self.alu("MUL", operand_a, operand_b)
+               self.pc += 3
+
+            else:
+                print(f"This whole court is outta order!")
+        
+        # self.trace()
 
