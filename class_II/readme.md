@@ -100,7 +100,7 @@ Now in Binary
          ^^^^
 ```
 
-## Btiwsie Ops - python
+## Bitwise Ops - python
 ```py
 
 # Right shift operator:

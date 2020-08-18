@@ -1,0 +1,10 @@
+1 #> PRINT_AARON
+
+3 #> SAVE_REG R4, 37; instruction itself, aka "opcode"
+4 #> 4 and 37 are arguments to SAVE_REG, aka "operands"
+37
+
+4 #> PRINT_REG R4
+4 #> operand for opcode 4
+
+2  #> HALT
