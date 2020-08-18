@@ -11,7 +11,13 @@ class CPU:
         self.reg = [0] * 8 #8 general-purpose registers
         self.pc = 0 #Program Counter, the index into memory of the currently-executing instruction
         self.running = True
-
+    
+    def ram_read(self, address): #accept the address to read and return the value stored there.
+        return self.ram[address]
+        
+    def ram_write(self, value, address): #accept a value to write, and the address to write it to
+        self.ram[address] = value
+    
     def load(self):
         """Load a program into memory."""
 
