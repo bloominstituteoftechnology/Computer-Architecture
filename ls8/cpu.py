@@ -1,19 +1,22 @@
 """CPU functionality."""
-
 import sys
+# add variable for instructions
+LDI = 0b10000010
+PRN = 0b01000111
+HLT = 0b00000001
 
 class CPU:
     """Main CPU class."""
-
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.ram = [0]*256  # 256 bytes of memory
+        self.register = [0]*8 # 8 registers
+        self.pc = 0 # program counter
+        self.running = True
 
     def load(self):
         """Load a program into memory."""
-
         address = 0
-
         # For now, we've just hardcoded a program:
 
         program = [
@@ -30,10 +33,14 @@ class CPU:
             self.ram[address] = instruction
             address += 1
 
+    def ram_read(self, ram_idx):
+        return self.ram[ram_idx]
+
+    def ram_write(self, ram_idx, value):
+        self.ram[ram_idx] =  value
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
-
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
         #elif op == "SUB": etc
@@ -62,4 +69,21 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        while self.running:            
+            ir = self.ram[self.pc]  # instruction register
+
+            if ir == LDI:
+                self.ram_write(self.pc+1, self.pc+2)
+                self.pc += 3
+            
+            elif ir == PRN:
+                print(self.ram[self.pc+1])
+                self.pc += 2
+
+            elif ir == HLT:
+                self.running = False
+                self.pc += 1
+            
+            else:
+                print(f"unknow instruction {ir} at address {self.pc}")
+                sys.exit(1)
