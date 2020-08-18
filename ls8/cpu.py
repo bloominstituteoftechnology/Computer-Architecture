@@ -7,30 +7,45 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        self.ram = [0] * 256     # ram = [0,0,0,0,0,0,0,0]
-        self.reg = [0] * 8       # register 
+        self.ram = [0] * 256     # ram = [0,0,0, 0, 0.. -> 256 0's]
+        self.reg = [0] * 8       # register-on the cpu.. reg = [0,0,0,0,0,0,0,0]
         self.pc = 0              # Program Counter - the index into memory of the currently-executing instruction
 
     def load(self):
         """Load a program into ram."""
 
+        filename = sys.argv[1]
         address = 0
 
         # For now, we've just hardcoded a program:
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+        # program = [
+        #     # From print8.ls8
+        #     0b10000010, # LDI R0,8
+        #     0b00000000,
+        #     0b00001000,
+        #     0b01000111, # PRN R0
+        #     0b00000000,
+        #     0b00000001, # HLT
+        # ]
+        
+        with open(filename) as f:
+            for line in f:
+                
+                line = line.split("#")[0].strip()
+                
+                if line == "":
+                    continue
+                
+                else:
+                    self.ram[address] = int(line, 2)
+                    address += 1
+                
+                print(line)
 
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+        # for instruction in program:
+        #     self.ram[address] = instruction
+        #     address += 1
 
     # ask for tomorrow, not needed for day 1
     
