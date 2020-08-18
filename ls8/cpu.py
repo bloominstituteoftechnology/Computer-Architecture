@@ -2,6 +2,9 @@
 
 import sys
 
+program_filename = sys.argv[1]
+# print(sys.argv[1])
+
 """ALU ops"""
 ADD = 0b10100000
 SUB = 0b10100001
@@ -64,7 +67,12 @@ class CPU:
         self.ram = [0] * 256
         self.pc = 0
         self.fl = 0
+        self.address = 0
         self.running = True
+
+    # def halt(self):
+    #     self.pc += 1
+    #     sys.exit()
 
     def ram_read(self, MAR):
         return self.ram[MAR]
@@ -75,23 +83,47 @@ class CPU:
     def load(self):
         """Load a program into memory."""
 
-        address = 0
+        self.address = 0
+
+        try:
+            with open(program_filename) as f:
+
+                for line in f:
+                    line = line.split('#')
+                    # print(line)
+                    line = line[0].strip()
+                    # print(line)
+
+                    if line == '':
+                        continue
+
+                    value = int(line, 2)
+                    # print(value)
+
+                    self.ram[self.address] = value
+
+                    self.address += 1
+
+        except FileNotFoundError:
+            print(
+                f"The file {sys.argv[1]} does not exist. Please enter a valid file name.")
+            sys.exit()
 
         # For now, we've just hardcoded a program:
 
-        program = [
-            # From print8.ls8
-            0b10000010,  # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111,  # PRN R0
-            0b00000000,
-            0b00000001,  # HLT
-        ]
+        # program = [
+        #     # From print8.ls8
+        #     0b10000010,  # LDI R0,8
+        #     0b00000000,
+        #     0b00001000,
+        #     0b01000111,  # PRN R0
+        #     0b00000000,
+        #     0b00000001,  # HLT
+        # ]
 
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+        # for instruction in program:
+        #     self.ram[address] = instruction
+        #     address += 1
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
