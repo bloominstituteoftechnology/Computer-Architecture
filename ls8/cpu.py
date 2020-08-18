@@ -12,6 +12,8 @@ class CPU:
         
         # This will hold out 8 general purpose registers
         self.reg = [0] * 8
+
+        # This is our program counter. It holds the address of the currently executing instruction
         self.pc = 0
 
     def ram_read(self, MAR):
@@ -77,10 +79,12 @@ class CPU:
         print()
 
     def ldi(self, operand_a, operand_b):
+        # Set the value of a register to an integer
         self.reg[operand_a] = operand_b
 
     def prn(self, operand_a):
-        print(operand_a)
+        # This will print the numeric value stored in the given register
+        print(self.reg[operand_a])
 
     def run(self):
         """Run the CPU."""
@@ -91,23 +95,33 @@ class CPU:
         running = True
         
         while running:
-            # Instruction register
+            # Instruction register is going to read the the memory address thats stored in register PC
             IR = self.ram_read(self.pc)
+            
+            # We'll read the bytes from RAM into variables in case the instructions need them
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
 
+            # If our instruction register is equal to HLT (Hault the CPU)
             if IR == HLT:
+                # We stop running
                 running = False
+                # We increment the program counter by 1
                 self.pc += 1
             
             elif IR == LDI:
+                # Execute our LDI function using our two operands as input parameters
                 self.ldi(operand_a, operand_b)
+                # Increment the program counter by 3
                 self.pc += 3
 
             elif IR == PRN:
+                # Execute our PRN function using operand_a
                 self.prn(operand_a)
+                # Increment the program counter by 2
                 self.pc += 2
             
             else:
+                # If everything fails, we'll terminate and print out that it's a bad input
                 print(f"Bad input: {bin(IR)}")
                 running = False
