@@ -136,7 +136,7 @@ class CPU:
             if command == JNE:
                 print("JNE")
                 jmp_address = self.ram[self.pc+1]
-                if self.reg[0] is 0:
+                if self.reg[0] is not 0b00000001:
                     self.pc = self.reg[jmp_address]
                 else:
                     self.pc+=2
