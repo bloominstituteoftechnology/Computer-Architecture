@@ -79,8 +79,6 @@ class CPU:
         for i in range(8):
             print(" %02X" % self.reg[i], end='')
 
-        print()
-
     def run(self):
         """Run the CPU."""
         self.running = True
@@ -99,11 +97,13 @@ class CPU:
 
                 self.pc += 3
 
+            # PRN, R0
             if self.ram_read(self.pc) == 0b01000111:
                 print(self.reg[0])
 
                 self.pc += 2
 
+            # HALT
             if self.ram_read(self.pc) == 0b00000001:
                 break
 
