@@ -76,6 +76,11 @@ Self Expalantaory
 
 Defines CPU class for use in ls8.py.
 
+1. The CPU wire frame is already done, but the program itself is hardwired for the print8.ls8 file. 
+2. The program needs to be modified in order to run dynamically.
+3. The alu currently can only add values together, this will need to be modified to allow for other opertions, namely multiplication for mult.ls8.
+4. The run method is incomplete.
+
 - ls8.py
 
 Loads and runs instance of cpu from cpu.py.
