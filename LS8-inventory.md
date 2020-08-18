@@ -76,9 +76,23 @@ Self Expalantaory
 
 Defines CPU class for use in ls8.py.
 
-1. The CPU wire frame is already done, but the program itself is hardwired for the print8.ls8 file. 
-2. The program needs to be modified in order to run dynamically.
-3. The alu currently can only add values together, this will need to be modified to allow for other opertions, namely multiplication for mult.ls8.
+The CPU has a wire frame is already done, but the program itself is hardwired for the print8.ls8 file.
+
+1. The program needs to be modified in order to run dynamically.
+2. The program lacks a true RAM array, CALL stack, or appropriate register.
+3. The alu currently can only add values together, this will need to be modified to allow for other opertions including:
+
+    - Subtraction
+    - Multiplication
+    - Division
+    - Modulo
+    - Bitwise AND
+    - Bitwise OR
+    - Bitwise NOT
+    - Bitwise Shift Left
+    - Bitwise Shift Right
+    - Bitwise XOR 
+
 4. The run method is incomplete.
 
 - ls8.py
