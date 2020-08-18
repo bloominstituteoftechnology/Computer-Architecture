@@ -69,10 +69,62 @@ class CPU:
         self.fl = 0
         self.address = 0
         self.running = True
+        self.branch_table = {
+            0b00000001: self.HLT,
+            0b10000010: self.LDI,
+            0b01000111: self.PRN,
+            0b10100000: self.ADD,
+            0b10100001: self.SUB,
+            0b10100010: self.MUL,
+            0b10100100: self.DIV
+        }
 
-    # def halt(self):
-    #     self.pc += 1
-    #     sys.exit()
+    def HLT(self):
+        self.pc += 1
+        sys.exit()
+
+    def LDI(self):
+        reg_idx = self.ram_read(self.pc + 1)
+        value = self.ram_read(self.pc + 2)
+        self.reg[reg_idx] = value
+        self.pc += 3
+
+    def PRN(self):
+        reg_idx = self.ram_read(self.pc + 1)
+        print(self.reg[reg_idx])
+        self.pc += 2
+
+    def ADD(self):
+        num_1 = self.reg[self.ram_read(self.pc + 1)]
+        num_2 = self.reg[self.ram_read(self.pc + 2)]
+
+        self.reg[self.ram_read(self.pc + 1)] = (num_1 + num_2)
+
+        self.pc += 3
+
+    def SUB(self):
+        num_1 = self.reg[self.ram_read(self.pc + 1)]
+        num_2 = self.reg[self.ram_read(self.pc + 2)]
+
+        self.reg[self.ram_read(self.pc + 1)] = (num_1 - num_2)
+
+        self.pc += 3
+
+    def MUL(self):
+        num_1 = self.reg[self.ram_read(self.pc + 1)]
+        num_2 = self.reg[self.ram_read(self.pc + 2)]
+
+        self.reg[self.ram_read(self.pc + 1)] = (num_1 * num_2)
+
+        self.pc += 3
+
+    def DIV(self):
+        num_1 = self.reg[self.ram_read(self.pc + 1)]
+        num_2 = self.reg[self.ram_read(self.pc + 2)]
+
+        self.reg[self.ram_read(self.pc + 1)] = (num_1 / num_2)
+
+        self.pc += 3
 
     def ram_read(self, MAR):
         return self.ram[MAR]
@@ -166,32 +218,35 @@ class CPU:
 
             IR = self.ram_read(self.pc)
 
-            operand_a = self.ram_read(self.pc + 1)
-            operand_b = self.ram_read(self.pc + 2)
+            if IR in self.branch_table:
+                self.branch_table[IR]()
 
-            if IR == HLT:
-                self.running = False
+            # operand_a = self.ram_read(self.pc + 1)
+            # operand_b = self.ram_read(self.pc + 2)
 
-            elif IR == LDI:
-                self.reg[operand_a] = operand_b
-                self.pc += 3
+            # if IR == HLT:
+            #     self.running = False
 
-            elif IR == PRN:
-                print(self.reg[operand_a])
-                self.pc += 2
+            # elif IR == LDI:
+            #     self.reg[operand_a] = operand_b
+            #     self.pc += 3
 
-            elif IR == ADD:
-                self.alu("ADD", operand_a, operand_b)
-                self.pc += 3
+            # elif IR == PRN:
+            #     print(self.reg[operand_a])
+            #     self.pc += 2
 
-            elif IR == SUB:
-                self.alu("SUB", operand_a, operand_b)
-                self.pc += 3
+            # elif IR == ADD:
+            #     self.alu("ADD", operand_a, operand_b)
+            #     self.pc += 3
 
-            elif IR == MUL:
-                self.alu("MUL", operand_a, operand_b)
-                self.pc += 3
+            # elif IR == SUB:
+            #     self.alu("SUB", operand_a, operand_b)
+            #     self.pc += 3
 
-            elif IR == DIV:
-                self.alu("DIV", operand_a, operand_b)
-                self.pc += 3
+            # elif IR == MUL:
+            #     self.alu("MUL", operand_a, operand_b)
+            #     self.pc += 3
+
+            # elif IR == DIV:
+            #     self.alu("DIV", operand_a, operand_b)
+            #     self.pc += 3
