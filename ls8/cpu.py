@@ -62,7 +62,16 @@ class CPU:
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
-        #elif op == "SUB": etc
+            
+        elif op == "SUB":
+            self.reg[reg_a] -= self.reg[reg_b]
+            
+        elif op == "MUL":
+            self.reg[reg_a] *= self.reg[reg_b]
+            
+        elif op == "DIV":
+            self.reg[reg_a] /= self.reg[reg_b]
+            
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -93,27 +102,32 @@ class CPU:
         HLT = 0b00000001 # Halt/ Stop
         LDI = 0b10000010 # Assign 
         PRN = 0b01000111 # Print numeric value stored in the given register.
+        MUL = 0b10100010 # Multiply 
+        
         
         running = True
         
         while running:
             ir = self.ram[self.pc] # Instruction Register
             
+            reg_a = self.ram[self.pc + 1]   # first register value
+            reg_b = self.ram[self.pc + 2]   # second register value
+            
             if ir == HLT:
-                running = False
+                self.running = False
                 self.pc += 1
-            
+                
             elif ir == LDI:
-                reg_num = self.ram[self.pc + 1]
-                value = self.ram[self.pc + 2]
-                self.reg[reg_num] = value
-                # increment 
+                self.reg[reg_a] = reg_b
                 self.pc += 3
-            
+                
             elif ir == PRN:
-                reg_num = self.ram[self.pc + 1]
-                print(f"PRN- Numeric value stored in given register -> {self.reg[reg_num]}")
+                print(self.reg[reg_a])
                 self.pc += 2
+                
+            elif ir == MUL:
+                self.reg[reg_a] *= self.reg[reg_b]
+                self.pc += 3
             
             
             
