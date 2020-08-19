@@ -151,7 +151,7 @@ class CPU:
                 reg_to_push = self.ram[self.pc + 1]
                 num_to_push = self.registers[reg_to_push]
                 # copy the number to memory
-                SP = seelf.registers[7]
+                SP = self.registers[7]
                 self.ram[SP] = num_to_push
                 self.pc += 2
 
