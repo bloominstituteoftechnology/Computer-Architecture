@@ -2,6 +2,8 @@
 
 import sys
 
+filename = sys.argv[1]
+
 
 class CPU:
     """Main CPU class."""
@@ -14,9 +16,9 @@ class CPU:
         self.running = True
         self.reg = [0]*8
 
-    def load(self):
+    def load(self, filename):
         """Load a program into memory."""
-        filename = sys.argv[1]
+
         address = 0
         with open(filename) as f:
             for address, line in enumerate(f):
@@ -27,6 +29,8 @@ class CPU:
                 except ValueError:
                     continue
                 self.ram[address] = v
+
+                #print([address], v)
                 address += 1
 
         # For now, we've just hardcoded a program:
@@ -48,10 +52,12 @@ class CPU:
         """ALU operations."""
 
         if op == "ADD":
-            self.reg[reg_a] += self.reg[reg_b]
+            self.register[reg_a] += self.register[reg_b]
         # elif op == "SUB": etc
         elif op == "MUL":
-            self.reg[reg_a] *= self.reg[reg_b]
+           # print("reg", self.register[reg_a])
+            self.register[reg_a] *= self.register[reg_b]
+            # print(self.register[reg_a])
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -91,24 +97,30 @@ class CPU:
             'MUL': 0b10100010
         }
         while self.running:
-            IR = self.ram_read(self.pc)
+            IR = self.ram[self.pc]
             operandA = self.ram_read(self.pc + 1)
             operandB = self.ram_read(self.pc + 2)
-
+            # print("IR", IR)
+            # print('prog MUL', prog['MUL'])
             if IR == prog['HLT']:
                 self.running = False
 
             elif IR == prog['LDI']:
                 address = operandA
                 value = operandB
+                # print('address', address)
+                # print('value', value)
                 self.register[address] = value
                 self.pc += 3
+
             elif IR == prog['PRN']:
                 address = operandA
                 value = self.register[address]
                 print(value)
                 self.pc += 2
+
             elif IR == prog['MUL']:
+                #print('opa', operandA, operandB)
                 self.alu('MUL', operandA, operandB)
                 self.pc += 3
             else:
