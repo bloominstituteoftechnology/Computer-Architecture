@@ -11,6 +11,7 @@ class CPU:
         self.ram = [0] * 256
         self.reg = [0] * 8
         self.pc = 0
+        self.reg_pc = 0
 
     def ram_read(self, pos):
         return self.ram[pos]
@@ -22,24 +23,6 @@ class CPU:
         """Load a program into memory."""
 
         address = 0
-
-        # For now, we've just hardcoded a program:
-
-
-
-        # program = [
-        #     # From print8.ls8
-        #     0b10000010, # LDI R0,8
-        #     0b00000000,
-        #     0b00001000,
-        #     0b01000111, # PRN R0
-        #     0b00000000,
-        #     0b00000001, # HLT
-        # ]
-
-        # for instruction in program:
-        #     self.ram[address] = instruction
-        #     address += 1
 
         if len(sys.argv) != 2:
             print("Program requires second system argument to run.")
@@ -80,10 +63,10 @@ class CPU:
             self.reg[reg_a] -= self.reg[reg_b]
 
         elif op == "MUL":
-            self.reg[reg_a] *= self.reg[reg_b]
+            self.reg[reg_a] = self.reg[reg_a] * self.reg[reg_b]
 
         elif op == "DIV":
-            self.reg[reg_b] /= self.reg[reg_b]
+            self.reg[reg_a] = self.reg[reg_a] / self.reg[reg_b]
      
         else:
             raise Exception("Unsupported ALU operation")
@@ -120,7 +103,8 @@ class CPU:
 
             # LDI - sets value of register to integer
             if self.ram_read(self.pc) == 0b10000010:
-                self.reg[0] = self.ram_read(self.pc + 2)
+                self.reg[self.reg_pc] = self.ram_read(self.pc + 2)
+                self.reg_pc += 1
 
                 self.pc += 3
 
@@ -133,4 +117,9 @@ class CPU:
             # HALT
             if self.ram_read(self.pc) == 0b00000001:
                 break
+
+            if self.ram_read(self.pc) == 0b10100010:
+                self.alu("MUL", 0, 1)
+
+                self.pc += 3
 
