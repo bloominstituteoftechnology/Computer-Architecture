@@ -1,4 +1,4 @@
-# lecture\turing_machine.py
+# lecture\beej_machine_2.py
 
 import sys
 import time
@@ -13,6 +13,7 @@ import time
 memory = [0] * 256
 registers = [0] * 8
 
+
 address = 0
 
 if len(sys.argv) != 2:
@@ -23,7 +24,6 @@ try:
     with open(sys.argv[1]) as f:
         for line in f:
             temp = line.split()
-            print(temp)
             if len(temp) == 0 or temp[0][0] == "#":
                 continue
 
