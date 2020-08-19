@@ -3,8 +3,6 @@
 import sys
 import time
 
-print(sys.argv)
-
 # Instructions Lexicon
 
     # 1 - PRINT_BEEJ
@@ -13,9 +11,45 @@ print(sys.argv)
     # 4 - PRINT_REG - prints the register's decimal value
 
 memory = [0] * 256
-registers = [0] * 8 
+registers = [0] * 8
+
+sys.argv.append("lecture\prog1")
+print(sys.argv)
 
 address = 0
+
+if len(sys.argv) < 2:
+    print("No other programs found in system")
+    sys.exit(1)
+
+try:
+    with open(sys.argv[1]) as f:
+        for line in f:
+            temp = line.split()
+            if len(temp) == 0 or temp[0][0] == "#":
+                continue
+            print(temp[0][0])
+
+            try:
+                memory[address] = int(temp[0])
+
+            except ValueError:
+                print(f"Invalid number: {temp[0]}")
+                sys.exit(1)
+            
+            address += 1
+
+except FileNotFoundError:
+    print(f"Couldn't open {sys.argv[1]}")
+    sys.exit(2)
+
+if address == 0:
+    print("Program is emtpy!")
+    sys.exit(3)
+
+# sys.exit(0)
+
+breakpoint()
 
 running = True
 
@@ -26,7 +60,7 @@ while running:
 
     start = time.time()
     if time.time() - start > 0.5:
-        return
+        break
 
     # Instruction Register
     ir = memory[pc]
@@ -74,3 +108,4 @@ while running:
 
     else:
         print(f"Invalid instruction {ir} at {pc}")
+        sys.exit(1)
