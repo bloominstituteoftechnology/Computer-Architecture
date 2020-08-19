@@ -9,11 +9,13 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        # Create 256 bytes of Ram, 8 registers, a counter, and continuous variable
+        # Create 256 bytes of Ram, 8 registers, assign memory for the stack, a counter, and continuous variable
         # memory
         self.ram = [0] * 256
         # registers
         self.registers = [0] * 8
+        #assign memory
+        self.registers[7] = 240 # hex 0XF0
         # continuous variable
         self.running = True
         # counter
@@ -109,6 +111,8 @@ class CPU:
         PRN = 0b01000111
         HLT = 0b00000001
         MUL = 0b10100010
+        PUSH = 0b01000101
+        POP = 0b01000110
 
         while self.running:
             # the HLT instruction
@@ -139,24 +143,34 @@ class CPU:
                 print(product)
                 self.pc += 3
 
+            # the PUSH instruction
+            if self.ram[self.pc] == PUSH:
+                # when pushing, first decrement the stack pointer
+                self.registers[7] -= 1
+                # next find the register for pushing and it's value
+                reg_to_push = self.ram[self.pc + 1]
+                num_to_push = self.registers[reg_to_push]
+                # copy the number to memory
+                SP = seelf.registers[7]
+                self.ram[SP] = num_to_push
+                self.pc += 2
+
+            # the POP instruction
+            if self.ram[self.pc] == POP:
+                # when popping, don't decrement the stack pointer
+                SP = self.registers[7]
+                # the value should be at the most recent position of the stack pointer
+                num_to_pop = self.ram[SP]
+                # find the register for popping and copy the number into that register
+                reg_to_pop = self.ram[self.pc + 1]
+                self.registers[reg_to_pop] = num_to_pop
+                # after POP increment the stack pointer to the new 'most recent' position
+                self.registers[7] += 1
+                self.pc += 2
+
+
     
             
-            # elif IR == inst["PRN"]:
-            #     index = int(str(self.ram[self.pc + 1]), 2)
-            #     value = self.register[index]
-            #     print(f"Value: {value}, Register Index : {index}")
-            #     self.pc += 2
-
-            # elif ir == inst["MUL"]:
-            #     num1 = self.ram_read(self.pc + 1)
-            #     num2 = self.ram_read(self.pc + 2)
-            #     print("MUL answer: ", num1 * num2)
-            #     self.pc += 3
-
-            # else:
-            #     print(f"No instructions found! IR: {bin(int(ir, 2))}")
-            #     print(inst["LDI"] == bin(int(ir, 2)))
-            #     sys.exit(1)
 
 
 
