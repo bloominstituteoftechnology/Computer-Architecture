@@ -2,7 +2,6 @@
 
 import sys
 
-
 class CPU:
     """Main CPU class."""
 
@@ -72,6 +71,13 @@ class CPU:
         
         elif op == 'MUL':
             self.reg[reg_a] *= self.reg[reg_b]
+
+        elif op == 'SUB':
+            self.reg[reg_a] -= self.reg[reg_b]
+
+        elif op == 'DIV':
+            self.reg[reg_a] /= self.reg[reg_b]
+
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -100,7 +106,6 @@ class CPU:
 
         while self.isRunning:
             # Instruction Register
-            IR_int= self.ram_read(self.pc)
             IR= str(self.ram_read(self.pc))
 
             # `AABCDDDD`
@@ -121,25 +126,37 @@ class CPU:
                 operand_a= int(self.ram_read(self.pc+ 1), 2)
 
             # HTL 00000001 
-            if IR_int == '00000001':
+            if IR == '00000001':
                 self.isRunning= False
                 self.pc+= 1
-                # print('HLT')
 
             # LDI 10000010 00000rrr iiiiiiii
-            elif IR_int == '10000010':
+            elif IR == '10000010':
                 self.reg[operand_a]= operand_b
                 self.pc+= 3
-                # print('LDI')
 
             # PRN 01000111 00000rrr
-            elif IR_int == '01000111':
+            elif IR == '01000111':
                 val= self.reg[operand_a]
                 print(val)
                 self.pc+= 2
             
             # MUL 10100010 00000aaa 00000bbb
-            elif IR_int == '10100010':
+            elif IR == '10100010':
                 self.alu('MUL', operand_a, operand_b)
-                # print('MUL')
                 self.pc+= 3
+
+            # SUB 10100001 00000aaa 00000bbb
+            elif IR == '10100001':
+                self.alu('SUB', operand_a, operand_b)
+                self.pc+= 3
+            
+            # DIV 10100011 00000aaa 00000bbb
+            elif IR == '10100011':
+                if operand_b != 0:
+                    self.alu('DIV', operand_a, operand_b)
+                    self.pc+= 3
+                else:
+                    print('Cannot divide by 0')
+                    self.isRunning= False
+                    self.pc+= 1
