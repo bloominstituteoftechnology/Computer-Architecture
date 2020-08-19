@@ -23,6 +23,7 @@ try:
     with open(sys.argv[1]) as f:
         for line in f:
             temp = line.split()
+            print(temp)
             if len(temp) == 0 or temp[0][0] == "#":
                 continue
 
