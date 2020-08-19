@@ -12,6 +12,8 @@ class CPU:
         self.reg = [0] * 8
         self.running = True
         self.pc = 0
+        self.reg[7] = 0xf4  # STACK POINTER
+
 
     def ram_read(self, MAR):
         """
@@ -127,6 +129,8 @@ class CPU:
         PRN = 0b01000111
         HLT = 0b00000001
         MUL = 0b10100010
+        PUSH = 0b01000101
+        POP = 0b01000110
 
         while self.running:
 
@@ -139,7 +143,8 @@ class CPU:
                 num_to_load = self.ram[self.pc + 2]
                 reg_index = self.ram[self.pc + 1]
                 self.reg[reg_index] = num_to_load
-                self.pc += 3
+
+                self.pc += 3 # 3-byte instruction
 
             # PRN Instruction - Print numeric value stored in the given register.
             # Print to the console the decimal integer value that is stored in
@@ -147,9 +152,10 @@ class CPU:
             if self.ram[self.pc] == PRN:
                 reg_to_print = self.ram[self.pc + 1]
                 print(self.reg[reg_to_print])
-                self.pc += 2
 
-            # MUL instruction - Multiply the values in two registers together
+                self.pc += 2 # 2-byte instruction
+
+            # MUL Instruction - Multiply the values in two registers together
             # and store the result in registerA.
             if self.ram[self.pc] == MUL:
                 first_reg = self.ram[self.pc + 1]
@@ -157,8 +163,51 @@ class CPU:
                 first_factor = self.reg[first_reg]
                 sec_factor = self.reg[sec_reg]
                 product = first_factor * sec_factor
+
                 print(product)
-                self.pc += 3
+
+                self.pc += 3 # 3-byte instruction
+
+            # PUSH Instruction - Push the value in the given register on the stack.
+            if self.ram[self.pc] == PUSH:
+                # print(f"PUSHING {self.ram[self.pc]}")
+                # Decrement the `SP`
+                self.reg[7] -= 1
+                # print("DECREMENTED SP")
+
+                # Copy the value in the given register 
+                reg_num = self.ram[self.pc + 1]
+                # print("COPIED VALUE")
+                value = self.reg[reg_num]  # We want to push this value
+                # print(f"GOT VALUE {value}")
+
+                # Add it to the address pointed to by `SP`
+                top_of_stack_addr = self.reg[7]
+                self.ram[top_of_stack_addr] = value
+
+                self.pc += 2  # 2-byte instruction
+                # print("PUSH COMPLETE")
+
+            # POP Instruction - Pop the value at the top of the stack into the given register.
+            if self.ram[self.pc] == POP:
+                # Find register for pop and copy
+                top_of_stack_addr = self.reg[7]
+                value = self.ram[top_of_stack_addr]
+
+                # Copy the value from the address pointed to by `SP` 
+                reg_num = self.ram[self.pc + 1]
+                self.reg[reg_num] = value  # We want to pop this value
+
+                # Increment `SP`
+                self.reg[7] += 1
+
+                self.pc += 2  # 2-byte instruction
+
+
+            # # Handle "BAD" Input
+            # else:
+            #     print(f"Invalid instruction {self.ram[self.pc]} at address {self.pc}")
+            #     sys.exit(1)
 
 
 if __name__ == "__main__":
