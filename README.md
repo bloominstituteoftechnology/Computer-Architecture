@@ -25,7 +25,7 @@
 
 ### Day 3: Stack
 
-- [ ] Implement the System Stack and be able to run the `stack.ls8` program
+- [√] Implement the System Stack and be able to run the `stack.ls8` program
 
 ### Day 4: Get `call.ls8` running
 
