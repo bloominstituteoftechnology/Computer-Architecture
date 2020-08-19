@@ -95,8 +95,8 @@ class CPU:
         self.load()
         while self.running:
             instruction_register = self.ram[self.pc]
-            reg_a = self.ram[self.pc + 1]
-            reg_b = self.ram[self.pc + 2]
+            reg_a = self.ram_read[self.pc + 1]
+            reg_b = self.ram_read[self.pc + 2]
 
             if instruction_register == HLT:
                 self.running = False
