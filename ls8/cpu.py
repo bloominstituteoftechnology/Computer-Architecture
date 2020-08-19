@@ -8,19 +8,13 @@ class CPU:
     def __init__(self):
         """Construct a new CPU."""
         self.reg= [0] * 8
+        # set the SP
+        self.reg[7]= 0xf4
         self.ram= [0] * 256
-        self.bootUp()
         # Program Counter, address of the currently executing instruction
         self.pc= 0
+        # flags
         self.fl= 0
-
-    def bootUp(self):
-        # reset registers
-        for r in range(len(self.reg)-1):
-            if r < 7:
-                self.reg[r]= 0
-            elif r == 7:
-                self.reg[r]= 0xF4
         self.isRunning= True
 
     # MAR contains the address that is being read or written to. The MDR contains the data that was read or the data to write.
@@ -160,3 +154,24 @@ class CPU:
                     print('Cannot divide by 0')
                     self.isRunning= False
                     self.pc+= 1
+
+            # PUSH 01000101 00000rrr
+            elif IR == '01000101':
+                # print('PUSH')
+                # decrement SP
+                self.reg[7]-= 1
+                value= self.reg[operand_a]
+                sp= self.reg[7]
+                self.ram_write(value, sp)
+                self.pc+= 2
+                
+            #POP 01000110 00000rrr
+            elif IR == '01000110':
+                # print('POP')
+                sp= self.reg[7]
+                value= self.ram_read(sp)
+                reg_addr= operand_a
+                self.reg[reg_addr]= value
+                # increment SP
+                self.reg[7]+= 1
+                self.pc+= 2
