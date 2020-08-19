@@ -1,0 +1,27 @@
+3 # SAVE_REG R0,10
+0
+10
+
+3 # SAVE_REG R1,20
+1
+20
+
+5 # PUSH R0
+0
+
+5 # PUSH R1
+1
+
+6 # POP R0
+0
+
+6 # POP R1
+1
+
+4 # PRINT_REG R0
+0
+
+4 # PRINT_REG R1
+1
+
+2 # HALT
