@@ -95,6 +95,7 @@ class CPU:
         program_counter = self.pc
         instruction = self.ram[program_counter] # Grabbing instruction from memory based on program counter
         run = True
+        stack_pointer = 244 # F4
 
         while run:
             # Grabbing next two instructions in case they're needed using ram_read
@@ -138,6 +139,32 @@ class CPU:
                 #print('AFTER ALU')
                 #print('MULOP1', self.register[operand_a])
                 #print('MULOP2', self.register[operand_b])
+
+            # PUSH
+            elif instruction == 0b01000101:
+                #print('PUSH')
+                stack_pointer -= 1 # Decriment the index for our stack in ram
+                self.ram[stack_pointer] = self.register[operand_a]
+                #print(self.ram[stack_pointer])
+                self.pc += 2
+
+            # POP
+            elif instruction == 0b01000110:
+                '''
+                1. Copy the value from the address pointed to by `SP` to the given register.
+                2. Increment `SP`.
+                '''
+                #print('POP')
+                if stack_pointer < 244:
+                    self.register[operand_a] = self.ram[stack_pointer]
+                    #print(self.register[operand_a])
+
+                    stack_pointer += 1
+                else:
+                    print('Can\'t push onto an empty stack!')
+
+                self.pc += 2
+                
 
 
             # Point Counter Update/Run update
