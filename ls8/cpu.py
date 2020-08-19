@@ -7,21 +7,10 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        self.pc = 0 #add properties for any internal registers you need,
-        self.reg = [0] * 8  #holds 8 general purpose registers
-        self.ram = [0] * 256 #holds 256 bytes of memory
-
-
-    def ram_read(self, value):
-        return self.ram[value]
-        # reads and returns the value stored there.
-
-
-
-    def ram_write(self,value,addr):
-        self.ram[value] = addr
-        #should accept a value to write, and the address to write it to
-
+        self.ram = [0] * 256
+        self.reg = [0] * 8
+        self.pc = 0
+        self.runnning = True
 
     def load(self):
         """Load a program into memory."""
@@ -44,6 +33,11 @@ class CPU:
             self.ram[address] = instruction
             address += 1
 
+    def ram_read(self, index):
+        return self.ram[index]
+
+    def ram_write(self, index, value):
+        self.ram[index] = value
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -76,30 +70,24 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        HLT = 0b00000001
         LDI = 0b10000010
         PRN = 0b01000111
+        HLT = 0b00000001
 
-        running = True
+        while self.runnning:
+            ir = self.ram[self.pc]
+            operand_a = self.ram_read([self.pc + 1])
+            operand_b = self.ram_read([self.pc + 2])
 
-        while running:
-            instruction = self.ram_read(self.pc)
-            opr_a = self.ram_read(self.pc + 1)
-            opr_b = self.ram_read(self.pc + 2)
-
-            if instruction == HLT:
-                running = False
-                self.pc +=1
-
-
-            elif instruction == LDI:
-                self.reg[opr_a] = opr_b
-                self.pc += 3 
-
-            elif instruction == PRN:
-                print(self.reg[opr_a])
+            if ir == HLT:
+                self.runnning = False
+                self.pc += 1
+            elif ir == PRN:
+                print(operand_a)
                 self.pc += 2
-
+            elif ir == LDI:
+                self.reg[operand_a] = operand_b
+                self.pc += 3
             else:
-                print(f"bad input: {bin(instruction)}")
-                running = False
+                self.running = False
+                print(f"Bad input: {ir}")
