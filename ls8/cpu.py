@@ -52,9 +52,6 @@ class CPU:
         elif op == "MUL":
             self.reg[reg_a] *= self.reg[reg_b]
 
-        elif op == "MUL":
-            self.reg[reg_a] *= self.reg[reg_b]
-
         elif op == "DIV":
             self.reg[reg_b] /= self.reg[reg_b]
      

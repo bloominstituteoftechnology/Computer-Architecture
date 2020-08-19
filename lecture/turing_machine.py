@@ -13,12 +13,9 @@ import time
 memory = [0] * 256
 registers = [0] * 8
 
-sys.argv.append("lecture\prog1")
-print(sys.argv)
-
 address = 0
 
-if len(sys.argv) < 2:
+if len(sys.argv) != 2:
     print("No other programs found in system")
     sys.exit(1)
 
@@ -28,7 +25,6 @@ try:
             temp = line.split()
             if len(temp) == 0 or temp[0][0] == "#":
                 continue
-            print(temp[0][0])
 
             try:
                 memory[address] = int(temp[0])
@@ -48,8 +44,6 @@ if address == 0:
     sys.exit(3)
 
 # sys.exit(0)
-
-breakpoint()
 
 running = True
 
