@@ -6,6 +6,8 @@ LDI = 0b10000010
 HLT = 0b00000001
 PRN = 0b01000111
 MUL = 0b10100010
+POP = 0b01000110
+PUSH = 0b01000101
 
 class CPU:
     """Main CPU class."""
@@ -21,7 +23,10 @@ class CPU:
         # This is our program counter. It holds the address of the currently executing instruction
         self.pc = 0
 
+        # Boolean value as to whether the program is running or not
         self.running = True
+
+        self.sp = len(self.reg) - 1
 
     def ram_read(self, MAR):
         # MAR = Memory Address Register
@@ -118,6 +123,22 @@ class CPU:
         # Increment our program counter by 3
         self.pc += 3
 
+    def POP(self):
+        # We'll take from the stack and add it to reg
+        self.reg[self.ram[self.pc + 1]] = self.reg[self.sp]
+        # Increment the sp by 1
+        self.sp += 1
+        # Increment the 
+        self.pc += 2
+
+    def PUSH(self):
+        # Decrement the SP by 1
+        self.sp -= 1
+        # Write the value in ram at pc to the stack, then save the value to the stack
+        self.reg[self.sp] = self.reg[self.ram[self.pc + 1]]
+        # Increment the program counter by 2
+        self.pc += 2
+
     def call_function(self, n):
         # This is so our run method will know what to execute
         branch_table = {
@@ -125,6 +146,8 @@ class CPU:
             PRN : self.PRN,
             HLT : self.HLT,
             MUL : self.MUL,
+            POP : self.POP,
+            PUSH : self.PUSH
         }
 
         files = branch_table[n]
