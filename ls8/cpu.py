@@ -12,6 +12,7 @@ class CPU:
         self.reg = [0] * 8
         self.pc = 0
         self.reg_pc = 0
+        self.sp = 6
 
     def ram_read(self, pos):
         return self.ram[pos]
@@ -103,6 +104,7 @@ class CPU:
 
             # LDI - sets value of register to integer
             if self.ram_read(self.pc) == 0b10000010:
+                print(self.ram_read(self.pc + 2))
                 self.reg[self.reg_pc] = self.ram_read(self.pc + 2)
                 self.reg_pc += 1
 
@@ -123,3 +125,35 @@ class CPU:
 
                 self.pc += 3
 
+            # PUSH
+            if self.ram_read(self.pc) == 0b01000101:
+                # Decrement self.sp
+                self.reg[self.sp] -= 1
+
+                # Get value from self.reg
+                reg_num = self.ram[self.pc + 1]
+                value = self.reg[reg_num]
+
+                # Store value on Stack
+                top_stack_addr = self.reg[self.sp]
+                self.ram[top_stack_addr] = value
+
+                self.pc += 2
+
+            # POP
+            if self.ram_read(self.pc) == 0b01000110:
+                # Get value from self.ram
+                addr_to_pop = self.reg[self.sp]
+                value = self.ram[addr_to_pop]
+
+                # Store in self.reg
+                reg_num = self.ram[self.pc + 1]
+                self.reg[reg_num] = value
+
+                # Increment self.sp
+                self.reg[self.sp] += 1
+
+                self.pc += 2
+
+            if self.ram_read(self.pc) == 0b00000000:
+                self.pc += 1

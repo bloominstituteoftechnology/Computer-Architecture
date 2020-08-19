@@ -115,7 +115,7 @@ while running:
         top_stack_addr = registers[7]
         memory[top_stack_addr] = value
 
-        pc += 2
+        pc += 1
 
     # POP
     elif ir == 6:
