@@ -68,6 +68,8 @@ class CPU:
         self.pc = 0
         self.fl = 0
         self.address = 0
+        # The stack pointer (SP) is stored at R7 which when intialized points to address 0xF4 in RAM
+        self.sp = 7
         self.running = True
         self.branch_table = {
             0b00000001: self.HLT,
@@ -76,7 +78,9 @@ class CPU:
             0b10100000: self.ADD,
             0b10100001: self.SUB,
             0b10100010: self.MUL,
-            0b10100100: self.DIV
+            0b10100100: self.DIV,
+            0b01000101: self.PUSH,
+            0b01000110: self.POP
         }
 
     def HLT(self):
@@ -122,9 +126,34 @@ class CPU:
         num_1 = self.reg[self.ram_read(self.pc + 1)]
         num_2 = self.reg[self.ram_read(self.pc + 2)]
 
-        self.reg[self.ram_read(self.pc + 1)] = (num_1 / num_2)
+        self.reg[self.ram_read(self.pc + 1)] = (num_1 // num_2)
 
         self.pc += 3
+
+    def PUSH(self):
+        self.reg[self.sp] -= 1
+        # print('$$$$$$$', self.sp)
+
+        reg_num = self.ram_read(self.pc + 1)
+
+        value_to_push = self.reg[reg_num]
+
+        stack_address = self.reg[self.sp]
+
+        self.ram_write(value_to_push, stack_address)
+
+        self.pc += 2
+
+    def POP(self):
+        value_to_pop = self.ram_read(self.reg[self.sp])
+
+        self.reg[self.sp] += 1
+
+        reg_num = self.ram_read(self.pc + 1)
+
+        self.reg[reg_num] = value_to_pop
+
+        self.pc += 2
 
     def ram_read(self, MAR):
         return self.ram[MAR]
