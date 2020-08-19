@@ -151,7 +151,7 @@ class CPU:
                 self.reg[reg_num] = value
 
                 # Increment self.sp
-                self.reg[self.sp] += 1
+                self.reg[self.sp] += 2
 
                 self.pc += 2
 
