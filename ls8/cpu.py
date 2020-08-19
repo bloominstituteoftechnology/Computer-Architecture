@@ -50,7 +50,52 @@ class CPU:
         self.ram = [0] * 256 #256 bytes of memory
         self.reg = [0] * 8 #8 general-purpose registers
         self.pc = 0 #Program Counter, the index into memory of the currently-executing instruction
+        self.address = 0
         self.running = True
+                
+#    def handle_HLT(self):
+#        self.pc += 1
+#        sys.exit()
+#
+#    def handle_LDI(self):
+#        reg_index = self.ram_read(self.pc + 1)
+#        value = self.ram_read(self.pc + 2)
+#        
+#        self.reg[reg_index] = value
+#        self.pc += 3
+#
+#    def handle_PRN(self):
+#        reg_index = self.ram_read(self.pc + 1)
+#        print(self.reg[reg_index])
+#        self.pc += 2
+#
+#    def handle_ADD(self):
+#        num_1 = self.reg[self.ram_read(self.pc + 1)]
+#        num_2 = self.reg[self.ram_read(self.pc + 2)]
+#
+#        self.reg[self.ram_read(self.pc + 1)] = (num_1 + num_2)
+#        self.pc += 3
+#
+#    def handle_SUB(self):
+#        num_1 = self.reg[self.ram_read(self.pc + 1)]
+#        num_2 = self.reg[self.ram_read(self.pc + 2)]
+#
+#        self.reg[self.ram_read(self.pc + 1)] = (num_1 - num_2)
+#        self.pc += 3
+#
+#    def handle_MUL(self):
+#        num_1 = self.reg[self.ram_read(self.pc + 1)]
+#        num_2 = self.reg[self.ram_read(self.pc + 2)]
+#
+#        self.reg[self.ram_read(self.pc + 1)] = (num_1 * num_2)
+#        self.pc += 3
+#
+#    def handle_DIV(self):
+#        num_1 = self.reg[self.ram_read(self.pc + 1)]
+#        num_2 = self.reg[self.ram_read(self.pc + 2)]
+#
+#        self.reg[self.ram_read(self.pc + 1)] = (num_1 / num_2)
+#        self.pc += 3
     
     def ram_read(self, address): #accept the address to read and return the value stored there.
         return self.ram[address]
@@ -60,32 +105,53 @@ class CPU:
     
     def load(self):
         """Load a program into memory."""
-
-        address = 0
-
-        # For now, we've just hardcoded a program:
-
-        program = [
-                    # From print8.ls8
-                    0b10000010,  # LDI R0,8
-                    0b00000000,
-                    0b00001000,
-                    0b01000111,  # PRN R0
-                    0b00000000,
-                    0b00000001,  # HLT
-                ]
-
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
-
+        self.address = 0
+        
+        if len(sys.argv) < 2:
+            print("Error: Insufficient arguments. Add a file from example folder into run command as arg[1]")
+            sys.exit(0)
+        
+        try:
+            with open(sys.argv[1]) as f:
+                for line in f:
+                    line = line.strip()
+                    temp = line.split()
+        
+                    if len(temp) == 0:
+                        continue
+        
+                    if temp[0][0] == '#':
+                        continue
+        
+                    try:
+                        self.ram[self.address] = int(temp[0], 2)
+        
+                    except ValueError:
+                        print(f"Invalid number: {temp[0]}")
+                        sys.exit(1)
+        
+                    self.address += 1
+        
+        except FileNotFoundError:
+            print(f"Couldn't open {sys.argv[1]}")
+            sys.exit(2)
+        
+        if self.address == 0:
+            print("Program was empty!")
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
+        a = self.reg[reg_a]
+        b = self.reg[reg_b]
 
         if op == "ADD":
-            self.reg[reg_a] += self.reg[reg_b]
-        #elif op == "SUB": etc
+            a += b
+        elif op == "SUB":
+            a -= b
+        elif op == "MUL":
+            a *= b
+        elif op == "DIV":
+            a /= b
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -126,3 +192,13 @@ class CPU:
             elif IR == PRN: #Print
                 print(self.reg[operand_a])
                 self.pc += 2
+            elif IR == MUL:
+                self.reg[operand_a] *= self.reg[operand_b]
+                self.pc += 3
+            else:
+                self.running = False
+                print(f"Invalid Instruction: {IR}")
+
+cpu = CPU()
+cpu.load()
+cpu.run()
