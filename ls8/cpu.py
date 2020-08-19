@@ -69,7 +69,7 @@ class CPU:
         self.fl = 0
         self.address = 0
         # The stack pointer (SP) is stored at R7 which when intialized points to address 0xF4 in RAM
-        self.sp = 7
+        self.reg[6] = 0xF4
         self.running = True
         self.branch_table = {
             0b00000001: self.HLT,
@@ -84,19 +84,21 @@ class CPU:
         }
 
     def HLT(self):
-        self.pc += 1
+        # self.pc += 1
         sys.exit()
 
     def LDI(self):
         reg_idx = self.ram_read(self.pc + 1)
         value = self.ram_read(self.pc + 2)
         self.reg[reg_idx] = value
-        self.pc += 3
+
+        # self.pc += 3
 
     def PRN(self):
         reg_idx = self.ram_read(self.pc + 1)
         print(self.reg[reg_idx])
-        self.pc += 2
+
+        # self.pc += 2
 
     def ADD(self):
         num_1 = self.reg[self.ram_read(self.pc + 1)]
@@ -104,7 +106,7 @@ class CPU:
 
         self.reg[self.ram_read(self.pc + 1)] = (num_1 + num_2)
 
-        self.pc += 3
+        # self.pc += 3
 
     def SUB(self):
         num_1 = self.reg[self.ram_read(self.pc + 1)]
@@ -112,7 +114,7 @@ class CPU:
 
         self.reg[self.ram_read(self.pc + 1)] = (num_1 - num_2)
 
-        self.pc += 3
+        # self.pc += 3
 
     def MUL(self):
         num_1 = self.reg[self.ram_read(self.pc + 1)]
@@ -120,7 +122,7 @@ class CPU:
 
         self.reg[self.ram_read(self.pc + 1)] = (num_1 * num_2)
 
-        self.pc += 3
+        # self.pc += 3
 
     def DIV(self):
         num_1 = self.reg[self.ram_read(self.pc + 1)]
@@ -128,32 +130,32 @@ class CPU:
 
         self.reg[self.ram_read(self.pc + 1)] = (num_1 // num_2)
 
-        self.pc += 3
+        # self.pc += 3
 
     def PUSH(self):
-        self.reg[self.sp] -= 1
+        self.reg[6] -= 1
         # print('$$$$$$$', self.sp)
 
         reg_num = self.ram_read(self.pc + 1)
 
         value_to_push = self.reg[reg_num]
 
-        stack_address = self.reg[self.sp]
+        stack_address = self.reg[6]
 
         self.ram_write(value_to_push, stack_address)
 
-        self.pc += 2
+        # self.pc += 2
 
     def POP(self):
-        value_to_pop = self.ram_read(self.reg[self.sp])
+        value_to_pop = self.ram_read(self.reg[6])
 
-        self.reg[self.sp] += 1
+        self.reg[6] += 1
 
         reg_num = self.ram_read(self.pc + 1)
 
         self.reg[reg_num] = value_to_pop
 
-        self.pc += 2
+        # self.pc += 2
 
     def ram_read(self, MAR):
         return self.ram[MAR]
@@ -164,7 +166,7 @@ class CPU:
     def load(self):
         """Load a program into memory."""
 
-        self.address = 0
+        # self.address = 0
 
         try:
             with open(program_filename) as f:
@@ -249,6 +251,8 @@ class CPU:
 
             if IR in self.branch_table:
                 self.branch_table[IR]()
+
+                self.pc += (IR >> 6) + 1
 
             # operand_a = self.ram_read(self.pc + 1)
             # operand_b = self.ram_read(self.pc + 2)
