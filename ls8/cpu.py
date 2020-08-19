@@ -2,41 +2,34 @@
 
 import sys
 
-HLT = 0b00000001
-LDI = 0b10000010
-PRN = 0b01000111 # Halt
-
 class CPU:
-	"""Main CPU class."""
 
 	def __init__(self):
-		"""Construct a new CPU."""
-		self.pc = 0 # Instruction count
+		self.running = True
+		self.pointer = 0
 		self.reg = [0] * 8
-		self.ram = [0] * 256
-		self.running = False
+		self.memory = [0] * 256
 
 
 	def load(self):
-		"""Load a program into memory."""
 
-		address = 0
+		file = sys.argv[1]
+		try:
+			with open(file) as data:
+				for x, line in enumerate(data):
+					line = line.split("#")
+					#print("line ~",line)
 
-		# For now, we've just hardcoded a program:
+					try:
+						v = int(line[0], 2) 
+					except ValueError:
+						continue
 
-		program = [
-			# From print8.ls8
-			0b10000010, # LDI R0,8
-			0b00000000,
-			0b00001000,
-			0b01000111, # PRN R0
-			0b00000000,
-			0b00000001, # HLT
-		]
+					self.memory[x] = v
 
-		for instruction in program:
-			self.ram[address] = instruction
-			address += 1
+		except FileNotFoundError:
+			print("Unable to open file")
+			self.running = False
 
 
 	def alu(self, op, reg_a, reg_b):
@@ -44,7 +37,11 @@ class CPU:
 
 		if op == "ADD":
 			self.reg[reg_a] += self.reg[reg_b]
-		#elif op == "SUB": etc
+		elif op == "SUB":
+			self.reg[reg_a] += -self.reg[reg_b]
+		elif op == "MUL":
+			product = self.reg[reg_a] * self.reg[reg_b]
+			self.reg[reg_a] = product
 		else:
 			raise Exception("Unsupported ALU operation")
 
@@ -55,12 +52,12 @@ class CPU:
 		"""
 
 		print(f"TRACE: %02X | %02X %02X %02X |" % (
-			self.pc,
+			self.pointer,
 			#self.fl,
 			#self.ie,
-			self.ram_read(self.pc),
-			self.ram_read(self.pc + 1),
-			self.ram_read(self.pc + 2)
+			self.ram_read(self.pointer),
+			self.ram_read(self.pointer + 1),
+			self.ram_read(self.pointer + 2)
 		), end='')
 
 		for i in range(8):
@@ -69,32 +66,40 @@ class CPU:
 		print()
 
 	def ram_read(self, value):
-		return self.ram[value]
+		return self.memory[value]
 
 	def ram_write(self, value, data):
-		self.ram[value] = data
+		self.memory[value] = data
 
 	def run(self):
-		self.running = True
+
+		HLT = 0b00000001 # Hault
+		LDI = 0b10000010 # Load
+		PRN = 0b01000111 # Print
+		MUL = 0b10100010 # Multiply
 
 		while self.running:
-			instruction = self.ram_read(self.pc) # Current instruction
-			operand_a = self.ram_read(self.pc + 1)
-			operand_b = self.ram_read(self.pc + 2)
-
-			if instruction is LDI: # Load
-				self.reg[operand_a] = operand_b
-				self.pc += 3
-
-			if instruction is PRN: # Print
-				operand_a = self.ram_read(self.pc + 1)
-				print(self.reg[operand_a])
-				self.pc += 2
+			instruction = self.ram_read(self.pointer)
+			operand_a = self.ram_read(self.pointer + 1)
+			operand_b = self.ram_read(self.pointer + 2)
 
 			if instruction is HLT: # Hault
 				self.running = False
-				break
+				self.pointer += 1
 
-			self.pc += 1
+			if instruction is LDI: # Load
+				self.reg[operand_a] = operand_b
+				self.pointer += 3
+
+			if instruction is PRN: # Print
+				operand_a = self.ram_read(self.pointer + 1)
+				print(self.reg[operand_a])
+				self.pointer += 2
+
+			if instruction == MUL: # Multiply
+				multiply = self.reg[operand_a] * self.reg[operand_b]
+				print(multiply)
+				self.pointer += 3
+
 
 

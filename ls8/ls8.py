@@ -9,4 +9,3 @@ cpu = CPU()
 
 cpu.load()
 cpu.run()
-print(cpu.reg)
