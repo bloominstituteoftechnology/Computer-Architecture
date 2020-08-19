@@ -14,7 +14,8 @@ class CPU:
         self.pc = 0
         self.register = [0] * 8
         self.running = True
-        self.reg = [0]*8
+        self.reg = [0]*8,
+        self.SP = 0xf4
 
     def load(self, filename):
         """Load a program into memory."""
@@ -74,6 +75,7 @@ class CPU:
             self.ram_read(self.pc),
             self.ram_read(self.pc + 1),
             self.ram_read(self.pc + 2)
+
         ), end='')
 
         for i in range(8):
@@ -94,7 +96,9 @@ class CPU:
             'PRN': 0b01000111,
             'HLT': 0b00000001,
             'ADD': 0b10100000,
-            'MUL': 0b10100010
+            'MUL': 0b10100010,
+            'PUSH': 0b01000101,
+            'POP': 0b01000110
         }
         while self.running:
             IR = self.ram[self.pc]
@@ -123,6 +127,23 @@ class CPU:
                 #print('opa', operandA, operandB)
                 self.alu('MUL', operandA, operandB)
                 self.pc += 3
+
+            elif IR == prog['PUSH']:
+
+                address = operandA
+                value = self.register[address]
+                self.SP -= 1
+                self.ram[self.SP] = value
+                self.pc += 2
+
+            elif IR == prog['POP']:
+                address = operandA
+                value = self.ram[self.SP]
+                self.register[address] = value
+
+                self.SP += 1
+                self.pc += 2
+
             else:
                 print(f"Can't find {IR} with index of {self.pc}")
                 sys.exit(1)
