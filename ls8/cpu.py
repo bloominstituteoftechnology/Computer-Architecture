@@ -24,7 +24,8 @@ class CPU:
         address = 0
 
         try:
-            with open(program_file) as f:
+            with open(progra
+            m_file) as f:
                 for line in f:
                     comment_split = line.split("#")
                     n = comment_split[0].strip()
@@ -86,6 +87,9 @@ class CPU:
         PRN = 0b01000111
         MUL = 0b10100010
         ADD  = 0b10100000
+        PUSH = 0b01000101
+        POP = 0b01000110
+
 
         while self.running:
             IR = self.ram[self.pc]
@@ -110,6 +114,22 @@ class CPU:
             elif IR == ADD:
                 res = self.reg[operand_a] + self.reg[operand_b]
                 print(res)
+            elif IR == PUSH:
+                self.reg[7] -= 1
+                sp = self.reg[7]
+
+                value = self.reg[operand_a]
+                self.ram[sp] = value
+
+                self.pc += 2
+            elif IR == POP:
+                sp = self.reg[7]
+
+                value = self.ram[sp]
+                self.reg[operand_a] = value
+
+                self.reg[7] += 1                
+                self.pc += 2
             else:
                 self.running = False
                 print(f"Bad imput: {IR}")        
