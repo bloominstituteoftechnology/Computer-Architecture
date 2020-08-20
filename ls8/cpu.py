@@ -51,6 +51,7 @@ class CPU:
         self.reg = [0] * 8 #8 general-purpose registers
         self.pc = 0 #Program Counter, the index into memory of the currently-executing instruction
         self.address = 0
+        self.sp = len(self.reg) - 1 #stack pointer (7)
         self.running = True
                 
 #    def handle_HLT(self):
@@ -195,6 +196,14 @@ class CPU:
             elif IR == MUL:
                 self.reg[operand_a] *= self.reg[operand_b]
                 self.pc += 3
+            elif IR == PUSH:
+                self.sp -= 1
+                self.reg[self.sp] = self.reg[self.ram[self.pc + 1]] #Write value in ram at pc to the stack, then save value to stack
+                self.pc += 2
+            elif IR == POP:
+                self.reg[self.ram[self.pc + 1]] = self.reg[self.sp] #take from stack, add to reg
+                self.sp += 1
+                self.pc += 2
             else:
                 self.running = False
                 print(f"Invalid Instruction: {IR}")
