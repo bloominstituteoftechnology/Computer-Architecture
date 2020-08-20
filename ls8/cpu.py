@@ -114,7 +114,7 @@ class CPU:
  
             # LDI - Set the value of a register to an integer.
             elif instruction == 0b10000010:
-                #print('LDI')
+                print('LDI')
                 #print('index', operand_a, 'value', operand_b)
                 self.register[operand_a] = operand_b # This sets register a with the value b (0,8)
                 self.pc += 3
@@ -123,14 +123,14 @@ class CPU:
 
             # PRN - Prints the next opcode    
             elif instruction == 0b01000111:
-                #print('PRN')
+                print('PRN')
                 self.pc += 2
                 print(self.register[operand_a])
                 # 01000111 >> 5 = 00000001 = 1
 
             # MUL - Multiply 2 registers together and save result to the first register (SHOULD USE ALU)
             elif instruction == 0b10100010:
-                #print('MUL')
+                print('MUL')
                 self.pc += 3
                 #print('OPS', operand_a, operand_b)
                 #print('MULOP1', self.register[operand_a])
@@ -142,13 +142,13 @@ class CPU:
 
             # ADD - Add 2 registers together and save result to the first register (SHOULD USE ALU)
             elif instruction == 0b10100000:
-                #print('ADD')
+                print('ADD')
                 self.pc += 3
                 self.alu('ADD', operand_a, operand_b)
 
             # PUSH
             elif instruction == 0b01000101:
-                #print('PUSH')
+                print('PUSH')
                 stack_pointer -= 1 # Decriment the index for our stack in ram
                 self.ram[stack_pointer] = self.register[operand_a]
                 #print(self.ram[stack_pointer])
@@ -160,7 +160,7 @@ class CPU:
                 1. Copy the value from the address pointed to by `SP` to the given register.
                 2. Increment `SP`.
                 '''
-                #print('POP')
+                print('POP')
                 if stack_pointer < 244:
                     self.register[operand_a] = self.ram[stack_pointer]
                     #print(self.register[operand_a])
@@ -173,7 +173,7 @@ class CPU:
 
             # CALL
             elif instruction == 0b01010000:
-                #print('CALL')
+                print('CALL')
                 # push the return address on to the stack
                 stack_pointer -= 1
                 #print('current stack point', stack_pointer)
@@ -186,10 +186,50 @@ class CPU:
                 
             # RET
             elif instruction == 0b00010001:
-                #print('RET')
+                print('RET')
                 # POP return address from stack to store in pc
                 self.pc = self.ram[stack_pointer]
                 stack_pointer += 1
+
+            # CMP - Compare and set flag accordingly (REG 4 reserved for flag)
+            elif instruction == 0b10100111:
+                print('CMP')
+                if self.register[operand_a] == self.register[operand_b]:
+                    eflag = 1
+                    gflag = 0
+                    lflag = 0
+                elif self.register[operand_a] > self.register[operand_b]:
+                    eflag = 0
+                    gflag = 1
+                    lflag = 0
+                else:
+                    eflag = 0
+                    gflag = 0
+                    lflag = 1
+                
+                self.pc += 3
+
+            # JEQ - If `equal` flag is set (true), jump to the address stored in the given register. 01010110
+            elif instruction == 0b01010101:
+                print('JEQ')
+                if eflag == 1:
+                    #print('reg 2', self.register[operand_a])
+                    self.pc = self.register[operand_a]
+                else:
+                    self.pc += 2
+
+            # JNE - If `E` flag is clear (false, 0), jump to the address stored in the given register.
+            elif instruction == 0b01010110:
+                print('JNE')
+                if eflag == 0:
+                    self.pc = self.register[operand_a]
+                else:
+                    self.pc += 2
+
+            # JMP - Jump to the address stored in the given register. Set the `PC` to the address stored in the given register.
+            elif instruction == 0b01010100:
+                print('JMP')
+                self.pc = self.register[operand_a]
 
             # INVALID
             else:
