@@ -14,13 +14,15 @@ class CPU:
         self.pc = 0 # pointer to track operations in register. Program Counter
         self.running = True
         self.branchtable = {
+            0b10100000: self.ADD,
             0b10000010: self.LDI,
             0b01000111: self.PRN, 
             0b00000001: self.HLT, 
             0b10100010: self.MUL, 
             0b01000101: self.PUSH,
-            0b01000110: self.POP
-
+            0b01000110: self.POP,
+            0b01010000: self.CALL,
+            0b00010001: self.RET
         }
 
     def ram_read(self, MAR): # Memory Address Register
@@ -40,27 +42,14 @@ class CPU:
             with open(argument, "r") as f:
                program = f.read()
 
-            instructions = re.findall(r'\d{8}', program) # match first block of numbers
+            instructions = re.findall(r'\d{8}', program) # match 8 digit numbers
             for address, instruction in enumerate(instructions):
                 x = int(instruction, 2)  # Convert binary string to integer
                 self.ram[address] = x
 
-                #    if instruction[0].isdigit():
-                #         line = instruction.split("#")
         except FileNotFoundError:
             print("Error with file from command line")
 
-        # # For now, we've just hardcoded a program:
-
-        # program = [
-        #     # From print8.ls8
-        #     0b10000010, # LDI R0,8
-        #     0b00000000,
-        #     0b00001000,
-        #     0b01000111, # PRN R0
-        #     0b00000000,
-        #     0b00000001, # HLT
-        # ]
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations. arithmetic logic unit"""
@@ -97,22 +86,6 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        """
-        10000010 # LDI R0,8
-        00000000
-        00001000
-        01000111 # PRN R0
-        00000000
-        00000001 # HLT
-        """
-
-        LDI = 0b10000010 
-        PRN = 0b01000111
-        HLT = 0b00000001
-        MUL = 0b10100010
-        PUSH = 0b01000101
-        POP = 0b01000110
-
 
         while self.running:
             IR = self.ram_read(self.pc) # Instruction Register
@@ -126,6 +99,20 @@ class CPU:
             else:
                 print(f"This whole court is outta order!")
                 self.running = False
+
+    def ADD(self, operand_a, operand_b):
+        self.alu("ADD", operand_a, operand_b)
+        self.pc += 3
+
+    def CALL(self, operand_a, operand_b):
+        # get ret address of next function
+        return_address = self.pc + 2
+        # operand_b
+        # We can't use the regular PUSH because that pushed from register
+        self.PUSH_ANY(return_address)
+        # Set PC to subroutin address
+        self.pc = self.reg[operand_a]
+
     def HLT(self, operand_a, operand_b):
         self.running = False
 
@@ -134,19 +121,9 @@ class CPU:
         self.reg[operand_a] = operand_b
         self.pc += 3
                
-
-    def PRN(self, operand_a, operand_b): 
-        # opA is the reg index to print
-        print(self.reg[operand_a])
-        self.pc += 2
-            
-    def PUSH(self, operand_a, operand_b):
-        # Decrement stack pointer
-        self.sp += -1
-        # opA tells us which register value, stack pointer is where to store
-        self.ram[self.sp] = self.reg[operand_a]
-        # move the program counter when done
-        self.pc += 2
+    def MUL(self, operand_a, operand_b): # multiply the next two
+        self.alu("MUL", operand_a, operand_b)
+        self.pc += 3
 
     def POP(self, operand_a, operand_b):
         # sp is the value you want to put into the register
@@ -156,10 +133,29 @@ class CPU:
         self.sp += 1
         self.pc += 2
 
-    def MUL(self, operand_a, operand_b): # multiply the next two
-        self.alu("MUL", operand_a, operand_b)
-        self.pc += 3
+    def PRN(self, operand_a, operand_b): 
+        # opA is the reg index to print
+        print(self.reg[operand_a])
+        self.pc += 2
+            
+    def PUSH(self, operand_a, operand_b): # push register value onto stack
+        # Decrement stack pointer
+        self.sp += -1
+        # opA tells us which register value, stack pointer is where to store
+        self.ram[self.sp] = self.reg[operand_a]
+        # move the program counter when done
+        self.pc += 2
 
-        
+    def PUSH_ANY(self, value):
+        self.sp += -1
+        self.ram[self.sp] = value
+
+    def RET(self, operand_a, operand_b):
+        # pop value from stack into pc
+        # same problem with pop fn and register
+        self.pc = self.ram[self.sp]
+        self.sp += 1
+
+
 
 
