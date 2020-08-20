@@ -2,12 +2,24 @@
 
 import sys
 
+#inst codes
+LDI = 130
+PRN = 71
+HLT = 1
+MUL = 162
+PUSH = 69
+POP = 70
+RET = 17
+CALL = 80
+
+
 class CPU:
     """Main CPU class."""
 
     def __init__(self):
         """Construct a new CPU."""
         self.pc = 0
+        self.ir = 0
         self.ram = [0] * 256
         self.reg = [0] * 8
         self.SP = self.reg[7]
@@ -16,19 +28,6 @@ class CPU:
         """Load a program into memory."""
 
         address = 0
-
-        # For now, we've just hardcoded a program:
-
-        # program = [
-        #     # From print8.ls8
-        #     0b10000010, # LDI R0,8, 130 in decimal
-        #     0b00000000,
-        #     0b00001000,
-        #     0b01000111, # PRN R0, 71 in decimal
-        #     0b00000000,
-        #     0b00000001, # HLT, 1 in decimal
-        # ]
-
         program = []
 
         if len(sys.argv) != 2:  
@@ -95,60 +94,61 @@ class CPU:
         while running:
             ir = self.ram[self.pc] # Instruction Register - internal part of CPU that holds a value.  Special purpose part of CPU.
 
-            if ir == 130: # LDI instruction
+            if ir == LDI: # LDI instruction
                 reg_num = self.ram_read(self.pc+1)
                 value = self.ram_read(self.pc+2)
                 self.reg[reg_num] = value
-                self.pc += (ir >> 6) + 1 # using bit shifting to determine length of instruction set.
+                self.pc += 3 # using bit shifting to determine length of instruction set.
             
-            elif ir == 71: # PRN instruction
+            elif ir == PRN: # PRN instruction
                 reg_num = self.ram_read(self.pc+1)
                 print(self.reg[reg_num])
-                self.pc += (ir >> 6) + 1
+                self.pc += 2
 
-            elif ir == 1: # HLT instruction
+            elif ir == HLT: # HLT instruction
                 running = False
 
-            elif ir == 162: # MUL
+            elif ir == MUL: # MUL
                 num1 = self.ram_read(self.pc+1)
                 num2 = self.ram_read(self.pc+2)
                 print(self.alu("MUL", num1, num2))
-                self.pc += (ir >> 6) + 1
+                self.pc += 3
 
-            elif ir == 69: # PUSH
+            elif ir == PUSH: # PUSH
                 self.SP -= 1 # decriment SP (stack pointer)
                 reg_num = self.ram_read(self.pc + 1)   # get value from register
                 value = self.reg[reg_num] # we want to push this value
                 top_of_stack_addr = self.SP # get top of stack address
                 self.ram[top_of_stack_addr] = value # store value at top of the stack
-                self.pc += (ir >> 6) + 1 # increment PC
+                self.pc += 2 # increment PC
 
-            elif ir == 70: # POP
+            elif ir == POP: # POP
                 top_of_stack_addr = self.SP
                 reg_num = self.ram_read(self.pc+1)
                 self.reg[reg_num] = self.ram[top_of_stack_addr]
                 self.SP += 1
-                self.pc += (ir >> 6) + 1
+                self.pc += 2
 
-            elif ir == 17: # RET
+            elif ir == RET: # RET
                 # Pop the value from the top of the stack and store it in the PC
                 self.pc = self.ram_read(self.SP)
                 self.SP += 1
 
-            # CALL 
-            # Calls a subroutine (function) at the address stored in the register.
-            # - The address of the instruction directly after CALL is pushed onto the stack. This allows us to return to where we left off when the subroutine finishes executing.
-            # - The PC is set to the address stored in the given register. We jump to that location in RAM and execute the first instruction in the subroutine. The PC can move forward or backwards from its current location.
-
-            elif ir == 80: # CALL
-                pass
+            elif ir == CALL:
+                self.SP -= 1 # decriment SP (stack pointer)         
+                self.ram[self.SP] = self.pc + 2 # push address of next instruction onto the stack
+                reg_num = self.ram_read(self.pc + 1)  # get reg_num from memory
+                self.pc = self.reg[reg_num] # set the pc
 
             else:
-                self.pc += (ir >> 6) + 1
+                self.pc += 1
 
+
+    # MAR = Memory address    
     def ram_read(self, MAR):
         return self.ram[MAR]
 
+    # MDA = Memory Data
     def ram_write(self, MAR, MDA):
         self.ram[MAR] = MDA
         return self.ram[MAR]

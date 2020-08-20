@@ -98,6 +98,27 @@ while running:
 
         pc += 2
 
+    elif ir == 7: # CALL
+        # push return address
+        ret_addr = pc + 2
+        registers[7] -= 1
+        memory[registers[7]] = ret_addr
+
+        # call the subroutine
+        reg_num = memory[pc+1]
+        pc = registers[reg_num]
+
+    elif ir == 8: # RET
+        pass
+
+    else:
+        print(f"invalid instruction {ir} at address {pc}")
+        sys.exit(1)
+
+ 
+
+
+
 
     
 
