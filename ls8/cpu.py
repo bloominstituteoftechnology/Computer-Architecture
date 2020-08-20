@@ -7,6 +7,7 @@ LDI = 130
 PRN = 71
 HLT = 1
 MUL = 162
+ADD = 160
 PUSH = 69
 POP = 70
 RET = 17
@@ -111,8 +112,15 @@ class CPU:
             elif ir == MUL: # MUL
                 num1 = self.ram_read(self.pc+1)
                 num2 = self.ram_read(self.pc+2)
-                print(self.alu("MUL", num1, num2))
+                self.alu("MUL", num1, num2)
                 self.pc += 3
+
+            elif ir == ADD:
+                num1 = self.ram_read(self.pc+1)
+                num2 = self.ram_read(self.pc+2)
+                self.alu("ADD", num1, num2)
+                self.pc += 3
+
 
             elif ir == PUSH: # PUSH
                 self.SP -= 1 # decriment SP (stack pointer)
