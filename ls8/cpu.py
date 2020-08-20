@@ -95,21 +95,21 @@ class CPU:
         while running:
             ir = self.ram[self.pc] # Instruction Register - internal part of CPU that holds a value.  Special purpose part of CPU.
 
-            if ir == LDI: # LDI instruction
+            if ir == LDI: 
                 reg_num = self.ram_read(self.pc+1)
                 value = self.ram_read(self.pc+2)
                 self.reg[reg_num] = value
-                self.pc += 3 # using bit shifting to determine length of instruction set.
+                self.pc += 3 
             
-            elif ir == PRN: # PRN instruction
+            elif ir == PRN: 
                 reg_num = self.ram_read(self.pc+1)
                 print(self.reg[reg_num])
                 self.pc += 2
 
-            elif ir == HLT: # HLT instruction
+            elif ir == HLT: 
                 running = False
 
-            elif ir == MUL: # MUL
+            elif ir == MUL: 
                 num1 = self.ram_read(self.pc+1)
                 num2 = self.ram_read(self.pc+2)
                 self.alu("MUL", num1, num2)
@@ -121,8 +121,7 @@ class CPU:
                 self.alu("ADD", num1, num2)
                 self.pc += 3
 
-
-            elif ir == PUSH: # PUSH
+            elif ir == PUSH: 
                 self.SP -= 1 # decriment SP (stack pointer)
                 reg_num = self.ram_read(self.pc + 1)   # get value from register
                 value = self.reg[reg_num] # we want to push this value
@@ -130,7 +129,7 @@ class CPU:
                 self.ram[top_of_stack_addr] = value # store value at top of the stack
                 self.pc += 2 # increment PC
 
-            elif ir == POP: # POP
+            elif ir == POP: 
                 top_of_stack_addr = self.SP
                 reg_num = self.ram_read(self.pc+1)
                 self.reg[reg_num] = self.ram[top_of_stack_addr]
