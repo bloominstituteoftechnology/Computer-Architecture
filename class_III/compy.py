@@ -16,6 +16,7 @@ PRINT_REG = 4
 PUSH = 5
 POP = 6
 CALL = 7
+RET = 8
 
 memory = [0] * 256   # think of as a big array of bytes, 8-bits per byte
 
@@ -72,22 +73,22 @@ pc = 0   # Program Counter, the index into memory of the currently-executing ins
 while running:
     ir = memory[pc]  # Instruction Register
 
-    if ir == PRINT_AARON: 
+    if ir == PRINT_AARON:
         print("Aaron!")
         pc += 1
 
-    elif ir == HALT: 
+    elif ir == HALT:
         running = False
         pc += 1
 
-    elif ir == SAVE_REG: 
+    elif ir == SAVE_REG:
         reg_num = memory[pc + 1]
         value = memory[pc + 2]
         registers[reg_num] = value
 
         pc += 3
 
-    elif ir == PRINT_REG: 
+    elif ir == PRINT_REG:
         reg_num = memory[pc + 1]
         print(registers[reg_num])
 
@@ -133,6 +134,14 @@ while running:
         # Call the subroutine
         reg_num = memory[pc + 1]
         pc = registers[reg_num]
+
+    elif ir == RET:
+        # Pop the return addr off the stack
+        ret_addr = memory[registers[SP]]
+        registers[SP] += 1
+
+        # Set the PC to it
+        pc = ret_addr
 
     else:
         print(f"Invalid instruction {ir} at address {pc}")
