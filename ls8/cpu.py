@@ -99,8 +99,8 @@ class CPU:
 
         while run:
             # Grabbing next two instructions in case they're needed using ram_read
-            operand_a = self.ram_read(program_counter + 1)
-            operand_b = self.ram_read(program_counter + 2)
+            operand_a = self.ram_read(self.pc + 1)
+            operand_b = self.ram_read(self.pc + 2)
             #print('OPS AT START OF LOOP', operand_a, operand_b)
             #print('----------------')
             #for item in self.register:
@@ -140,6 +140,12 @@ class CPU:
                 #print('MULOP1', self.register[operand_a])
                 #print('MULOP2', self.register[operand_b])
 
+            # ADD - Add 2 registers together and save result to the first register (SHOULD USE ALU)
+            elif instruction == 0b10100000:
+                #print('ADD')
+                self.pc += 3
+                self.alu('ADD', operand_a, operand_b)
+
             # PUSH
             elif instruction == 0b01000101:
                 #print('PUSH')
@@ -164,6 +170,31 @@ class CPU:
                     print('Can\'t push onto an empty stack!')
 
                 self.pc += 2
+
+            # CALL
+            elif instruction == 0b01010000:
+                #print('CALL')
+                # push the return address on to the stack
+                stack_pointer -= 1
+                #print('current stack point', stack_pointer)
+                #print('setting this stack index in ram', self.ram[stack_pointer])
+                self.ram[stack_pointer] = self.pc + 2
+                #print('with this value', self.ram[stack_pointer])
+
+                # Set the PC to the subroutines address
+                self.pc = self.register[operand_a]
+                
+            # RET
+            elif instruction == 0b00010001:
+                #print('RET')
+                # POP return address from stack to store in pc
+                self.pc = self.ram[stack_pointer]
+                stack_pointer += 1
+
+            # INVALID
+            else:
+                print("Invalid Instruction:")
+                run = False
                 
 
 
