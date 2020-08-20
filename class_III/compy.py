@@ -9,11 +9,21 @@ import sys
 # 5 - PUSH
 # 6 - POP
 
+PRINT_AARON = 1
+HALT = 2
+SAVE_REG = 3
+PRINT_REG = 4
+PUSH = 5
+POP = 6
+CALL = 7
+
 memory = [0] * 256   # think of as a big array of bytes, 8-bits per byte
 
 registers = [0] * 8
 
-registers[7] = 0xf4  # STACK POINTER
+SP = 7
+
+registers[SP] = 0xf4  # STACK POINTER
 
 # Load the program file
 address = 0
@@ -62,56 +72,67 @@ pc = 0   # Program Counter, the index into memory of the currently-executing ins
 while running:
     ir = memory[pc]  # Instruction Register
 
-    if ir == 1:  # PRINT_BEEJ
+    if ir == PRINT_AARON: 
         print("Aaron!")
         pc += 1
 
-    elif ir == 2:  # HALT
+    elif ir == HALT: 
         running = False
         pc += 1
 
-    elif ir == 3:  # SAVE_REG
+    elif ir == SAVE_REG: 
         reg_num = memory[pc + 1]
         value = memory[pc + 2]
         registers[reg_num] = value
 
         pc += 3
 
-    elif ir == 4:  # PRINT_REG
+    elif ir == PRINT_REG: 
         reg_num = memory[pc + 1]
         print(registers[reg_num])
 
         pc += 2
 
-    elif ir == 5:  # PUSH
+    elif ir == PUSH:
         # Decrement the stack pointer
-        registers[7] -= 1
+        registers[SP] -= 1
 
         # Get value from register
         reg_num = memory[pc + 1]
         value = registers[reg_num]  # We want to push this value
 
         # Store it on the stack
-        top_of_stack_addr = registers[7]
+        top_of_stack_addr = registers[SP]
         memory[top_of_stack_addr] = value
 
         pc += 2  # 2-byte instruction
 
         print(f"stack: {memory[0xE4:0xF5]}")
 
-    elif ir == 6:  # POP
-        # Copy the value from the address pointed to by `SP`
-        reg_num = memory[pc + 1]
-        value = registers[reg_num]  # Want to pop this value
+    elif ir == POP:
+        # Get value from top of the stack
+        top_of_stack_addr = registers[SP]
+        value = memory[top_of_stack_addr]
 
-        # Add it to the given register.
-        top_of_stack_addr = registers[7]
-        memory[top_of_stack_addr] = value
+        # Get register number and store the value there
+        reg_num = memory[pc + 1]
+        registers[reg_num] = value
 
         # Increment the stack pointer
-        registers[7] += 1
+        registers[SP] += 1
 
         pc += 2  # 2-byte instruction
+
+    elif ir == CALL:
+        ret_addr = pc + 2
+
+        # Push address on the stack
+        registers[SP] -= 1
+        memory[registers[SP]] = ret_addr
+
+        # Call the subroutine
+        reg_num = memory[pc + 1]
+        pc = registers[reg_num]
 
     else:
         print(f"Invalid instruction {ir} at address {pc}")
