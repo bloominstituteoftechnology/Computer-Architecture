@@ -2,7 +2,6 @@
 
 import sys
 
-
 class CPU:
     """Main CPU class."""
 
@@ -131,6 +130,10 @@ class CPU:
         MUL = 0b10100010
         PUSH = 0b01000101
         POP = 0b01000110
+        ADD =  0b10100000
+        JMP = 0b01010100
+        CALL = 0b01010000
+        RET = 0b00010001
 
         while self.running:
 
@@ -145,6 +148,7 @@ class CPU:
                 self.reg[reg_index] = num_to_load
 
                 self.pc += 3 # 3-byte instruction
+                # print("LDI")
 
             # PRN Instruction - Print numeric value stored in the given register.
             # Print to the console the decimal integer value that is stored in
@@ -202,6 +206,41 @@ class CPU:
                 self.reg[7] += 1
 
                 self.pc += 2  # 2-byte instruction
+
+            # ADD Instruction - Add the value in two registers and store the result in registerA.
+            # The ADD instruction
+            if self.ram[self.pc] == ADD:
+                first_reg = self.ram[self.pc + 1]
+                sec_reg = self.ram[self.pc + 2]
+                self.alu('ADD', first_reg, sec_reg)
+                self.pc += 3
+
+            # CALL instruction - Calls a subroutine (function) at the address stored in the register.
+            if self.ram[self.pc] == CALL:
+                # We will be PUSHing so we must decrement the Stack Pointer
+                self.reg[7] -= 1
+                SP = self.reg[7]
+                # Then we want the address of the next instruction, for when the subroutine has completed
+                addr_next_instruction = self.pc + 2
+                # And we put that address on the stack
+                self.ram[SP] = addr_next_instruction
+                # Next we find register we'll be CALLing from and the address that is in that register
+                reg_to_call = self.ram[self.pc + 1]
+                addr_to_goto = self.reg[reg_to_call]
+                # And we set the PC to that address
+                self.pc = addr_to_goto
+                # print("Called")
+
+            # RET instruction - Return from subroutine
+            if self.ram[self.pc] == RET:
+                # We will be POPping so we don't decrement the Stack Pointer
+                SP = self.reg[7]
+                # We want the address at the top of the stack...
+                addr_to_pop = self.ram[SP]
+                # ...So that we can set PC to that address
+                self.pc = addr_to_pop
+                # After we pop we increment the Stack Pointer
+                self.reg[7] += 1
 
 
             # # Handle "BAD" Input
