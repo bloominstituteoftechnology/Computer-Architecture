@@ -1,0 +1,20 @@
+3 # SAVE_REG R0, 10
+0
+10
+7 # CALL R0
+0
+7 # CALL R0
+0
+7 # CALL R0
+0
+2 # HALT
+
+# Subroutine:
+
+1 # PRINT_AARON
+3 # SAVE_REG R4 37
+4
+37
+4 # PRINT_REG
+4
+8 # RET
