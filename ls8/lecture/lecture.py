@@ -47,3 +47,20 @@ a = 0b1000  # binary
 a = 0x1000  # hexadecimal
 print(bin(a))
 print(hex(a))
+------------------------------------------
+"""
+Register:
+
+PC: a special-purpose register that store the address of current instruction
+
+RAM of 256 bytes address from 00 to FF (hexadecimal)
+
+Top of RAM are researved for special instruction like Interruption. 
+
+Somewhere in the midddle near the top is stack, it grows down.
+
+bottom of RAM is for program entry, loaded upwards in memory.
+
+
+
+"""
