@@ -68,6 +68,7 @@ class CPU:
         self.pc = 0
         self.fl = 0
         self.address = 0
+        self.op_size = 0
         # The stack pointer (SP) is stored at R7 which when intialized points to address 0xF4 in RAM
         self.reg[6] = 0xF4
         self.running = True
@@ -80,11 +81,13 @@ class CPU:
             0b10100010: self.MUL,
             0b10100100: self.DIV,
             0b01000101: self.PUSH,
-            0b01000110: self.POP
+            0b01000110: self.POP,
+            0b01010000: self.CALL,
+            0b00010001: self.RET
         }
 
     def HLT(self):
-        # self.pc += 1
+        self.pc += 1
         sys.exit()
 
     def LDI(self):
@@ -92,13 +95,13 @@ class CPU:
         value = self.ram_read(self.pc + 2)
         self.reg[reg_idx] = value
 
-        # self.pc += 3
+        self.pc += 3
 
     def PRN(self):
         reg_idx = self.ram_read(self.pc + 1)
         print(self.reg[reg_idx])
 
-        # self.pc += 2
+        self.pc += 2
 
     def ADD(self):
         num_1 = self.reg[self.ram_read(self.pc + 1)]
@@ -106,7 +109,7 @@ class CPU:
 
         self.reg[self.ram_read(self.pc + 1)] = (num_1 + num_2)
 
-        # self.pc += 3
+        self.pc += 3
 
     def SUB(self):
         num_1 = self.reg[self.ram_read(self.pc + 1)]
@@ -114,7 +117,7 @@ class CPU:
 
         self.reg[self.ram_read(self.pc + 1)] = (num_1 - num_2)
 
-        # self.pc += 3
+        self.pc += 3
 
     def MUL(self):
         num_1 = self.reg[self.ram_read(self.pc + 1)]
@@ -122,7 +125,7 @@ class CPU:
 
         self.reg[self.ram_read(self.pc + 1)] = (num_1 * num_2)
 
-        # self.pc += 3
+        self.pc += 3
 
     def DIV(self):
         num_1 = self.reg[self.ram_read(self.pc + 1)]
@@ -130,7 +133,7 @@ class CPU:
 
         self.reg[self.ram_read(self.pc + 1)] = (num_1 // num_2)
 
-        # self.pc += 3
+        self.pc += 3
 
     def PUSH(self):
         self.reg[6] -= 1
@@ -144,7 +147,7 @@ class CPU:
 
         self.ram_write(value_to_push, stack_address)
 
-        # self.pc += 2
+        self.pc += 2
 
     def POP(self):
         value_to_pop = self.ram_read(self.reg[6])
@@ -155,7 +158,21 @@ class CPU:
 
         self.reg[reg_num] = value_to_pop
 
-        # self.pc += 2
+        self.pc += 2
+
+    def CALL(self):
+        return_address = self.pc + 2
+
+        self.reg[6] -= 1
+
+        self.ram[self.reg[6]] = return_address
+
+        self.pc = self.reg[self.ram_read(self.pc + 1)]
+
+    def RET(self):
+        SP = self.ram[self.reg[6]]
+        self.pc = SP
+        self.reg[6] += 1
 
     def ram_read(self, MAR):
         return self.ram[MAR]
@@ -166,7 +183,7 @@ class CPU:
     def load(self):
         """Load a program into memory."""
 
-        # self.address = 0
+        self.address = 0
 
         try:
             with open(program_filename) as f:
@@ -248,38 +265,46 @@ class CPU:
         while self.running:
 
             IR = self.ram_read(self.pc)
+            # op_size = ((IR >> 6) & 0b11) + 1
 
             if IR in self.branch_table:
+
                 self.branch_table[IR]()
+                # self.pc += op_size
 
-                self.pc += (IR >> 6) + 1
+                # if (IR >> 4) != 1:
+                #     self.pc += (IR >> 6) + 1
 
-            # operand_a = self.ram_read(self.pc + 1)
-            # operand_b = self.ram_read(self.pc + 2)
+                # # Add code to advance the PC to the address of the subroutine called
+                # else:
+                #     self.pc = 0
 
-            # if IR == HLT:
-            #     self.running = False
+        # operand_a = self.ram_read(self.pc + 1)
+        # operand_b = self.ram_read(self.pc + 2)
 
-            # elif IR == LDI:
-            #     self.reg[operand_a] = operand_b
-            #     self.pc += 3
+        # if IR == HLT:
+        #     self.running = False
 
-            # elif IR == PRN:
-            #     print(self.reg[operand_a])
-            #     self.pc += 2
+        # elif IR == LDI:
+        #     self.reg[operand_a] = operand_b
+        #     self.pc += 3
 
-            # elif IR == ADD:
-            #     self.alu("ADD", operand_a, operand_b)
-            #     self.pc += 3
+        # elif IR == PRN:
+        #     print(self.reg[operand_a])
+        #     self.pc += 2
 
-            # elif IR == SUB:
-            #     self.alu("SUB", operand_a, operand_b)
-            #     self.pc += 3
+        # elif IR == ADD:
+        #     self.alu("ADD", operand_a, operand_b)
+        #     self.pc += 3
 
-            # elif IR == MUL:
-            #     self.alu("MUL", operand_a, operand_b)
-            #     self.pc += 3
+        # elif IR == SUB:
+        #     self.alu("SUB", operand_a, operand_b)
+        #     self.pc += 3
 
-            # elif IR == DIV:
-            #     self.alu("DIV", operand_a, operand_b)
-            #     self.pc += 3
+        # elif IR == MUL:
+        #     self.alu("MUL", operand_a, operand_b)
+        #     self.pc += 3
+
+        # elif IR == DIV:
+        #     self.alu("DIV", operand_a, operand_b)
+        #     self.pc += 3
