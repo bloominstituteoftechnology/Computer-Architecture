@@ -2,10 +2,22 @@
 
 import sys
 
-program_file = "6. Architecture/Computer-Architecture/ls8/examples/print8.ls8"
+HLT = 0b00000001
+LDI = 0b10000010
+PRN = 0b01000111
+MUL = 0b10100010
+ADD  = 0b10100000
+PUSH = 0b01000101
+POP = 0b01000110
+CALL = 0b01010000
+RET = 0b00010001
+SP = 7
 
+program_file = "6. Architecture/Computer-Architecture/ls8/examples/call.ls8"
 class CPU:
     """Main CPU class."""
+
+    
 
     def __init__(self):
         """Construct a new CPU."""
@@ -24,8 +36,7 @@ class CPU:
         address = 0
 
         try:
-            with open(progra
-            m_file) as f:
+            with open(program_file) as f:
                 for line in f:
                     comment_split = line.split("#")
                     n = comment_split[0].strip()
@@ -44,7 +55,6 @@ class CPU:
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
-
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
         elif op == "SUB":
@@ -81,60 +91,55 @@ class CPU:
         print()
 
     def run(self):
-        """Run the CPU."""
-        HLT = 0b00000001
-        LDI = 0b10000010
-        PRN = 0b01000111
-        MUL = 0b10100010
-        ADD  = 0b10100000
-        PUSH = 0b01000101
-        POP = 0b01000110
-
-
+        # ir = self.reg[0]
+        # self.reg[SP] = 0b11110100
         while self.running:
-            IR = self.ram[self.pc]
-            print(f"Bad imput: {IR}")
+            ir = self.ram[self.pc]
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
-
-            if IR == HLT:
-                self.running = False
+            if ir == HLT:
+                self.runnning = False
                 self.pc += 1
-            elif IR == LDI:
-                self.reg[operand_a] = operand_b
-                print(operand_a)
-                self.pc += 3   
-            elif IR == PRN:
-                print(operand_a)
+            elif ir == PRN:
+                print(self.reg[operand_a])
                 self.pc += 2
-            elif IR == MUL:
-                res = self.reg[operand_a] * self.reg[operand_b]
-                print(res)
+            elif ir == LDI:
+                self.reg[operand_a] = operand_b
                 self.pc += 3
-            elif IR == ADD:
-                res = self.reg[operand_a] + self.reg[operand_b]
-                print(res)
-            elif IR == PUSH:
-                self.reg[7] -= 1
-                sp = self.reg[7]
-
+            elif ir == MUL:
+                self.alu("MUL", operand_a, operand_b)
+                self.pc += 3
+            elif ir == ADD:
+                self.alu("ADD", operand_a, operand_b)
+                self.pc += 3
+            elif ir == PUSH:
+                self.reg[SP] -= 1
+                sp = self.reg[SP]
                 value = self.reg[operand_a]
                 self.ram[sp] = value
-
                 self.pc += 2
-            elif IR == POP:
-                sp = self.reg[7]
-
+            elif ir == POP:
+                sp = self.reg[SP]
                 value = self.ram[sp]
                 self.reg[operand_a] = value
-
-                self.reg[7] += 1                
+                self.reg[SP] += 1
                 self.pc += 2
+            elif ir == CALL:
+                self.reg[SP] -=1
+                sp = self.reg[SP]
+                self.ram[sp] = self.pc + 2
+                self.pc = self.reg[operand_a]
+            elif ir == RET:
+                sp = self.reg[SP]
+                self.pc = self.ram[sp]
+                self.reg[SP] += 1
             else:
                 self.running = False
-                print(f"Bad imput: {IR}")        
+                sys.exit(1)     
             
         
 cpu = CPU()
 cpu.load()
 cpu.run()
+
+
