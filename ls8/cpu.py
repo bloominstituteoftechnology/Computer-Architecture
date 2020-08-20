@@ -1,74 +1,70 @@
-"""CPU functionality."""
-
 import sys
 
-LDI = 0b10000010 
-PRN = 0b01000111 # Print
-HLT = 0b00000001  # Halt
-MUL = 0b10100010  # Multiply
-ADD = 0b10100000  # Addition
-SUB = 0b10100001 # Subtraction
+LDI = 0b10000010
+HLT = 0b00000001
+PRN = 0b01000111
+MUL = 0b10100010
+POP = 0b01000110
+PUSH = 0b01000101
 
 class CPU:
     """Main CPU class."""
 
     def __init__(self):
         """Construct a new CPU."""
+        # This will hold our 256 bytes of memory
+        self.ram = [0] * 256
+        
+        # This will hold out 8 general purpose registers
+        self.reg = [0] * 8
+
+        # This is our program counter. It holds the address of the currently executing instruction
         self.pc = 0
-        self.reg = [0] * 8 
-        self.ram = [0] * 256 
+
+        # Boolean value as to whether the program is running or not
         self.running = True
-        self.reg[7] = 0xF4
+
+        self.sp = len(self.reg) - 1
+
+    def ram_read(self, MAR):
+        # MAR = Memory Address Register
+            # This will accept the address to read and return the value stored
+        return self.ram[MAR]
+
+    def ram_write(self, MAR, MDR):
+        # MDR = Memory Data Register
+            # This will accept the value to write, and the address to write it to
+        self.ram[MAR] = MDR
 
 
     def load(self):
         """Load a program into memory."""
 
-        address = 0
+        filename = sys.argv[1]
 
-        # For now, we've just hardcoded a program:
-
-        # program = [
-        #     # From print8.ls8
-        #     0b10000010, # LDI R0,8
-        #     0b00000000,
-        #     0b00001000,
-        #     0b01000111, # PRN R0
-        #     0b00000000,
-        #     0b00000001, # HLT
-        # ]
-
-        # for instruction in program:
-        #     self.ram[address] = instruction
-        #     address += 1
-        with open(sys.argv[1]) as files:
-            for line in files:
-                split_line = line.split('#')
-                command = split_line[0].strip()
-                if command == '':
+        # We'll open the files
+        with open(filename) as files:
+            # using a key value pair, we'll enumerate through our files
+            for address, line in enumerate(files):
+                # We'll split the string into a list using "#" as the separator
+                line = line.split("#")
+                try:
+                    v = int(line[0], 2)
+                except ValueError:
                     continue
-                num_command = int(command, 2)
+                self.ram_write(address, v)
 
-                self.ram[address] = num_command
-                address += 1
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
-        #elif op == "SUB": etc
+            # added the option for multiplication
+        elif op == "MUL":
+            self.reg[reg_a] *= self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
-
-    def ram_read(self, address):
-        return self.ram[address]
-
-    def ram_write(self, address, value):
-        self.ram[address] = value
-
-    def HLT(self):
-        self.running = False
 
     def trace(self):
         """
@@ -90,26 +86,83 @@ class CPU:
 
         print()
 
+    def LDI(self):
+        # We'll read the bytes from RAM into variables in case the instructions need them
+        operand_a = self.ram_read(self.pc + 1)
+        operand_b = self.ram_read(self.pc + 2)
+
+        # Set the value of a register to an integer
+        self.reg[operand_a] = operand_b
+
+        # Increment the program counter by 3
+        self.pc += 3
+
+    def PRN(self):
+        operand_a = self.ram_read(self.pc + 1)
+
+        # This will print the numeric value stored in the given register
+        print(self.reg[operand_a])
+
+        # Increment the program counter by 2
+        self.pc += 2
+
+    def HLT(self):
+        # We hault the CPU by setting it to false
+        self.running = False
+    
+    def MUL(self):
+        # We'll read the bytes from RAM into variables in case the instructions need them
+        operand_a = self.ram_read(self.pc + 1)
+        operand_b = self.ram_read(self.pc + 2)
+
+        # Use "MUL" to indicate multiplication, insert our two operands as the input
+        self.alu("MUL", operand_a, operand_b)
+
+        # Increment our program counter by 3
+        self.pc += 3
+
+    def POP(self):
+        # We'll take from the stack and add it to reg
+        self.reg[self.ram[self.pc + 1]] = self.reg[self.sp]
+        # Increment the sp by 1
+        self.sp += 1
+        # Increment the 
+        self.pc += 2
+
+    def PUSH(self):
+        # Decrement the SP by 1
+        self.sp -= 1
+        # Write the value in ram at pc to the stack, then save the value to the stack
+        self.reg[self.sp] = self.reg[self.ram[self.pc + 1]]
+        # Increment the program counter by 2
+        self.pc += 2
+
+    def call_function(self, n):
+        # This is so our run method will know what to execute
+        branch_table = {
+            LDI : self.LDI,
+            PRN : self.PRN,
+            HLT : self.HLT,
+            MUL : self.MUL,
+            POP : self.POP,
+            PUSH : self.PUSH
+        }
+
+        files = branch_table[n]
+
+        # As long as the method we're trying to get it not none, we can execute
+        if branch_table.get(n) is not None:
+            files()
+        else:
+            # Otherwise we print out that it's a bad instruction and we exit out
+            print(f"Unknown instruction {n}")
+            sys.exit(1)
+
     def run(self):
         """Run the CPU."""
-        self.load()
+        # While true
         while self.running:
-            instruction_register = self.ram[self.pc]
-            reg_a = self.ram_read[self.pc + 1]
-            reg_b = self.ram_read[self.pc + 2]
-
-            if instruction_register == HLT:
-                self.running = False
-                self.pc += 1
-            elif instruction_register == LDI:
-                self.reg[reg_a] = reg_b
-                self.pc += 3
-            elif instruction_register == PRN:
-                print(self.reg[reg_a])
-                self.pc += 2
-            elif instruction_register == MUL:
-                self.reg[reg_a] *= self.reg[reg_b]
-                self.pc += 3
-            else:
-                print(f"Instruction '{instruction_register}'' at address '{self.pc}' is not recognized")
-                self.pc += 1
+            # Our instruction register is going to read the memory address that's stored in register PC
+            IR = self.ram_read(self.pc)
+            # Call the function
+            self.call_function(IR)
