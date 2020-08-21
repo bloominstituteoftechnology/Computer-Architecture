@@ -27,7 +27,9 @@ class CPU:
             0b01010000: self.CALL,
             0b00010001: self.RET,
             0b10100111: self.CMP,
-            0b01010100: self.JMP
+            0b01010100: self.JMP,
+            0b01010101: self.JEQ,
+            0b01010110: self.JNE
         }
 
     def ram_read(self, MAR): # Memory Address Register
@@ -132,8 +134,22 @@ class CPU:
             self.L_flag = 0
             self.G_flag = 1
 
+        self.pc += 3
+
     def HLT(self, operand_a, operand_b):
         self.running = False
+
+    def JEQ(self, operand_a, operand_b):
+        if self.E_flag == 1:
+            self.JMP(operand_a, operand_b)
+        else:
+            self.pc += 2
+    
+    def JNE(self, operand_a, operand_b):
+        if self.E_flag == 0:
+            self.JMP(operand_a, operand_b)
+        else:
+            self.pc += 2
 
     def JMP(self, operand_a, operand_b):
         address = self.reg[operand_a]
