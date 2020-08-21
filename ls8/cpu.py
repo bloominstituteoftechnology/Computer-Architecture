@@ -6,8 +6,12 @@ LDI = 0b10000010
 PRN = 0b01000111
 HLT = 0b00000001
 MUL = 0b10100010
+ADD = 0B10100000
 PUSH = 0b01000101
 POP = 0b01000110
+CALL = 0b01010000
+RET = 0b00010001
+SP = 7
 
 class CPU:
     """Main CPU class."""
@@ -89,6 +93,7 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
+
         while self.runnning:
             ir = self.ram[self.pc]
             operand_a = self.ram_read(self.pc + 1)
@@ -104,21 +109,33 @@ class CPU:
                 self.reg[operand_a] = operand_b
                 self.pc += 3
             elif ir == MUL:
-                print(self.reg[operand_a] * self.reg[operand_b])
                 self.alu("MUL", operand_a, operand_b)
                 self.pc += 3
+            elif ir == ADD:
+                self.alu("ADD", operand_a, operand_b)
+                self.pc += 3
             elif ir == PUSH:
-                self.reg[7] -= 1
-                sp = self.reg[7]
+                self.reg[SP] -= 1
+                sp = self.reg[SP]
                 value = self.reg[operand_a]
                 self.ram[sp] = value
                 self.pc += 2
             elif ir == POP:
-                sp = self.reg[7]
+                sp = self.reg[SP]
                 value = self.ram[sp]
                 self.reg[operand_a] = value
-                self.reg[7] += 1
+                self.reg[SP] += 1
                 self.pc += 2
+            elif ir == CALL:
+                self.reg[SP] -=1
+                sp = self.reg[SP]
+                self.ram[sp] = self.pc + 2
+                self.pc = self.reg[operand_a]
+            elif ir == RET:
+                sp = self.reg[SP]
+                self.pc = self.ram[sp]
+                self.reg[SP] += 1
             else:
                 self.running = False
                 print(f"Bad input: {ir}")
+                sys.exit(1)
