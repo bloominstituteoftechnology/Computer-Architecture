@@ -10,6 +10,7 @@ class CPU:
         self.ram = [0] * 256     # ram = [0,0,0, 0, 0.. -> 256 0's]
         self.reg = [0] * 8       # register-on the cpu.. reg = [0,0,0,0,0,0,0,0]
         self.pc = 0              # Program Counter - the index into memory of the currently-executing instruction
+        self.flag = 0b00000000 # FLAG FOR CMP
         
     def load(self):
         """Load a program into ram."""
@@ -69,7 +70,15 @@ class CPU:
             
         elif op == "DIV":
             self.reg[reg_a] /= self.reg[reg_b]
-            
+        
+        # elif op == "CMP":
+        #     if reg_a > reg_b:  
+        #         self.flag = 0b00000010 # G spot 1
+        #     elif reg_a == reg_b:  
+        #         self.flag = 0b00000001 # E spot 1
+        #     elif reg_a < reg_b:  
+        #         self.flag = 0b00000100 # L spot 1
+                
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -107,6 +116,10 @@ class CPU:
         RET = 0b00010001 # RET
         ADD = 0b10100000 # ADD - DO IT!
         SP = 7 # Stack Pointer
+        CMP = 0b10100111
+        JMP = 0b01010100
+        JEQ = 0b01010101
+        JNE = 0b01010110
         self.reg[SP] = 244  # 0xf4 top of stack, also 0xf4
         
         running = True
@@ -180,6 +193,52 @@ class CPU:
             elif ir == ADD:
                 self.reg[operand_a] += self.reg[operand_b]
                 self.pc += 3
+            
+            # ----------------------------SPRINT CHALLENGE-----------------------------------------
+            
+            # CMP - comparison function - Set Flags based on CMP status
+            
+            elif ir == CMP:
+                if operand_a < operand_b:
+                    self.flag = 0b00000100 # L spot 1
+
+                elif operand_a > operand_b:
+                    self.flag = 0b00000010 # G spot 1
+
+                elif operand_a == operand_b:  
+                    self.flag = 0b00000001 # E spot 1
+                
+                else:
+                    self.flag = 0b00000000 # 0 spot 0
+                    
+                self.pc += 3
+            
+            
+            # JMP: Jump to the address stored in the given register/reg_num/operand_a.
+            # Set the PC to the address stored in the given register.
+
+            elif ir == JMP:
+                address = self.reg[operand_a]
+                self.pc = address
+            
+            # JEQ: If equal flag is set (true), jump to the address stored in the given reg.
+            # If not, we move on.
+
+            elif ir == JEQ:
+                if self.flag == 0b00000001:
+                    address = self.reg[operand_a]
+                    self.pc = address
+                else:
+                    self.pc += 2
+            
+            # JNE: If E flag is clear (false, 0), jump to the address stored in the given reg.
+
+            elif ir == JNE: 
+                if self.flag is 0b00000000 or 0b00000001:
+                    address = self.reg[operand_a]
+                    self.pc = address
+                else:
+                    self.pc += 2
             
             else:
                 print(f"Invalid instruction {ir} at address {self.pc}")
