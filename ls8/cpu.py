@@ -5,7 +5,7 @@ sys.path.insert(
     0, "/Users/jing/Documents/git-repositories/python-practice/Computer-Architecture/ls8/examples/")
 # import the binary operation code
 from opcodes import OPCODES
-# op_bits = {'ADD': '10100000', 'AND': '10101000', 'CALL': '01010000', ...}"""
+""" op_bits = {'ADD': '10100000', 'AND': '10101000', 'CALL': '01010000', ...} """
 op_bits = {a: b["code"] for a, b in OPCODES.items()}
 # swtich so key is the opcode, value is the readable func name
 bits_op = {a:b for b, a in op_bits.items()}
@@ -26,19 +26,20 @@ class CPU:
         self.register = [0]*8 
         # internal register:
         # SP: stack pointer is in register[7], but the stack is always in RAM, the start of the stack is F4 hexadecimal
-        self.SP = int(0xF4) 
-        self.register[7] = self.SP
+        self.SP = int(0xF4)  # integers in stack address range
+        self.register[7] = self.SP 
 
-        self.PC = 0 # internal register for program counter
+        self.PC = 0 # program counter, integer to point to lines of code, from first line to last line of current program to run
+
         self.FL = 0 # flag register
         self.running = True  # cpu running status        
     
     def ram_read(self, addr):
-        # read RAM 
+        # read RAM at given address
         return self.ram[addr]
 
     def ram_write(self, addr, value):
-        # write value to ram
+        # write value to ram address
         self.ram[addr] = value
     
     def load(self):
@@ -59,20 +60,35 @@ class CPU:
                         # print(x)
                     except ValueError:
                         continue
-                    # store file content in ram
+                    # store line of code in the computer memeory, aka, ram
                     self.ram_write(address, x)
                     address += 1
+            print(self.ram[:address])
+
         except FileNotFoundError:
             print("File not found.")
             sys.exit(2) # error exit
 
-    """ALU operations. Arithmetic and logic operator unit."""   
+    def trace(self):
+        """
+        Handy function to print out the CPU state. You might want to call this
+        from run() if you need help debugging.
+        """
+        print(f"TRACE: {self.PC:>02} | {self.ram_read(self.PC):>08b} {self.ram_read(self.PC)+1:>08b} {self.ram_read(self.PC)+2:>08b} |", end='')
 
+        for i in range(8):
+            print(" %02X" % self.register[i], end='')
+        print()
+
+    """ALU operations. Arithmetic and logic operator unit."""   
     def ADD(self, operand_a, operand_b):
         self.register[operand_a] += self.register[operand_b]
 
     def SUB(self, operand_a, operand_b):
         self.register[operand_a] -= self.register[operand_b]
+
+    def MUL(self, operand_a, operand_b):
+        self.register[operand_a] *= self.register[operand_b]
 
     def AND(self, operand_a, operand_b):
         self.register[operand_a] &= self.register[operand_b]
@@ -89,7 +105,7 @@ class CPU:
     def SHL(self, operand_a, operand_b): # shift to left
         self.register[operand_a] <<= self.register[operand_b]
 
-    def SHR(self, operand_a, operand_b):
+    def SHR(self, operand_a, operand_b): # shift to right
         self.register[operand_a] >>= self.register[operand_b]
 
     def MOD(self, operand_a, operand_b):
@@ -110,102 +126,106 @@ class CPU:
             self.FL = flag_E          
         else:
             self.FL = 0
-        
-    def trace(self):
-        """
-        Handy function to print out the CPU state. You might want to call this
-        from run() if you need help debugging.
-        """
-        print(f"TRACE: %02X | %02X %02X %02X |" % (
-            self.PC,
-            #self.fl,
-            #self.ie,
-            self.ram_read(self.PC),
-            self.ram_read(self.PC + 1),
-            self.ram_read(self.PC + 2)
-        ), end='')
 
-        for i in range(8):
-            print(" %02X" % self.register[i], end='')
-        print()
-    
-    def ldi(self, operand_a, operand_b):
-        # load immediately, store a value in a register
+    """ Other CPU operations """      
+    def LDI(self, operand_a, operand_b):
+        # load immediately, put a value in a register
         self.register[operand_a] = operand_b        
 
-    def prn(self, operand_a):
-        # print a value stored in a register
+    def PRN(self, operand_a):
+        # print the value in register given address
         print(self.register[operand_a])
 
-    def hlt(self):
+    def HLT(self):
         # halt the cpu
         self.running = False
         #sys.exit(0) # exit python
-
-    def mul(self, operand_a, operand_b):
-        self.register[operand_a] *= self.register[operand_b]
     
-    def push(self, value):
-        # decrement SP
-        self.register[self.SP] -=1
-        reg_num = self.ram[self.PC+1]
+    def PUSH(self, operand_a):
+        # push the value in the given register on the stack
+        # decrement SP, since the stack grows downwards in RAM
+        self.SP -= 1
+        # get the register number
+        reg_num = self.ram_read[operand_a]
         # get the value from the register
-        value = self.ram_read([reg_num])
+        push_value = self.register[reg_num]
         # store it at the stack pointer
-        self.ram_write(self.register[self.SP], value)
+        self.ram_write(self.SP, push_value)
      
-    def pop(self, operand):
-        # get the value from the SP, write to ram at address operand
-        top_of_stack_addr = self.register[self.SP]
-        value = self.ram_read(top_of_stack_addr)
-        self.ram_write(operand, value)
+    def POP(self, operand_a):
+        # pop the value at the top of the stack (SP) into the given register        
+        pop_value = self.ram_read(self.SP)
+        reg_number = self.ram_read(operand_a)
+        self.register[reg_number] = pop_value
         # increment SP
-        self.register[self.SP] += 1
+        self.SP += 1
 
-    def call(self, subroutine_addr):
-        # push the return address to stack
-        return_addr = self.ram_read(self.PC+2)        
-        self.push(return_addr)         
+    def CALL(self, operand_a):
+        # calls the subroutine at the address stored in the register[operand_a]
+        # get the value at return address (the one after subroutine_addr) 
+        PC_return_addr = self.PC + 2
+        # push it to stack
+        self.SP -= 1
+        self.ram_write(self.SP, PC_return_addr)                
         # set the pc to the subroutine address 
-        self.PC = subroutine_addr
+        self.PC = self.register[operand_a]
 
-    def ret(self):
+    def RET(self):
         # return from subroutine 
-        # pop the top of stack and set pc at that value
-        return_addr = self.ram_read(self.SP)
-        self.PC = self.reg[return_addr]
+        # pop the top of stack and store it in pc 
+        self.POP(self.PC)        
+
+    def IRET(self):
+        # return from an interrupt handler
+        # Registers R6-R0 are popped off the stack in that order.
+        for i in range(6,-1,-1):
+            self.POP(self.register[i])
+        # The FL register is popped off the stack.
+        self.POP(self.FL)
+        # The return address is popped off the stack and stored in PC.
+        self.POP(self.PC)
+        
     
-    def jmp(self, reg_addr):
+    def JMP(self, reg_addr):
         # jump to address given
         self.PC = self.register[reg_addr]
     
-    def jeq(self, reg_addr):
+    def JEQ(self, reg_addr):
         # jump if is equal flag is true 
         if self.FL == flag_E:
-            self.jmp(reg_addr)
+            self.JMP(reg_addr)
     
-    def jne(self, reg_addr): 
+    def JNE(self, reg_addr): 
         # jump if not equal to
-        if self.FL == 0:
-            self.jmp(reg_addr)
+        if self.FL != flag_E:
+            self.JMP(reg_addr)
 
     def fun_map(self, fun):
-        # to call cpu subroutines
+        # to call cpu subroutines using a branch table
         branch_table = {
-            "LDI": self.ldi,
-            "PRN": self.prn,
-            "HLT": self.hlt,
-            "MUL": self.mul,
-            "POP": self.pop,
-            "PUSH": self.push,
-            "MUL": self.mul,
-            "CALL": self.call,
-            "RET": self.ret, 
+            "LDI": self.LDI,
+            "PRN": self.PRN,
+            "HLT": self.HLT,
+            "POP": self.POP,
+            "PUSH": self.PUSH,
+            "CALL": self.CALL,
+            "RET": self.RET,
+            # ALU opeators 
+            "ADD": self.ADD,
+            "SUB": self.SUB,
+            "AND": self.AND,
+            "OR" : self.OR, 
+            "XOR": self.XOR,
+            "NOT": self.NOT,
+            "MUL": self.MUL,
+            "SHL": self.SHL,
+            "SHR": self.SHR,
+            "MOD": self.MOD,
             # following are added for sprint challenge
-            #"CMP": self.alu(cmp,
-            "JMP": self.jmp,
-            "JEQ": self.jeq,
-            "JNE": self.jne,
+            "CMP": self.CMP,
+            "JMP": self.JMP,
+            "JEQ": self.JEQ,
+            "JNE": self.JNE,
         }
         # return the function
         return branch_table[fun]
@@ -214,24 +234,25 @@ class CPU:
     def run(self):
         """Run the CPU."""
         while self.running:  
-            # read address in register PC and store it in IR        
-            IR = self.ram_read(self.PC)  # instruction register
-            
-            
+            # read address in register PC and store it in Instruction register (IR)  
+            IR = self.ram_read(self.PC) 
+            # remove 0b infront of bits and fill left with zero
+            IR = bin(IR)[2:].zfill(8)
             # get instruction
+            
             if IR in bits_op:
-                # get the function 
+                self.trace()
+                # get the readable function 
                 IR_readable = bits_op[IR]
-                # get the method of IR, ex, self.ldi
                 # fun = getattr(self, IR_readable.lower())
                 # # return the number of operands:
                 # sig = signature(fun)
                 # N_operands = len(str(sig))-1
                 
-                # to find the number of operands,
+                # To find the number of operands,
                 # mask for the first two bits, shift right by 6
-                num_operands = (op_bits[IR_readable] & 0b11000000) >> 6
-
+                num_operands = (int(op_bits[IR_readable],2) & 0b11000000) >> 6
+                
                 operand_a = self.ram_read(self.PC + 1)
                 operand_b = self.ram_read(self.PC + 2)
                 
@@ -242,35 +263,21 @@ class CPU:
                 elif num_operands == 1:
                     self.fun_map(IR_readable)(operand_a)
 
-                elif num_operands == 2:
+                else:
+                    # num_operands == 2:
                     self.fun_map(IR_readable)(operand_a, operand_b)
                 
-                # set the PC after the operation 
-                self.PC += (num_operands + 1)
+                # check if the instruction set the PC
+                set_PC = (int(op_bits[IR_readable], 2) & 0b00010000) >> 6
+                if set_PC == 0:
+                    # manually set the PC after the operation 
+                    self.PC += (num_operands + 1)
                            
             else:
-                print(f"unknow instruction {IR} at address {self.PC}")
+                print(f"unknow instruction {self.ram_read(self.PC)} at PC address {self.PC}")
                 sys.exit(1)
 
             
-"""         if IR not in op_bits.values():
-                print("Instruction not prescribed")
-                sys.exit(1)
-
-            if IR == op_bits["LDI"]:
-                self.ram_write(operand_a, operand_b)
-                self.PC += 3
-
-            elif IR == op_bits["PRN"]:
-                print(self.ram_read(operand_a))
-                self.PC += 2
-
-            elif IR == op_bits["HLT"]:
-                self.running = False
-                self.PC += 1
-"""
-
-
 if __name__=="__main__":
     cpu = CPU()
     cpu.load()
