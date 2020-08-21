@@ -55,19 +55,19 @@ class CPU:
             self.reg[reg_a] /= self.reg[reg_b]
         
         # --- CMP ---
-        
+        # -- values passed in to the alu as reg_a
         elif op == "CMP":
-            value_1 = self.reg[reg_a]
-            value_2 = self.reg[reg_b]
+            reg_num_1 = self.reg[reg_a]
+            reg_num_2 = self.reg[reg_b]
             
-            if value_1 > value_2:  
-                self.flag = 0b00000010
+            if reg_num_1 > reg_num_2:  
+                self.flag = 0b10
                 
-            elif value_1 == value_2:  
-                self.flag = 0b00000001
+            elif reg_num_1 == reg_num_2:  
+                self.flag = 0b1
                 
-            elif value_1 < value_2:  
-                self.flag = 0b00000100
+            elif reg_num_1 < reg_num_2:  
+                self.flag = 0b100
         
         else:
             raise Exception("Unsupported ALU operation")
@@ -208,7 +208,7 @@ class CPU:
             # JEQ: If equal flag is set (true), jump to the address stored in the given reg.
 
             elif ir == JEQ:
-                if self.flag == 0b00000001:
+                if self.flag == 0b1:
                     address = self.reg[operand_a]
                     self.pc = address
                 else:
@@ -216,8 +216,8 @@ class CPU:
 
             # JNE: If E flag is clear (false, 0), jump to the address stored in the given reg.
 
-            elif ir == JNE: 
-                if self.flag & 0b00000001 == 0b00000000:
+            elif ir == JNE:
+                if self.flag & 0b1 == 0b0:
                     address = self.reg[operand_a]
                     self.pc = address
                 else:
