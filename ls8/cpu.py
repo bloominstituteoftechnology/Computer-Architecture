@@ -13,6 +13,9 @@ class CPU:
         self.ram = [None] * 256 # memory slots to keep track of variables
         self.pc = 0 # pointer to track operations in register. Program Counter
         self.running = True
+        self.E_flag = 0
+        self.L_flag = 0
+        self.G_flag = 0
         self.branchtable = {
             0b10100000: self.ADD,
             0b10000010: self.LDI,
@@ -22,7 +25,9 @@ class CPU:
             0b01000101: self.PUSH,
             0b01000110: self.POP,
             0b01010000: self.CALL,
-            0b00010001: self.RET
+            0b00010001: self.RET,
+            0b10100111: self.CMP,
+            0b01010100: self.JMP
         }
 
     def ram_read(self, MAR): # Memory Address Register
@@ -113,8 +118,26 @@ class CPU:
         # Set PC to subroutin address
         self.pc = self.reg[operand_a]
 
+    def CMP(self, operand_a, operand_b): 
+        if self.reg[operand_a] == self.reg[operand_b]:
+            self.L_flag = 0
+            self.G_flag = 0
+            self.E_flag = 1 # I think you might have to clean up others to 0
+        if self.reg[operand_a] < self.reg[operand_b]:
+            self.G_flag = 0
+            self.E_flag = 0
+            self.L_flag = 1
+        if self.reg[operand_a] > self.reg[operand_b]:
+            self.E_flag = 0
+            self.L_flag = 0
+            self.G_flag = 1
+
     def HLT(self, operand_a, operand_b):
         self.running = False
+
+    def JMP(self, operand_a, operand_b):
+        address = self.reg[operand_a]
+        self.pc = address
 
     def LDI(self, operand_a, operand_b): 
         # opA is the value, opB is the value to set
