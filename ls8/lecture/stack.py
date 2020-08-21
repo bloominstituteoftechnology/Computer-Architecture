@@ -10,7 +10,10 @@
 
 # So we really need is just a space to hold data and a stack pointer to point at the data
 
-  v 
+  from inspect import stack
+
+
+v 
 0 1 2 3 4 5 6 7 8 Index 
 5 7 2 0 0 0 0 0 0 Value 
 
@@ -18,3 +21,37 @@ push 5
 push 7 
 push 2 
 pop 2
+
+# subroutine and call return
+
+
+
+"""# when you call: 
+#    push the return address on the stack
+#    set the PC to the address of the subroutine
+
+Stack
+------------
+line 5
+
+
+
+
+
+
+
+
+
+
+
+"""
+
+
+
+
+
+
+
+
+
+
