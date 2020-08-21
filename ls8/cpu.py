@@ -1,51 +1,7 @@
 """CPU functionality."""
 
 import sys
-
-"""ALU ops"""
-ADD = 0b10100000
-SUB = 0b10100001
-MUL = 0b10100010
-DIV = 0b10100011
-MOD = 0b10100100
-INC = 0b01100101
-DEC = 0b011001100
-CMP = 0b10100111
-AND = 0b10101000
-NOT = 0b01101001
-OR = 0b10101010
-XOR = 0b10101011
-SHL = 0b10101100
-SHR = 0b10101101
-
-"""PC Mutators"""
-CALL = 0b01010000
-RET = 0b00010001
-INT = 0b01010010
-IRET = 0b00010011
-JMP = 0b01010100
-JEQ = 0b01010101
-JNE = 0b01010110
-JGT = 0b01010111
-JLT = 0b01011000
-JLE = 0b01011001
-JGE = 0b01011010
-
-"""Other"""
-NOP = 0b00000000
-HLT = 0b00000001
-LDI = 0b10000010
-LD = 0b10000011
-ST = 0b10000100
-PUSH = 0b01000101
-POP = 0b01000110
-PRN = 0b01000111
-PRA = 0b01001000
-
-#Custom (Flags)
-LT = 0b00000001 #flag equal to (1)
-GT = 0b00000010 #flag greater than (2)
-EQ = 0b00000011 #flag less than (3)
+from operations import *
 
 class CPU:
     """Main CPU class."""
@@ -57,9 +13,8 @@ class CPU:
         self.pc = 0 #Program Counter, the index into memory of the currently-executing instruction
         self.address = 0
         self.sp = len(self.reg) - 1 #stack pointer (7)
-        self.running = True
-        
         self.flag = None
+        self.running = True
     
     def ram_read(self, address): #accept the address to read and return the value stored there.
         return self.ram[address]
@@ -159,21 +114,22 @@ class CPU:
                 self.running = False
             elif IR == LDI: #Set the value of a register to an integer.
                 self.reg[operand_a] = operand_b
-                self.pc += 3
+                self.advance(3)
             elif IR == PRN: #Print
                 print(self.reg[operand_a])
-                self.pc += 2
+                self.advance(2)
             elif IR == MUL:
                 self.reg[operand_a] *= self.reg[operand_b]
-                self.pc += 3
+#                self.alu("MUL", operand_a, operand_b)
+                self.advance(3)
             elif IR == PUSH:
                 self.sp -= 1
                 self.reg[self.sp] = self.reg[self.ram[self.pc + 1]] #Write value in ram at pc to the stack, then save value to stack
-                self.pc += 2
+                self.advance(2)
             elif IR == POP:
                 self.reg[self.ram[self.pc + 1]] = self.reg[self.sp] #take from stack, add to reg
                 self.sp += 1
-                self.pc += 2
+                self.advance(2)
             elif IR == RET:
                 #pop off stack
                 SP = self.ram[self.reg[6]]
@@ -189,28 +145,34 @@ class CPU:
                 # push onto stack
                 self.ram[self.reg[6]] = next_inst_address
                 self.pc = self.reg[operand_a]
-            elif IR == CMP: #compare the values in 2 registers
+            elif IR == CMP: #compare values
                 self.alu("CMP", operand_a, operand_b)
-                self.pc += 3
-            elif IR == JMP: #Jump to the address stored in the given register.
-                jump = self.reg[operand_a]
-                self.pc = jump #set pc to jump to that address
-            elif IR == JEQ: #JMP, but only if equal
+                self.advance(3)
+            elif IR == JMP:
+                self.jump(operand_a)
+            elif IR == JEQ: #JMP if equal
                 if self.flag == EQ:
-                    jump = self.reg[operand_a]
-                    self.pc = jump 
-                else: #advance
-                    self.pc += 2
-            elif IR == JNE: #JMP, but only if not equal
+                    self.jump(operand_a)
+                else:
+                    self.advance(2)
+            elif IR == JNE: #JMP if not equal
                 if not self.flag == EQ:
-                    jump = self.reg[operand_a]
-                    self.pc = jump
-                else: #advance
-                    self.pc += 2
+                    self.jump(operand_a)
+                else:
+                    self.advance(2)
             else:
                 self.running = False
                 print(f"Invalid Instruction: {IR}")
+    
+    #Helper methods
+    def jump(self, operand_a): #Jump to the address stored in the given register.
+        jump = self.reg[operand_a]
+        self.pc = jump #set pc to jump to that address
+        
+    def advance(self, amount):
+        self.pc += amount
 
-cpu = CPU()
-cpu.load()
-cpu.run()
+# Uncomment to test in file
+#cpu = CPU()
+#cpu.load()
+#cpu.run()
