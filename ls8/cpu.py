@@ -42,6 +42,11 @@ POP = 0b01000110
 PRN = 0b01000111
 PRA = 0b01001000
 
+#Custom (Flags)
+LT = 0b00000001 #flag equal to (1)
+GT = 0b00000010 #flag greater than (2)
+EQ = 0b00000011 #flag less than (3)
+
 class CPU:
     """Main CPU class."""
 
@@ -53,50 +58,8 @@ class CPU:
         self.address = 0
         self.sp = len(self.reg) - 1 #stack pointer (7)
         self.running = True
-                
-#    def handle_HLT(self):
-#        self.pc += 1
-#        sys.exit()
-#
-#    def handle_LDI(self):
-#        reg_index = self.ram_read(self.pc + 1)
-#        value = self.ram_read(self.pc + 2)
-#        
-#        self.reg[reg_index] = value
-#        self.pc += 3
-#
-#    def handle_PRN(self):
-#        reg_index = self.ram_read(self.pc + 1)
-#        print(self.reg[reg_index])
-#        self.pc += 2
-#
-#    def handle_ADD(self):
-#        num_1 = self.reg[self.ram_read(self.pc + 1)]
-#        num_2 = self.reg[self.ram_read(self.pc + 2)]
-#
-#        self.reg[self.ram_read(self.pc + 1)] = (num_1 + num_2)
-#        self.pc += 3
-#
-#    def handle_SUB(self):
-#        num_1 = self.reg[self.ram_read(self.pc + 1)]
-#        num_2 = self.reg[self.ram_read(self.pc + 2)]
-#
-#        self.reg[self.ram_read(self.pc + 1)] = (num_1 - num_2)
-#        self.pc += 3
-#
-#    def handle_MUL(self):
-#        num_1 = self.reg[self.ram_read(self.pc + 1)]
-#        num_2 = self.reg[self.ram_read(self.pc + 2)]
-#
-#        self.reg[self.ram_read(self.pc + 1)] = (num_1 * num_2)
-#        self.pc += 3
-#
-#    def handle_DIV(self):
-#        num_1 = self.reg[self.ram_read(self.pc + 1)]
-#        num_2 = self.reg[self.ram_read(self.pc + 2)]
-#
-#        self.reg[self.ram_read(self.pc + 1)] = (num_1 / num_2)
-#        self.pc += 3
+        
+        self.flag = None
     
     def ram_read(self, address): #accept the address to read and return the value stored there.
         return self.ram[address]
@@ -153,6 +116,13 @@ class CPU:
             a *= b
         elif op == "DIV":
             a /= b
+        elif op == "CMP":
+            if a < b:
+                self.flag = LT
+            elif a > b:
+                self.flag = GT
+            elif a == b:
+                self.flag = EQ
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -204,6 +174,39 @@ class CPU:
                 self.reg[self.ram[self.pc + 1]] = self.reg[self.sp] #take from stack, add to reg
                 self.sp += 1
                 self.pc += 2
+            elif IR == RET:
+                #pop off stack
+                SP = self.ram[self.reg[6]]
+                #set stack pointer to pointer
+                self.pc = SP
+                #increment the pointer
+                self.reg[6] += 1
+            elif IR == CALL:
+                # remember where to return to and get address of next instruction
+                next_inst_address = self.pc + 2
+                # Decrement the pointer
+                self.reg[6] -= 1
+                # push onto stack
+                self.ram[self.reg[6]] = next_inst_address
+                self.pc = self.reg[operand_a]
+            elif IR == CMP: #compare the values in 2 registers
+                self.alu("CMP", operand_a, operand_b)
+                self.pc += 3
+            elif IR == JMP: #Jump to the address stored in the given register.
+                jump = self.reg[operand_a]
+                self.pc = jump #set pc to jump to that address
+            elif IR == JEQ: #JMP, but only if equal
+                if self.flag == EQ:
+                    jump = self.reg[operand_a]
+                    self.pc = jump 
+                else: #advance
+                    self.pc += 2
+            elif IR == JNE: #JMP, but only if not equal
+                if not self.flag == EQ:
+                    jump = self.reg[operand_a]
+                    self.pc = jump
+                else: #advance
+                    self.pc += 2
             else:
                 self.running = False
                 print(f"Invalid Instruction: {IR}")
