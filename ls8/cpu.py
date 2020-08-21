@@ -42,7 +42,7 @@ class CPU:
                     continue
                 self.ram[address] = v
 
-                print([address], v)
+                #print([address], v)
                 address += 1
 
     def alu(self, op, reg_a, reg_b):
