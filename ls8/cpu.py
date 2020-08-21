@@ -2,7 +2,7 @@
 
 import sys
 
-HLT = 0b00000001
+HLT, E = 0b00000001, 0b00000001
 LDI = 0b10000010
 PRN = 0b01000111
 MUL = 0b10100010
@@ -11,13 +11,18 @@ PUSH = 0b01000101
 POP = 0b01000110
 CALL = 0b01010000
 RET = 0b00010001
+CMP = 0b10100111
+JMP = 0b01010100
+JEQ = 0b01010101
+JNE = 0b01010110
 SP = 7
 
-program_file = "6. Architecture/Computer-Architecture/ls8/examples/call.ls8"
+L = 0b00000100
+G = 0b00000010
+
+program_file = "6. Architecture/Computer-Architecture/ls8/examples/sctest.ls8"
 class CPU:
     """Main CPU class."""
-
-    
 
     def __init__(self):
         """Construct a new CPU."""
@@ -25,6 +30,7 @@ class CPU:
         self.reg = [0] * 8
         self.pc = 0 
         self.running = True
+        self.flag = 0
 
     def load(self):
         """Load a program into memory."""
@@ -61,6 +67,17 @@ class CPU:
             self.reg[reg_a] -= self.reg[reg_b]
         elif op == "MUL":
             self.reg[reg_a] *= self.reg[reg_b]
+        elif op == "CMP":
+            # FL bits: 00000LGE
+            # 00000001 = E
+            if self.reg[reg_a] == self.reg[reg_b]:
+                self.flag = E
+            # 00000010 = G
+            elif self.reg[reg_a] > self.reg[reg_b]:
+                self.flag = G
+            # 00000100 = L
+            else:
+                self.flag = L
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -133,6 +150,22 @@ class CPU:
                 sp = self.reg[SP]
                 self.pc = self.ram[sp]
                 self.reg[SP] += 1
+            #SPRINT
+            elif ir == CMP:
+                self.alu("CMP", operand_a, operand_b)
+                self.pc += 3
+            elif ir == JMP:
+                self.pc = self.reg[operand_a]
+            elif ir == JEQ:
+                if self.flag == E:
+                    self.pc = self.reg[operand_a]
+                else:
+                    self.pc += 2
+            elif ir == JNE:
+                if (self.flag & E) == 0:
+                    self.pc = self.reg[operand_a]
+                else:
+                    self.pc += 2
             else:
                 self.running = False
                 sys.exit(1)     
