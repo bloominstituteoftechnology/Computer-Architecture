@@ -131,9 +131,13 @@ class CPU:
         PUSH = 0b01000101
         POP = 0b01000110
         ADD =  0b10100000
-        JMP = 0b01010100
         CALL = 0b01010000
         RET = 0b00010001
+        # Sprint-Challenge Instructions
+        JMP = 0b01010100
+        CMP = 0b10100111
+        JEQ = 0b01010101
+        JNE = 0b01010110
 
         while self.running:
 
@@ -241,6 +245,58 @@ class CPU:
                 self.pc = addr_to_pop
                 # After we pop we increment the Stack Pointer
                 self.reg[7] += 1
+
+            ### Sprint-Challenge Instructions
+
+            # CMP instruction - Compare the values in two registers.
+            if self.ram[self.pc] == CMP:
+                # CMP is handled by ALU, so we need the arguments for alu
+                # IE the registers that carry the values that will be used
+                first_reg = self.ram[self.pc + 1]
+                sec_reg = self.ram[self.pc + 2]
+                # Next we call the alu
+                self.alu('CMP', first_reg, sec_reg)
+                # Finally we increment the pc by 3 to the next instruction
+                self.pc += 3
+
+            # JMP instruction - Jump to the address stored in the given register.
+            if self.ram[self.pc] == JMP:
+                # First we need the register that holds the to-jump address
+                reg_to_jump = self.ram[self.pc + 1]
+                # and then we need the address
+                addr_to_jump = self.registers[reg_to_jump]
+                # Finally we set the PC to that address
+                self.pc = addr_to_jump
+
+            # JEQ instruction - If `equal` flag is set (true), jump to the 
+            #                   address stored in the given register.
+            if self.ram[self.pc] == JEQ:
+                # JEQ's argument is a register that contains an address that may be jumped to
+                # First we need that register and the address that it holds
+                reg_to_jump = self.ram[self.pc + 1]
+                addr_to_jump = self.registers[reg_to_jump]
+                # Next we check the equality flag
+                if self.fl[7] is True:
+                    # If the flag is set, we jump
+                    self.pc = addr_to_jump
+                else:
+                    # If not, we move to the next instruction
+                    self.pc += 2
+
+            # JNE instruction - If `E` flag is clear (false, 0), jump to the 
+            #                   address stored in the given register.
+            if self.ram[self.pc] == JNE:
+                # JNE works much like JEQ
+                # First we need the register and the address that it holds
+                reg_to_jump = self.ram[self.pc + 1]
+                addr_to_jump = self.registers[reg_to_jump]
+                # Next we check the equality flag
+                if self.fl[7] is False:
+                    # If the flag is clear, we jump
+                    self.pc = addr_to_jump
+                else:
+                    # If not, we move to the next instruction
+                    self.pc += 2
 
 
             # # Handle "BAD" Input
