@@ -11,6 +11,13 @@ PUSH = 0b01000101
 POP = 0b01000110
 CALL = 0b01010000
 RET = 0b00010001
+CMP = 0b10100111
+JMP = 0b01010100
+JEQ = 0b01010101
+JNE = 0b01010110
+L = 0b00000100
+G = 0b00000010
+E = 0b00000001
 SP = 7
 
 class CPU:
@@ -22,6 +29,7 @@ class CPU:
         self.reg = [0] * 8
         self.pc = 0
         self.runnning = True
+        self.flag = 0
 
     def load(self):
         """Load a program into memory."""
@@ -68,6 +76,13 @@ class CPU:
             self.reg[reg_a] *= self.reg[reg_b]
         elif op == "DIV": 
             self.reg[reg_a] /= self.reg[reg_b]
+        elif op == "CMP":
+            if self.reg[reg_a] == self.reg[reg_b]:
+                self.flag = E
+            elif self.reg[reg_a] < self.reg[reg_b]:
+                self.flag = L
+            else:
+                self.flag = G
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -135,6 +150,21 @@ class CPU:
                 sp = self.reg[SP]
                 self.pc = self.ram[sp]
                 self.reg[SP] += 1
+            elif ir == CMP:
+                self.alu("CMP", operand_a, operand_b)
+                self.pc += 3
+            elif ir == JMP:
+                self.pc = self.reg[operand_a]
+            elif ir == JEQ:
+                if (self.flag  & E) == 1:
+                    self.pc = self.reg[operand_a]
+                else:
+                    self.pc += 2
+            elif ir == JNE:
+                if (self.flag & E)  == 0:
+                    self.pc = self.reg[operand_a]
+                else:
+                    self.pc += 2
             else:
                 self.running = False
                 print(f"Bad input: {ir}")
