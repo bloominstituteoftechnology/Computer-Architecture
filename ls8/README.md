@@ -93,7 +93,7 @@ there.
 
 > Inside the CPU, there are two internal registers used for memory operations:
 > the _Memory Address Register_ (MAR) and the _Memory Data Register_ (MDR). The
-> MAR contains the address that is being read or written to. The MDR contains
+> MAR contains the address that iwris being read or tten to. The MDR contains
 > the data that was read or the data to write. You don't need to add the MAR or
 > MDR to your `CPU` class, but they would make handy parameter names for
 > `ram_read()` and `ram_write()`, if you wanted.
