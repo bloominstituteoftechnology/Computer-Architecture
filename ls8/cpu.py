@@ -46,7 +46,6 @@ class CPU:
                     
                     try:
                         self.ram_write(temp[0], address)
-
                     except ValueError:
                         print(f'Invalild number: {temp[0]}')
                         sys.exit(1)
@@ -95,6 +94,19 @@ class CPU:
 
         print()
 
+    def stackPush(self, value):
+        # print('stackPush')
+        # decrement SP
+        self.reg[7]-= 1
+        self.ram_write(value, self.reg[7])
+
+    def stackPop(self):
+        # print('stackPop')
+        value= self.ram_read(self.reg[7])
+        # increment SP
+        self.reg[7]+= 1
+        return value
+
     def run(self):
         """Run the CPU."""
 
@@ -121,11 +133,13 @@ class CPU:
 
             # HTL 00000001 
             if IR == '00000001':
+                # print('HLT')
                 self.isRunning= False
                 self.pc+= 1
 
             # LDI 10000010 00000rrr iiiiiiii
             elif IR == '10000010':
+                # print('LDI')
                 self.reg[operand_a]= operand_b
                 self.pc+= 3
 
@@ -137,16 +151,25 @@ class CPU:
             
             # MUL 10100010 00000aaa 00000bbb
             elif IR == '10100010':
+                # print('MULT')
                 self.alu('MUL', operand_a, operand_b)
+                self.pc+= 3
+            
+            # ADD 10100000 00000aaa 00000bbb
+            elif IR == '10100000':
+                # print('ADD')
+                self.alu('ADD', operand_a, operand_b)
                 self.pc+= 3
 
             # SUB 10100001 00000aaa 00000bbb
             elif IR == '10100001':
+                # print('SUB')
                 self.alu('SUB', operand_a, operand_b)
                 self.pc+= 3
             
             # DIV 10100011 00000aaa 00000bbb
             elif IR == '10100011':
+                # print('DIV')
                 if operand_b != 0:
                     self.alu('DIV', operand_a, operand_b)
                     self.pc+= 3
@@ -158,20 +181,34 @@ class CPU:
             # PUSH 01000101 00000rrr
             elif IR == '01000101':
                 # print('PUSH')
-                # decrement SP
-                self.reg[7]-= 1
                 value= self.reg[operand_a]
-                sp= self.reg[7]
-                self.ram_write(value, sp)
+                self.stackPush(value)
                 self.pc+= 2
                 
             #POP 01000110 00000rrr
             elif IR == '01000110':
                 # print('POP')
-                sp= self.reg[7]
-                value= self.ram_read(sp)
                 reg_addr= operand_a
+                value= self.stackPop()
                 self.reg[reg_addr]= value
-                # increment SP
-                self.reg[7]+= 1
                 self.pc+= 2
+
+            # CALL 01010000 00000rrr
+            elif IR == '01010000':
+                # print('CALL')
+                # The address of the ***instruction*** _directly after_ `CALL` is pushed onto the stack. This allows us to return to where we left off when the subroutine finishes executing.
+                instrAddr= self.pc+ 2
+                self.stackPush(instrAddr)
+                # The PC is set to the address stored in the given register. We jump to that location in RAM and execute the first instruction in the subroutine. The PC can move forward or backwards from its current location.
+                self.pc= self.reg[operand_a]
+
+            # RET 00010001
+            elif IR == '00010001':
+                # print('RET')
+                # Pop the value from the top of the stack and store it in the `PC`.
+                popVal= self.stackPop()
+                self.pc= popVal
+
+
+
+                
