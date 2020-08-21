@@ -1,0 +1,11 @@
+# Print the number 8
+
+# This comment and blank line is here to make sure
+# they are handled correctly by the file reading code.
+
+10000010 # LDI R0,8
+00000000
+00001000
+01000111 # PRN R0
+00000000
+00000001 # HLT
