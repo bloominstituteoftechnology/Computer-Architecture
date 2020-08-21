@@ -2,6 +2,7 @@
 
 import sys
 
+
 class CPU:
     """Main CPU class."""
 
@@ -12,7 +13,7 @@ class CPU:
         self.running = True
         self.pc = 0
         self.reg[7] = 0xf4  # STACK POINTER
-
+        self.flags = [False] * 8  # FLAGS REGISTER (Sprint-Challenge)
 
     def ram_read(self, MAR):
         """
@@ -97,6 +98,33 @@ class CPU:
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
         # elif op == "SUB": etc
+
+        # Add condition for CMP (Sprint-Challenge)
+        elif op == "CMP":
+            # Can set flags per rules in spec
+            equal = self.flags[7]
+            greater_than = self.flags[6]
+            less_than = self.flags[5]
+            # If they are equal, set the Equal `E` flag to 1 (True),
+            # otherwise set it to 0 (False)
+            if self.reg[reg_a] == self.reg[reg_b]:
+                equal = True
+                greater_than = False
+                less_than = False
+            # If a is greater ...
+            elif self.reg[reg_a] > self.reg[reg_b]:
+                equal = False
+                greater_than = True
+                less_than = False
+            # If b is greater ...
+            else:
+                equal = False
+                greater_than = False
+                less_than = True
+
+            # Set flags to values determined by conditionals
+            self.flags[5:] = [less_than, greater_than, equal]
+
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -130,10 +158,14 @@ class CPU:
         MUL = 0b10100010
         PUSH = 0b01000101
         POP = 0b01000110
-        ADD =  0b10100000
-        JMP = 0b01010100
+        ADD = 0b10100000
         CALL = 0b01010000
         RET = 0b00010001
+        # Sprint-Challenge Instructions
+        JMP = 0b01010100
+        CMP = 0b10100111
+        JEQ = 0b01010101
+        JNE = 0b01010110
 
         while self.running:
 
@@ -147,7 +179,7 @@ class CPU:
                 reg_index = self.ram[self.pc + 1]
                 self.reg[reg_index] = num_to_load
 
-                self.pc += 3 # 3-byte instruction
+                self.pc += 3  # 3-byte instruction
                 # print("LDI")
 
             # PRN Instruction - Print numeric value stored in the given register.
@@ -157,7 +189,7 @@ class CPU:
                 reg_to_print = self.ram[self.pc + 1]
                 print(self.reg[reg_to_print])
 
-                self.pc += 2 # 2-byte instruction
+                self.pc += 2  # 2-byte instruction
 
             # MUL Instruction - Multiply the values in two registers together
             # and store the result in registerA.
@@ -170,16 +202,17 @@ class CPU:
 
                 print(product)
 
-                self.pc += 3 # 3-byte instruction
+                self.pc += 3  # 3-byte instruction
 
-            # PUSH Instruction - Push the value in the given register on the stack.
+            # PUSH Instruction - Push the value in the given register on the
+            # stack.
             if self.ram[self.pc] == PUSH:
                 # print(f"PUSHING {self.ram[self.pc]}")
                 # Decrement the `SP`
                 self.reg[7] -= 1
                 # print("DECREMENTED SP")
 
-                # Copy the value in the given register 
+                # Copy the value in the given register
                 reg_num = self.ram[self.pc + 1]
                 # print("COPIED VALUE")
                 value = self.reg[reg_num]  # We want to push this value
@@ -192,13 +225,14 @@ class CPU:
                 self.pc += 2  # 2-byte instruction
                 # print("PUSH COMPLETE")
 
-            # POP Instruction - Pop the value at the top of the stack into the given register.
+            # POP Instruction - Pop the value at the top of the stack into the
+            # given register.
             if self.ram[self.pc] == POP:
                 # Find register for pop and copy
                 top_of_stack_addr = self.reg[7]
                 value = self.ram[top_of_stack_addr]
 
-                # Copy the value from the address pointed to by `SP` 
+                # Copy the value from the address pointed to by `SP`
                 reg_num = self.ram[self.pc + 1]
                 self.reg[reg_num] = value  # We want to pop this value
 
@@ -215,16 +249,19 @@ class CPU:
                 self.alu('ADD', first_reg, sec_reg)
                 self.pc += 3
 
-            # CALL instruction - Calls a subroutine (function) at the address stored in the register.
+            # CALL instruction - Calls a subroutine (function) at the address
+            # stored in the register.
             if self.ram[self.pc] == CALL:
                 # We will be PUSHing so we must decrement the Stack Pointer
                 self.reg[7] -= 1
                 SP = self.reg[7]
-                # Then we want the address of the next instruction, for when the subroutine has completed
+                # Then we want the address of the next instruction, for when
+                # the subroutine has completed
                 addr_next_instruction = self.pc + 2
                 # And we put that address on the stack
                 self.ram[SP] = addr_next_instruction
-                # Next we find register we'll be CALLing from and the address that is in that register
+                # Next we find register we'll be CALLing from and the address
+                # that is in that register
                 reg_to_call = self.ram[self.pc + 1]
                 addr_to_goto = self.reg[reg_to_call]
                 # And we set the PC to that address
@@ -242,6 +279,58 @@ class CPU:
                 # After we pop we increment the Stack Pointer
                 self.reg[7] += 1
 
+            # Sprint-Challenge Instructions
+
+            # CMP instruction - Compare the values in two registers.
+            if self.ram[self.pc] == CMP:
+                # CMP is handled by ALU, so we need the arguments for alu
+                # IE the registers that carry the values that will be used
+                first_reg = self.ram[self.pc + 1]
+                sec_reg = self.ram[self.pc + 2]
+                # Next we call the alu
+                self.alu('CMP', first_reg, sec_reg)
+                # Finally we increment the pc by 3 to the next instruction
+                self.pc += 3
+
+            # JMP instruction - Jump to the address stored in the given
+            # register.
+            if self.ram[self.pc] == JMP:
+                # First we need the register that holds the to-jump address
+                reg_to_jump = self.ram[self.pc + 1]
+                # and then we need the address
+                addr_to_jump = self.reg[reg_to_jump]
+                # Finally we set the PC to that address
+                self.pc = addr_to_jump
+
+            # JEQ instruction - If `equal` flag is set (true), jump to the
+            #                   address stored in the given register.
+            if self.ram[self.pc] == JEQ:
+                # JEQ's argument is a register that contains an address that may be jumped to
+                # First we need that register and the address that it holds
+                reg_to_jump = self.ram[self.pc + 1]
+                addr_to_jump = self.reg[reg_to_jump]
+                # Next we check the equality flag
+                if self.flags[7] is True:
+                    # If the flag is set, we jump
+                    self.pc = addr_to_jump
+                else:
+                    # If not, we move to the next instruction
+                    self.pc += 2
+
+            # JNE instruction - If `E` flag is clear (false, 0), jump to the
+            #                   address stored in the given register.
+            if self.ram[self.pc] == JNE:
+                # JNE works much like JEQ
+                # First we need the register and the address that it holds
+                reg_to_jump = self.ram[self.pc + 1]
+                addr_to_jump = self.reg[reg_to_jump]
+                # Next we check the equality flag
+                if self.flags[7] is False:
+                    # If the flag is clear, we jump
+                    self.pc = addr_to_jump
+                else:
+                    # If not, we move to the next instruction
+                    self.pc += 2
 
             # # Handle "BAD" Input
             # else:
