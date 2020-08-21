@@ -13,7 +13,7 @@ class CPU:
         self.ram= [0] * 256
         # Program Counter, address of the currently executing instruction
         self.pc= 0
-        # flags
+        # flags:`FL` bits: `00000LGE`
         self.fl= 0
         self.isRunning= True
 
@@ -70,6 +70,26 @@ class CPU:
 
         elif op == 'DIV':
             self.reg[reg_a] /= self.reg[reg_b]
+
+        elif op == 'CMP':
+            if self.reg[reg_a] > self.reg[reg_b]:
+                return 'g'
+            elif self.reg[reg_a] < self.reg[reg_b]:
+                return 'l'
+            elif self.reg[reg_a] == self.reg[reg_b]:
+                return 'e'
+
+        elif op == 'AND':
+            return reg_a & reg_b
+
+        elif op == 'OR':
+            return reg_a | reg_b
+
+        elif op == 'XOR':
+            return reg_a ^ reg_b
+
+        elif op == 'NOT':
+            return ~reg_a
 
         else:
             raise Exception("Unsupported ALU operation")
@@ -196,19 +216,93 @@ class CPU:
             # CALL 01010000 00000rrr
             elif IR == '01010000':
                 # print('CALL')
-                # The address of the ***instruction*** _directly after_ `CALL` is pushed onto the stack. This allows us to return to where we left off when the subroutine finishes executing.
                 instrAddr= self.pc+ 2
                 self.stackPush(instrAddr)
-                # The PC is set to the address stored in the given register. We jump to that location in RAM and execute the first instruction in the subroutine. The PC can move forward or backwards from its current location.
                 self.pc= self.reg[operand_a]
 
             # RET 00010001
             elif IR == '00010001':
                 # print('RET')
-                # Pop the value from the top of the stack and store it in the `PC`.
                 popVal= self.stackPop()
                 self.pc= popVal
 
+            # CMP 10100111 00000aaa 00000bbb
+            elif IR == '10100111':
+                # print('CMP')
+                # Compare the values in two registers.
+                # ALU operation
+                comp= self.alu('CMP', operand_a, operand_b)
+                # `FL` bits: `00000LGE`
+                if comp == 'l':
+                    self.fl= 0b00000100
+                elif comp == 'g':
+                    self.fl= 0b00000010
+                elif comp == 'e':
+                    self.fl= 0b00000001
+                self.pc+= 3
+            
+            # JEQ 01010101 00000rrr
+            elif IR == '01010101':
+                # print('JEQ')
+                # `FL` bits: `00000LGE`
+                if self.fl == 0b00000001:
+                    self.pc= self.reg[operand_a]
+                else:
+                    self.pc+= 2
 
+            # JGT 01010111 00000rrr
+            elif IR == '01010111':
+                # print('JGT')
+                if self.fl == 0b00000010:
+                    self.pc = self.reg[operand_a]
+                else: 
+                    self.pc+= 2
 
+            # JLT 01011000 00000rrr
+            elif IR  == '01011000':
+                # print('JLT')
+                if self.fl == 0b00000100:
+                    self.pc= self.reg[operand_a]
+                else: 
+                    self.pc+= 2
+            
+            # JMP 01010100 00000rrr
+            elif IR == '01010100':
+                # print('JMP')
+                self.pc= self.reg[operand_a]
+
+            # JNE 01010110 00000rrr
+            elif IR == '01010110':
+                # print("JNE")
+                if self.fl != 0b00000001:
+                    self.pc = self.reg[operand_a]
+                else: 
+                    self.pc+= 2
+            
+            # AND 10101000 00000aaa 00000bbb
+            elif IR == '10101000':
+                res= self.alu('AND', self.reg[operand_a], self.reg[operand_b])
+                self.reg[operand_a]= res
+                self.pc+= 3
+
+            # OR 10101010 00000aaa 00000bbb
+            elif IR == '10101010':
+                res= self.alu('OR', self.reg[operand_a], self.reg[operand_b])
+                self.reg[operand_a]= res
+                self.pc+= 3
+
+            # XOR 10101011 00000aaa 00000bbb
+            elif IR == '10101011':
+                res= self.alu('XOR', self.reg[operand_a], self.reg[operand_b])
+                self.reg[operand_a]= res
+                self.pc+= 3
+
+            # NOT 01101001 00000rrr
+            elif IR == '01101001':
+                res= self.alu('NOT', self.reg[operand_a], None)
+                self.reg[operand_a]= res
+                self.pc+= 2
                 
+            
+
+
