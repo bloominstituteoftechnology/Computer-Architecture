@@ -12,6 +12,7 @@ class CPU:
         self.running = True
         self.pc = 0
         self.reg[7] = 0xf4  # STACK POINTER
+        self.flags = [False] * 8 # FLAGS REGISTER
 
 
     def ram_read(self, MAR):
@@ -97,6 +98,33 @@ class CPU:
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
         # elif op == "SUB": etc
+
+        # Add condition for CMP
+        elif op == "CMP":
+            # Can set flags per rules in spec
+            equal = self.flags[7]
+            greater_than = self.flags[6]
+            less_than = self.flags[5]
+            # If they are equal, set the Equal `E` flag to 1 (True), 
+            # otherwise set it to 0 (False)
+            if self.registers[reg_a] == self.registers[reg_b]:
+                equal = True
+                greater_than = False
+                less_than = False
+            # If a is greater ...
+            elif self.registers[reg_a] > self.registers[reg_b]:
+                equal = False
+                greater_than = True
+                less_than = False
+            # If b is greater ...
+            else:
+                equal = False
+                greater_than = False
+                less_than = True
+            
+            # Set flags to values determined by conditionals
+            self.flags[5:] = [less_than, greater_than, equal]
+
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -276,7 +304,7 @@ class CPU:
                 reg_to_jump = self.ram[self.pc + 1]
                 addr_to_jump = self.registers[reg_to_jump]
                 # Next we check the equality flag
-                if self.fl[7] is True:
+                if self.flags[7] is True:
                     # If the flag is set, we jump
                     self.pc = addr_to_jump
                 else:
@@ -291,7 +319,7 @@ class CPU:
                 reg_to_jump = self.ram[self.pc + 1]
                 addr_to_jump = self.registers[reg_to_jump]
                 # Next we check the equality flag
-                if self.fl[7] is False:
+                if self.flags[7] is False:
                     # If the flag is clear, we jump
                     self.pc = addr_to_jump
                 else:
