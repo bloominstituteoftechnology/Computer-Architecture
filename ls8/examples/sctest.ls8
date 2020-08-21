@@ -7,16 +7,17 @@
 10000010 # LDI R2,TEST1     # Set the value of a register to an integer
 00000010
 00010011
-10100111 # CMP R0,R1            # COMPARE AND SET FLAGS L,G,E,0
+10100111 # CMP R0,R1            # COMPARE AND SET FLAGS L,G,E,0 / values in register
 00000000
 00000001
-01010101 # JEQ R2
+01010101 # JEQ R2               # if EQUAL, jump to address OP-A
 00000010
 10000010 # LDI R3,1         # Set the value of a register to an integer
 00000011
 00000001
-01000111 # PRN R3
+01000111 # PRN R3           # print()
 00000011
+
 # TEST1 (address 19):
 10000010 # LDI R2,TEST2     # Set the value of a register to an integer
 00000010
@@ -24,13 +25,14 @@
 10100111 # CMP R0,R1            # COMPARE AND SET FLAGS L,G,E,0
 00000000
 00000001
-01010110 # JNE R2
+01010110 # JNE R2               # If E flag is clear, jump to the address stored in the given reg 
 00000010
 10000010 # LDI R3,2         # Set the value of a register to an integer
 00000011
 00000010
-01000111 # PRN R3
+01000111 # PRN R3           # print()
 00000011
+
 # TEST2 (address 32):
 10000010 # LDI R1,10        # Set the value of a register to an integer
 00000001
@@ -41,13 +43,14 @@
 10100111 # CMP R0,R1            # COMPARE AND SET FLAGS L,G,E,0
 00000000
 00000001
-01010101 # JEQ R2
+01010101 # JEQ R2               # if EQUAL, jump to address OP-A
 00000010
 10000010 # LDI R3,3         # Set the value of a register to an integer
 00000011
 00000011
-01000111 # PRN R3
+01000111 # PRN R3           # print()
 00000011
+
 # TEST3 (address 48):
 10000010 # LDI R2,TEST4     # Set the value of a register to an integer
 00000010
@@ -55,25 +58,27 @@
 10100111 # CMP R0,R1            # COMPARE AND SET FLAGS L,G,E,0
 00000000
 00000001
-01010110 # JNE R2
+01010110 # JNE R2               # If E flag is clear (false, 0), jump to the address stored in the given reg
 00000010
 10000010 # LDI R3,4         # Set the value of a register to an integer
 00000011
 00000100
-01000111 # PRN R3
+01000111 # PRN R3           # print()
 00000011
+
 # TEST4 (address 61):
 10000010 # LDI R3,5         # Set the value of a register to an integer
 00000011
 00000101
-01000111 # PRN R3
+01000111 # PRN R3           # print()
 00000011
 10000010 # LDI R2,TEST5     # Set the value of a register to an integer
 00000010
 01001001
-01010100 # JMP R2
+01010100 # JMP R2               # JMP to OP_A address     
 00000010
-01000111 # PRN R3
+01000111 # PRN R3           # print()
 00000011
+
 # TEST5 (address 73):
-00000001 # HLT
+00000001 # HLT              # HALT

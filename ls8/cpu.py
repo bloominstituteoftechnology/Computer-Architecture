@@ -10,7 +10,8 @@ class CPU:
         self.ram = [0] * 256     # ram = [0,0,0, 0, 0.. -> 256 0's]
         self.reg = [0] * 8       # register-on the cpu.. reg = [0,0,0,0,0,0,0,0]
         self.pc = 0              # Program Counter - the index into memory of the currently-executing instruction
-        self.flag = 0b00000000 # FLAG FOR CMP
+        self.flag = 0b00000000   # FLAG FOR CMP
+        # save in reg 6
         
     def load(self):
         """Load a program into ram."""
@@ -18,18 +19,6 @@ class CPU:
         filename = sys.argv[1]
         address = 0
 
-        # For now, we've just hardcoded a program:
-
-        # program = [
-        #     # From print8.ls8
-        #     0b10000010, # LDI R0,8
-        #     0b00000000,
-        #     0b00001000,
-        #     0b01000111, # PRN R0
-        #     0b00000000,
-        #     0b00000001, # HLT
-        # ]
-        
         with open(filename) as f:
             for line in f:
                 
@@ -41,12 +30,6 @@ class CPU:
                 else:
                     self.ram[address] = int(line, 2)
                     address += 1
-
-        # for instruction in program:
-        #     self.ram[address] = instruction
-        #     address += 1
-
-    # ask for tomorrow, not needed for day 1/2
     
     def ram_read(self, address):
         return self.ram[address]
@@ -71,14 +54,21 @@ class CPU:
         elif op == "DIV":
             self.reg[reg_a] /= self.reg[reg_b]
         
-        # elif op == "CMP":
-        #     if reg_a > reg_b:  
-        #         self.flag = 0b00000010 # G spot 1
-        #     elif reg_a == reg_b:  
-        #         self.flag = 0b00000001 # E spot 1
-        #     elif reg_a < reg_b:  
-        #         self.flag = 0b00000100 # L spot 1
+        # --- CMP ---
+        
+        elif op == "CMP":
+            value_1 = self.reg[reg_a]
+            value_2 = self.reg[reg_b]
+            
+            if value_1 > value_2:  
+                self.flag = 0b00000010
                 
+            elif value_1 == value_2:  
+                self.flag = 0b00000001
+                
+            elif value_1 < value_2:  
+                self.flag = 0b00000100
+        
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -125,6 +115,7 @@ class CPU:
         running = True
         
         while running:
+            
             ir = self.ram[self.pc] # Instruction Register
             
             operand_a = self.ram_read(self.pc + 1)
@@ -197,32 +188,24 @@ class CPU:
             # ----------------------------SPRINT CHALLENGE-----------------------------------------
             
             # CMP - comparison function - Set Flags based on CMP status
+            # set flags correctly
+            
+            # values inside the registers
+            # change to reg 6
+            # put to alu
             
             elif ir == CMP:
-                if operand_a < operand_b:
-                    self.flag = 0b00000100 # L spot 1
-
-                elif operand_a > operand_b:
-                    self.flag = 0b00000010 # G spot 1
-
-                elif operand_a == operand_b:  
-                    self.flag = 0b00000001 # E spot 1
-                
-                else:
-                    self.flag = 0b00000000 # 0 spot 0
-                    
+                self.alu("CMP", operand_a, operand_b)
                 self.pc += 3
-            
-            
-            # JMP: Jump to the address stored in the given register/reg_num/operand_a.
+
+            # JMP: Jump to the address stored in the given register.
             # Set the PC to the address stored in the given register.
 
             elif ir == JMP:
                 address = self.reg[operand_a]
                 self.pc = address
-            
+
             # JEQ: If equal flag is set (true), jump to the address stored in the given reg.
-            # If not, we move on.
 
             elif ir == JEQ:
                 if self.flag == 0b00000001:
@@ -230,11 +213,11 @@ class CPU:
                     self.pc = address
                 else:
                     self.pc += 2
-            
+
             # JNE: If E flag is clear (false, 0), jump to the address stored in the given reg.
 
             elif ir == JNE: 
-                if self.flag is 0b00000000 or 0b00000001:
+                if self.flag & 0b00000001 == 0b00000000:
                     address = self.reg[operand_a]
                     self.pc = address
                 else:
