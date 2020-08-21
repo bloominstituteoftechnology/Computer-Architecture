@@ -2,10 +2,9 @@
 
 """Main."""
 
-import sys
 from cpu import *
 
 cpu = CPU()
 
-cpu.load()
+cpu.load('examples/sctest.ls8')
 cpu.run()
