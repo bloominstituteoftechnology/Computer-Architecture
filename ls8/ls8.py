@@ -4,6 +4,7 @@
 
 import sys
 from cpu import *
+#from examples import *
 
 cpu = CPU()
 

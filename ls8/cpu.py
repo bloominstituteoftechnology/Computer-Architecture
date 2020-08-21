@@ -2,44 +2,91 @@
 
 import sys
 
+HLT, E = 0b00000001, 0b00000001
+LDI = 0b10000010
+PRN = 0b01000111
+MUL = 0b10100010
+ADD  = 0b10100000
+PUSH = 0b01000101
+POP = 0b01000110
+CALL = 0b01010000
+RET = 0b00010001
+CMP = 0b10100111
+JMP = 0b01010100
+JEQ = 0b01010101
+JNE = 0b01010110
+SP = 7
+
+L = 0b00000100
+G = 0b00000010
+
+program_file = "6. Architecture/Computer-Architecture/ls8/examples/sctest.ls8"
 class CPU:
     """Main CPU class."""
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.ram = [0] * 256
+        self.reg = [0] * 8
+        self.pc = 0 
+        self.running = True
+        self.flag = 0
 
     def load(self):
         """Load a program into memory."""
+        # print(f"SYS.ARGV: {sys.argv}")
+
+        # if len(sys.argv) != 2:
+        #     print("usage: 02_fileio2.py filename")
 
         address = 0
 
-        # For now, we've just hardcoded a program:
+        try:
+            with open(program_file) as f:
+                for line in f:
+                    comment_split = line.split("#")
+                    n = comment_split[0].strip()
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+                    if n == "":
+                        continue
 
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+                    x = int(n, 2)
+                    print(f"{x:08b}: {x:d}")
+                    self.ram[address] = x
+                    address += 1
+
+        except:
+            print(f"{sys.argv[0]} / {sys.argv[1]} not found")
 
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
-
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
-        #elif op == "SUB": etc
+        elif op == "SUB":
+            self.reg[reg_a] -= self.reg[reg_b]
+        elif op == "MUL":
+            self.reg[reg_a] *= self.reg[reg_b]
+        elif op == "CMP":
+            # FL bits: 00000LGE
+            # 00000001 = E
+            if self.reg[reg_a] == self.reg[reg_b]:
+                self.flag = E
+            # 00000010 = G
+            elif self.reg[reg_a] > self.reg[reg_b]:
+                self.flag = G
+            # 00000100 = L
+            else:
+                self.flag = L
         else:
             raise Exception("Unsupported ALU operation")
 
+    def ram_read(self, MAR):
+        return self.ram[MAR]
+
+    def ram_write(self, MAR, MDR):
+        self.ram[MAR] = MDR
+        
     def trace(self):
         """
         Handy function to print out the CPU state. You might want to call this
@@ -61,5 +108,71 @@ class CPU:
         print()
 
     def run(self):
-        """Run the CPU."""
-        pass
+        # ir = self.reg[0]
+        # self.reg[SP] = 0b11110100
+        while self.running:
+            ir = self.ram[self.pc]
+            operand_a = self.ram_read(self.pc + 1)
+            operand_b = self.ram_read(self.pc + 2)
+            if ir == HLT:
+                self.runnning = False
+                self.pc += 1
+            elif ir == PRN:
+                print(self.reg[operand_a])
+                self.pc += 2
+            elif ir == LDI:
+                self.reg[operand_a] = operand_b
+                self.pc += 3
+            elif ir == MUL:
+                self.alu("MUL", operand_a, operand_b)
+                self.pc += 3
+            elif ir == ADD:
+                self.alu("ADD", operand_a, operand_b)
+                self.pc += 3
+            elif ir == PUSH:
+                self.reg[SP] -= 1
+                sp = self.reg[SP]
+                value = self.reg[operand_a]
+                self.ram[sp] = value
+                self.pc += 2
+            elif ir == POP:
+                sp = self.reg[SP]
+                value = self.ram[sp]
+                self.reg[operand_a] = value
+                self.reg[SP] += 1
+                self.pc += 2
+            elif ir == CALL:
+                self.reg[SP] -=1
+                sp = self.reg[SP]
+                self.ram[sp] = self.pc + 2
+                self.pc = self.reg[operand_a]
+            elif ir == RET:
+                sp = self.reg[SP]
+                self.pc = self.ram[sp]
+                self.reg[SP] += 1
+            #SPRINT
+            elif ir == CMP:
+                self.alu("CMP", operand_a, operand_b)
+                self.pc += 3
+            elif ir == JMP:
+                self.pc = self.reg[operand_a]
+            elif ir == JEQ:
+                if self.flag == E:
+                    self.pc = self.reg[operand_a]
+                else:
+                    self.pc += 2
+            elif ir == JNE:
+                if (self.flag & E) == 0:
+                    self.pc = self.reg[operand_a]
+                else:
+                    self.pc += 2
+            else:
+                self.running = False
+                sys.exit(1)     
+            
+        
+cpu = CPU()
+cpu.load()
+cpu.run()
+
+
