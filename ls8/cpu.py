@@ -9,6 +9,7 @@ class CPU:
         """Construct a new CPU."""
         self.reg = [0] * 8
         self.ram = [0] * 256
+        self.fl = [0] * 8
 
         self.pc = 0
         self.sp = 0xf4
@@ -21,7 +22,20 @@ class CPU:
             0b01000101: self.PUSH,
             0b01000110: self.POP,
             0b00010001: self.RET,
-            0b01010000: self.CALL
+            0b01010000: self.CALL,
+            0b10100111: self.CMP,
+            0b01010100: self.JMP,
+            0b01010101: self.JEQ,
+            0b01010110: self.JNE,
+            0b10101100: self.SHL,
+            0b10101101: self.SHR,
+            0b10100100: self.MOD,
+            0b10100011: self.DIV,
+            0b10101000: self.AND,
+            0b10101011: self.XOR,
+            0b10100001: self.SUB,
+            0b10101010: self.OR,
+            0b01101001: self.NOT
         }
 
     def load(self, prog_path):
@@ -73,6 +87,38 @@ class CPU:
             self.reg[reg_a] *= self.reg[reg_b]
         elif op == "SUB":
             self.reg[reg_a] -= self.reg[reg_b]
+        elif op == 'CMP':
+            if self.reg[reg_a] == self.reg[reg_b]:
+                self.fl[5:] = [0, 0, 1]
+            elif self.reg[reg_a] > self.reg[reg_b]:
+                self.fl[5:] = [0, 1, 0]
+            else: # Less than
+                self.fl[5:] = [1, 0, 0]
+        elif op == 'AND':
+            self.reg[reg_a] = self.reg[reg_a] & self.reg[reg_b]
+        elif op == 'OR':
+            self.reg[reg_a] = self.reg[reg_a] | self.reg[reg_b]
+        elif op == 'XOR':
+            self.reg[reg_a] = self.reg[reg_a] ^ self.reg[reg_b]
+        elif op == 'NOT':
+            self.reg[reg_a] = ~self.reg[reg_a]
+        elif op == 'SHL':
+            self.reg[reg_a] = self.reg[reg_a] << self.reg[reg_b]
+        elif op == 'SHR':
+            self.reg[reg_a] = self.reg[reg_a] >> self.reg[reg_b]
+        elif op == 'DIV':
+            if self.reg[reg_b] == 0:
+                self.running=False
+                print(f"Divide by 0 error. Attempted {self.reg[reg_a]}/{self.reg[reg_b]}")
+            else:
+                self.reg[reg_a] = self.reg[reg_a] // self.reg[reg_b]
+        elif op == 'MOD':
+            if self.reg[reg_b] == 0:
+                self.running=False
+                print(f"Divide by 0 error. Attempted {self.reg[reg_a]}/{self.reg[reg_b]}")
+            else:
+                self.reg[reg_a] = self.reg[reg_a] % self.reg[reg_b]
+
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -97,7 +143,35 @@ class CPU:
         print()
 
     def HLT(self):
+        #Halt, program will stop running when it encounters this instruction.
         self.running = False
+
+    def CMP(self):
+        operand_a = self.ram_read(self.pc + 1)
+        operand_b = self.ram_read(self.pc + 2)
+        self.alu('CMP', operand_a, operand_b)
+        #self.pc += 3
+
+    def JMP(self):
+        jump_reg = self.ram[self.pc + 1]
+        jump_addr = self.reg[jump_reg]
+        self.pc = jump_addr
+
+    def JEQ(self):
+        jump_reg = self.ram[self.pc + 1]
+        jump_addr = self.reg[jump_reg]
+        if self.fl[7] == 1:
+            self.pc = jump_addr
+        else:
+            self.pc += 2
+
+    def JNE(self):
+        jump_reg = self.ram[self.pc + 1]
+        jump_addr = self.reg[jump_reg]
+        if self.fl[7] == 0:
+            self.pc = jump_addr
+        else:
+            self.pc += 2
 
     def LDI(self):
         address = self.ram_read(self.pc + 1)
@@ -141,12 +215,59 @@ class CPU:
         self.pc = self.ram[self.sp]
         self.sp += 1
 
+    def SHL(self):
+        operandA = self.ram_read(self.pc + 1)
+        operandB = self.ram_read(self.pc + 2)
+        self.alu('SHL', operandA, operandB)
+
+    def SHR(self):
+        operandA = self.ram_read(self.pc + 1)
+        operandB = self.ram_read(self.pc + 2)
+        self.alu('SHR', operandA, operandB)
+
+    def MOD(self):
+        operandA = self.ram_read(self.pc + 1)
+        operandB = self.ram_read(self.pc + 2)
+        self.alu('MOD', operandA, operandB)
+
+    def DIV(self):
+        operandA = self.ram_read(self.pc + 1)
+        operandB = self.ram_read(self.pc + 2)
+        self.alu('DIV', operandA, operandB)
+
+    def AND(self):
+        operandA = self.ram_read(self.pc + 1)
+        operandB = self.ram_read(self.pc + 2)
+        self.alu('AND', operandA, operandB)
+
+    def XOR(self):
+        operandA = self.ram_read(self.pc + 1)
+        operandB = self.ram_read(self.pc + 2)
+        self.alu('XOR', operandA, operandB)
+
+    def SUB(self):
+        operandA = self.ram_read(self.pc + 1)
+        operandB = self.ram_read(self.pc + 2)
+        self.alu('SUB', operandA, operandB)
+
+    def NOT(self):
+        operandA = self.ram_read(self.pc + 1)
+        operandB = self.ram_read(self.pc + 2)
+        self.alu('NOT', operandA, operandB)
+
+    def OR(self):
+        operandA = self.ram_read(self.pc + 1)
+        operandB = self.ram_read(self.pc + 2)
+        self.alu('OR', operandA, operandB)
+
     def run(self):
         """Run the CPU."""
 
         self.running = True
         while self.running:
             ir = self.ram_read(self.pc)
+            #print(ir, self.pc)
+
 
             if ir in self.branch_table:
                 self.branch_table[ir]()
@@ -155,7 +276,6 @@ class CPU:
 
                 if not param:
                     self.pc += operands + 1
-
 
             else:
                 self.running = False
