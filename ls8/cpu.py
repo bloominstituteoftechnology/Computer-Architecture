@@ -1,29 +1,29 @@
 """CPU functionality."""
 import sys
-# from inspect import signature
-sys.path.insert(
-    0, "/Users/jing/Documents/git-repositories/python-practice/Computer-Architecture/ls8/examples/")
+sys.path.insert(0, "/Users/jing/Documents/git-repositories/python-practice/Computer-Architecture/ls8/examples/")
+
 # import the binary operation code
 from opcodes import OPCODES
-""" op_bits = {'ADD': '10100000', 'AND': '10101000', 'CALL': '01010000', ...} """
+
+# get format as: {'ADD': '10100000', 'AND': '10101000', 'CALL': '01010000', ...}
 op_bits = {a: b["code"] for a, b in OPCODES.items()}
 # swtich so key is the opcode, value is the readable func name
 bits_op = {a:b for b, a in op_bits.items()}
 
 # define flag states:
-flag_L = 0b00000100 # less than is true
-flag_G = 0b00000010  # greater than than is true
-flag_E = 0b00000001  # equal to is true
+flag_L = 0b00000100 # less than is true, 4
+flag_G = 0b00000010  # greater than than is true, 2
+flag_E = 0b00000001  # equal to is true , 1
 
 class CPU:
-    """Main CPU class."""
     def __init__(self):
-        """ CPU states when LS-8 is created
-        this is a 8 bits CPU with 8 wires"""
+        """ Initial CPU states when LS-8 is created. This is a 8 bits CPU with 8 wires"""
         # 256 bytes of memory # this holds data that CPU will process
         self.ram = [0]*256  
+
         # 8 general-purpose registers 
         self.register = [0]*8 
+
         # internal register:
         # SP: stack pointer is in register[7], but the stack is always in RAM, the start of the stack is F4 hexadecimal
         self.SP = int(0xF4)  # integers in stack address range
@@ -63,7 +63,9 @@ class CPU:
                     # store line of code in the computer memeory, aka, ram
                     self.ram_write(address, x)
                     address += 1
-            print(self.ram[:address])
+            machine_codes = self.ram[:address]
+            print(machine_codes)
+            print(f"Lines of code = {len(machine_codes)}")
 
         except FileNotFoundError:
             print("File not found.")
@@ -139,41 +141,41 @@ class CPU:
     def HLT(self):
         # halt the cpu
         self.running = False
-        #sys.exit(0) # exit python
+        #sys.exit(0) # python clean exit 
     
     def PUSH(self, operand_a):
         # push the value in the given register on the stack
         # decrement SP, since the stack grows downwards in RAM
         self.SP -= 1
-        # get the register number
-        reg_num = self.ram_read[operand_a]
         # get the value from the register
-        push_value = self.register[reg_num]
+        push_value = self.register[operand_a]
         # store it at the stack pointer
         self.ram_write(self.SP, push_value)
      
     def POP(self, operand_a):
         # pop the value at the top of the stack (SP) into the given register        
         pop_value = self.ram_read(self.SP)
-        reg_number = self.ram_read(operand_a)
-        self.register[reg_number] = pop_value
+        self.register[operand_a] = pop_value
         # increment SP
         self.SP += 1
 
     def CALL(self, operand_a):
         # calls the subroutine at the address stored in the register[operand_a]
         # get the value at return address (the one after subroutine_addr) 
-        PC_return_addr = self.PC + 2
+        PC_return_addr = self.PC + 2        
         # push it to stack
-        self.SP -= 1
+        self.SP -= 1        
         self.ram_write(self.SP, PC_return_addr)                
-        # set the pc to the subroutine address 
-        self.PC = self.register[operand_a]
+        # set the pc to the subroutine address
+        self.PC = self.register[operand_a]    
 
     def RET(self):
         # return from subroutine 
         # pop the top of stack and store it in pc 
-        self.POP(self.PC)        
+        pop_value = self.ram_read(self.SP)
+        self.PC = pop_value
+        # increment SP
+        self.SP += 1    
 
     def IRET(self):
         # return from an interrupt handler
@@ -183,22 +185,25 @@ class CPU:
         # The FL register is popped off the stack.
         self.POP(self.FL)
         # The return address is popped off the stack and stored in PC.
-        self.POP(self.PC)
-        
+        self.POP(self.PC)        
     
-    def JMP(self, reg_addr):
+    def JMP(self, operand_a):
         # jump to address given
-        self.PC = self.register[reg_addr]
+        self.PC = self.register[operand_a]
     
-    def JEQ(self, reg_addr):
+    def JEQ(self, operand_a):
         # jump if is equal flag is true 
         if self.FL == flag_E:
-            self.JMP(reg_addr)
+            self.PC = self.register[operand_a]
+        else:
+            self.PC += 2
     
-    def JNE(self, reg_addr): 
+    def JNE(self, operand_a):
         # jump if not equal to
         if self.FL != flag_E:
-            self.JMP(reg_addr)
+            self.PC = self.register[operand_a]
+        else:
+            self.PC += 2
 
     def fun_map(self, fun):
         # to call cpu subroutines using a branch table
@@ -227,21 +232,22 @@ class CPU:
             "JEQ": self.JEQ,
             "JNE": self.JNE,
         }
-        # return the function
+        # return the function        
         return branch_table[fun]
         
         
     def run(self):
         """Run the CPU."""
         while self.running:  
+            
             # read address in register PC and store it in Instruction register (IR)  
+            # breakpoint()
             IR = self.ram_read(self.PC) 
             # remove 0b infront of bits and fill left with zero
             IR = bin(IR)[2:].zfill(8)
-            # get instruction
-            
+           
             if IR in bits_op:
-                self.trace()
+                # self.trace()
                 # get the readable function 
                 IR_readable = bits_op[IR]
                 # fun = getattr(self, IR_readable.lower())
@@ -251,28 +257,33 @@ class CPU:
                 
                 # To find the number of operands,
                 # mask for the first two bits, shift right by 6
-                num_operands = (int(op_bits[IR_readable],2) & 0b11000000) >> 6
-                
+                num_operands = (int(op_bits[IR_readable], 2) & 0b11000000) >> 6
+                # print(f"number of operands {num_operands}")
                 operand_a = self.ram_read(self.PC + 1)
                 operand_b = self.ram_read(self.PC + 2)
-                
+
+                operation = self.fun_map(IR_readable)
+
+                # print(f"Operation {IR_readable} {operand_a} {operand_b}")
                 # call the function accordingly on number of operands
                 if num_operands == 0:                    
-                    self.fun_map(IR_readable)()
+                    operation()
 
                 elif num_operands == 1:
-                    self.fun_map(IR_readable)(operand_a)
+                    operation(operand_a)
 
                 else:
                     # num_operands == 2:
-                    self.fun_map(IR_readable)(operand_a, operand_b)
+                    operation(operand_a, operand_b)
                 
                 # check if the instruction set the PC
-                set_PC = (int(op_bits[IR_readable], 2) & 0b00010000) >> 6
+                set_PC = (int(op_bits[IR_readable], 2) & 0b00010000) >> 4
+                
+                # set_PC=1 means the operation set PC by itself
                 if set_PC == 0:
                     # manually set the PC after the operation 
                     self.PC += (num_operands + 1)
-                           
+                # print(f"setPC is {set_PC}")           
             else:
                 print(f"unknow instruction {self.ram_read(self.PC)} at PC address {self.PC}")
                 sys.exit(1)
