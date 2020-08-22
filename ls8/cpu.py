@@ -1,4 +1,6 @@
-"""CPU functionality."""
+"""
+CPU functionality for "LS-8" Emulator.
+"""
 
 import sys
 
@@ -32,6 +34,8 @@ XOR = 0b10101011
 ADD = 0b10100000
 DIV = 0b10100011
 MOD = 0b10100100
+MUL = 0b10100010
+MULT = MUL
 SUB = 0b10100001
 # Comparison:
 JGE = 0b01011010
@@ -61,36 +65,67 @@ class CPU:
         # Create registers, and set all as empty to start:
         self.registers = [0] * 8
     
-    def alu(self, op, register_a, register_b):
-        """ALU operations."""
+    def alu(self, operation, register_a, register_b):
+        """
+        ALU operations.
+        """
 
-        if op == "ADD":
+        if operation == ADD:
+            print(f"ADD: self.registers[{register_a}] = {self.registers[register_a]} + self.registers[{register_b}] = {self.registers[register_b]} --> = {self.registers[register_a] + self.registers[register_b]}")
             self.registers[register_a] += self.registers[register_b]
-        #elif op == "SUB": etc
+        elif operation == SUB:
+            print(f"SUB: self.registers[{register_a}] = {self.registers[register_a]} - self.registers[{register_b}] = {self.registers[register_b]} --> = {self.registers[register_a] - self.registers[register_b]}")
+            self.registers[register_a] -= self.registers[register_b]
+        elif operation == MUL or operation == MULT:
+            print(f"MULT: self.registers[{register_a}] = {self.registers[register_a]} * self.registers[{register_b}] = {self.registers[register_b]} --> = {self.registers[register_a] * self.registers[register_b]}")
+            self.registers[register_a] *= self.registers[register_b]
+        elif operation == DIV:
+            print(f"DIV: self.registers[{register_a}] = {self.registers[register_a]} / self.registers[{register_b}] = {self.registers[register_b]} --> = {self.registers[register_a] / self.registers[register_b]}")
+            self.registers[register_a] /= self.registers[register_b]
+        elif operation == MOD:
+            print(f"MOD: self.registers[{register_a}] = {self.registers[register_a]} % self.registers[{register_b}] = {self.registers[register_b]} --> = {self.registers[register_a] % self.registers[register_b]}")
+            self.registers[register_a] %= self.registers[register_b]
         else:
             raise Exception("Unsupported ALU operation")
     
-    def load(self):
+    def load(self, memory_filename):
         """
         Load a program into memory.
         """
-
+        # Load memory/instructions file:
         address = 0
+        try:
+            # 
+            with open(memory_filename) as file:
+                for line in file:
+                    # Get instruction from file:
+                    instruction = line.split("#")[0].strip(" ")
+                    # Skip any empty lines or lines with only comments but no values/instructions:
+                    if instruction == "" or instruction == "\n":
+                        continue
+                    # Add to RAM:
+                    self.ram[address] = int(instruction, base=2)
+                    # Increment to go to next address in RAM:
+                    address += 1
 
-        # For now, we've just hardcoded a program:
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+        except FileNotFoundError:
+            sys.exit(f"File {memory_filename} not found.")
 
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+        # # For now, we've just hardcoded a program:
+        # program = [
+        #     # From print8.ls8
+        #     0b10000010, # LDI R0,8
+        #     0b00000000,
+        #     0b00001000,
+        #     0b01000111, # PRN R0
+        #     0b00000000,
+        #     0b00000001, # HLT
+        # ]
+
+        # address = 0
+        # for instruction in program:
+        #     self.ram[address] = instruction
+        #     address += 1
 
     def ram_read(self, address_mar):
         return self.ram[address_mar]
@@ -103,36 +138,54 @@ class CPU:
         # Start running CPU (set "running" to True):
         self.running = True
 
+        # Load instructions set into memory: 
+        # If instructions file specified in runtime system arguments, load that file's 
+        # instructions into memory (RAM):
+        if len(sys.argv) == 2:
+            self.load(memory_filename=sys.argv[1])
+        # If filename not entered via either system arguments or separate load() method 
+        # call, exit and ask for user to specify memory filename:
+        ram_is_empty = all(element == 0 for element in self.ram)
+        if len(sys.argv) != 2 and ram_is_empty:
+            sys.exit("Please enter as: cpu.py memory_filename")
+
+
         while self.running:
             # Go to PC's (Program Counter's) current address in memory (RAM), 
             # store the value at that address in the Instruction Register (IR), 
             # and get the next 2 items in RAM for efficiency in case they are operands:
             instruction, operand_a, operand_b = self.ram[self.pc:self.pc+3]
             op_size = (instruction >> 6) + 1
+            # print(f"PC: {self.pc}")
+            # print(f"ram: {self.ram}")
+            # print(f"ram: {self.ram[self.pc:self.pc+3]}")
+            # print(f"op_size: {op_size}\n")
 
-            # Check if instruction sets PC:
+            # Sets PC: If instruction sets PC:
             if (instruction >> 4) & 0b0001: # if int(bin(instruction >> 4)[-1]):
-                print("instruction sets the PC")
-            # Check if instruction is an ALU operation:
+                print("\ninstruction sets the PC")
+            # ALU Operations:
             elif instruction >> 5 & 0b001:  # if int(bin(instruction >> 4)[-2]):
-                print("instruction is an ALU operation")
+                print("\ninstruction is an ALU operation")
+                register_a = operand_a & 0b00000111
+                register_b = operand_b & 0b00000111
+                self.alu(operation=instruction, register_a=register_a, register_b=register_b)
             # Otherwise handle the specific instruction accordingly:
             if instruction == HLT:
                 self.running = False
-                print("HLT")
+                print("\nHLT")
             if instruction == LDI:
                 register = operand_a & 0b00000111
                 value = operand_b
                 self.registers[register] = value
-                print(f"LDI: set self.registers[{register}] = {value}")
+                print(f"\nLDI: set self.registers[{register}] = {value}")
             if instruction == PRN:
                 register = operand_a & 0b00000111
                 value = self.registers[register]
                 print(value)
-                print(f"PRN: value = {value}")
+                print(f"\nPRN: value = {value}")
             
             # Increment PC to the next instruction's location in RAM:
-            print(f"op_size: {op_size}\n")
             self.pc += op_size
 
     def trace(self):
@@ -154,3 +207,9 @@ class CPU:
             print(" %02X" % self.registers[i], end='')
 
         print()
+
+
+if __name__ == "__main__":
+    cpu = CPU()
+    # cpu.load()
+    cpu.run()
