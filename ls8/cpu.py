@@ -11,6 +11,7 @@ CALL = 0b01010000
 CMP = 0b10100111
 JEQ = 0b01010101
 JMP = 0b01010100
+JNE = 0b01010110
 HLT = 0b00000001
 LDI = 0b10000010
 PRN = 0b01000111
@@ -64,6 +65,9 @@ class CPU:
         self.running = False
         # Create registers, and set all as empty to start:
         self.registers = [0] * 8
+        self.registers[7] = 0xF4
+        # Initiate flags register as all False:
+        self.flags = 00000000
     
     def alu(self, operation, register_a, register_b):
         """
@@ -85,6 +89,16 @@ class CPU:
         elif operation == MOD:
             print(f"MOD: self.registers[{register_a}] = {self.registers[register_a]} % self.registers[{register_b}] = {self.registers[register_b]} --> = {self.registers[register_a] % self.registers[register_b]}")
             self.registers[register_a] %= self.registers[register_b]
+        elif operation == CMP:
+            if self.registers[register_a] == self.registers[register_b]:
+                # Set equal flag to 1:
+                self.flags = 0b00000001  # 00000LGE
+            elif self.registers[register_a] < self.registers[register_b]:
+                # Set less-than flag to 1:
+                self.flags = 0b00000100  # 00000LGE
+            elif self.registers[register_a] > self.registers[register_b]:
+                # Set greater-than flag to 1:
+                self.flags = 0b00000010  # 00000LGE
         else:
             raise Exception("Unsupported ALU operation")
     
@@ -127,6 +141,100 @@ class CPU:
         #     self.ram[address] = instruction
         #     address += 1
 
+        # program = [
+        #     # Code to test the Sprint Challenge
+        #     #
+        #     # Expected output:
+        #     # 1
+        #     # 4
+        #     # 5
+
+        #     0b10000010, # LDI R0,10
+        #     0b00000000,
+        #     0b00001010,
+        #     0b10000010, # LDI R1,20
+        #     0b00000001,
+        #     0b00010100,
+        #     0b10000010, # LDI R2,TEST1
+        #     0b00000010,
+        #     0b00010011,
+        #     0b10100111, # CMP R0,R1
+        #     0b00000000,
+        #     0b00000001,
+        #     0b01010101, # JEQ R2
+        #     0b00000010,
+        #     0b10000010, # LDI R3,1
+        #     0b00000011,
+        #     0b00000001,
+        #     0b01000111, # PRN R3
+        #     0b00000011,
+        #     # TEST1 (address 19):
+        #     0b10000010, # LDI R2,TEST2
+        #     0b00000010,
+        #     0b00100000,
+        #     0b10100111, # CMP R0,R1
+        #     0b00000000,
+        #     0b00000001,
+        #     0b01010110, # JNE R2
+        #     0b00000010,
+        #     0b10000010, # LDI R3,2
+        #     0b00000011,
+        #     0b00000010,
+        #     0b01000111, # PRN R3
+        #     0b00000011,
+        #     # TEST2 (address 32):
+        #     0b10000010, # LDI R1,10
+        #     0b00000001,
+        #     0b00001010,
+        #     0b10000010, # LDI R2,TEST3
+        #     0b00000010,
+        #     0b00110000,
+        #     0b10100111, # CMP R0,R1
+        #     0b00000000,
+        #     0b00000001,
+        #     0b01010101, # JEQ R2
+        #     0b00000010,
+        #     0b10000010, # LDI R3,3
+        #     0b00000011,
+        #     0b00000011,
+        #     0b01000111, # PRN R3
+        #     0b00000011,
+        #     # TEST3 (address 48):
+        #     0b10000010, # LDI R2,TEST4
+        #     0b00000010,
+        #     0b00111101,
+        #     0b10100111, # CMP R0,R1
+        #     0b00000000,
+        #     0b00000001,
+        #     0b01010110, # JNE R2
+        #     0b00000010,
+        #     0b10000010, # LDI R3,4
+        #     0b00000011,
+        #     0b00000100,
+        #     0b01000111, # PRN R3
+        #     0b00000011,
+        #     # TEST4 (address 61):
+        #     0b10000010, # LDI R3,5
+        #     0b00000011,
+        #     0b00000101,
+        #     0b01000111, # PRN R3
+        #     0b00000011,
+        #     0b10000010, # LDI R2,TEST5
+        #     0b00000010,
+        #     0b01001001,
+        #     0b01010100, # JMP R2
+        #     0b00000010,
+        #     0b01000111, # PRN R3
+        #     0b00000011,
+        #     # TEST5 (address 73):
+        #     0b00000001 # HLT
+        # ]
+
+        # address = 0
+        # for instruction in program:
+        #     self.ram[address] = instruction
+        #     address += 1
+
     def ram_read(self, address_mar):
         return self.ram[address_mar]
     
@@ -150,11 +258,15 @@ class CPU:
             sys.exit("Please enter as: cpu.py memory_filename")
 
 
-        while self.running:
+        while self.running and self.pc < len(self.ram):
             # Go to PC's (Program Counter's) current address in memory (RAM), 
             # store the value at that address in the Instruction Register (IR), 
             # and get the next 2 items in RAM for efficiency in case they are operands:
-            instruction, operand_a, operand_b = self.ram[self.pc:self.pc+3]
+            instruction = self.ram[self.pc]
+            if self.pc < len(self.ram) - 2:
+                operand_a, operand_b = self.ram[self.pc+1:self.pc+3]
+            elif self.pc == len(self.ram) - 2:
+                operand_a = self.ram[self.pc+1]
             op_size = (instruction >> 6) + 1
             # print(f"PC: {self.pc}")
             # print(f"ram: {self.ram}")
@@ -164,26 +276,51 @@ class CPU:
             # Sets PC: If instruction sets PC:
             if (instruction >> 4) & 0b0001: # if int(bin(instruction >> 4)[-1]):
                 print("\ninstruction sets the PC")
+                if instruction == JMP:
+                    # Get the address stored in the specified register:
+                    register = operand_a & 0b00000111
+                    # Jump to that address in RAM by resetting PC:
+                    print(f"JMP: to register {register}'s RAM index of {self.registers[register]}")
+                    self.pc = self.registers[register] - 1
+                    continue
+                elif instruction == JEQ:
+                    # If the equal flag is set to True:
+                    if (self.flags & 0b00000001) == 0b1:
+                        # Get the address stored in the specified register:
+                        register = operand_a & 0b00000111
+                        # Jump to that address in RAM by resetting PC:
+                        print(f"JEQ: Jump to register {register}'s RAM index of {self.registers[register]}")
+                        self.pc = self.registers[register] - 1
+                        continue
+                elif instruction == JNE:
+                    # If the equal flag is set to True:
+                    if (self.flags & 0b00000001) == 0b0:
+                        # Get the address stored in the specified register:
+                        register = operand_a & 0b00000111
+                        # Jump to that address in RAM by resetting PC:
+                        print(f"JNE: Jump to register {register}'s RAM index of {self.registers[register]}")
+                        self.pc = self.registers[register] - 1
+                        continue
             # ALU Operations:
-            elif instruction >> 5 & 0b001:  # if int(bin(instruction >> 4)[-2]):
+            elif (instruction >> 5) & 0b001:  # if int(bin(instruction >> 4)[-2]):
                 print("\ninstruction is an ALU operation")
                 register_a = operand_a & 0b00000111
                 register_b = operand_b & 0b00000111
                 self.alu(operation=instruction, register_a=register_a, register_b=register_b)
             # Otherwise handle the specific instruction accordingly:
-            if instruction == HLT:
+            elif instruction == HLT:
                 self.running = False
                 print("\nHLT")
-            if instruction == LDI:
+            elif instruction == LDI:
                 register = operand_a & 0b00000111
                 value = operand_b
                 self.registers[register] = value
                 print(f"\nLDI: set self.registers[{register}] = {value}")
-            if instruction == PRN:
+            elif instruction == PRN:
                 register = operand_a & 0b00000111
                 value = self.registers[register]
                 print(value)
-                print(f"\nPRN: value = {value}")
+                print(f"\nPRN: value at register {register} = {value}")
             
             # Increment PC to the next instruction's location in RAM:
             self.pc += op_size
