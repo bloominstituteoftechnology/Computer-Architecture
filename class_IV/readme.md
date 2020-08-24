@@ -35,8 +35,11 @@ Stack
 
 696: x: 2        |
 695: y: 7        |
-694: z: ??       | mult2's stack frame
+694: z: 14       | mult2's stack frame
 693: retaddr 2   |
+
+-------------
+ret value: 14
 """
 def mult2(x, y):
     z = x * y <--PC
