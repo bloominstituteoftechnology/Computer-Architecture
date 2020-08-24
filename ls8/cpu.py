@@ -59,13 +59,13 @@ class CPU:
         elif op == "CMP":
             reg_num_1 = self.reg[reg_a]
             reg_num_2 = self.reg[reg_b]
-            
-            if reg_num_1 > reg_num_2:  
-                self.flag = 0b10
-                
-            elif reg_num_1 == reg_num_2:  
+    
+            if reg_num_1 == reg_num_2:  
                 self.flag = 0b1
-                
+            
+            elif reg_num_1 > reg_num_2:  
+                self.flag = 0b10
+    
             elif reg_num_1 < reg_num_2:  
                 self.flag = 0b100
         
@@ -190,9 +190,8 @@ class CPU:
             # CMP - comparison function - Set Flags based on CMP status
             # set flags correctly
             
-            # values inside the registers
-            # change to reg 6
-            # put to alu
+            # values inside the registers - done in alu
+            # put to alu - done
             
             elif ir == CMP:
                 self.alu("CMP", operand_a, operand_b)
@@ -215,8 +214,11 @@ class CPU:
                     self.pc += 2
 
             # JNE: If E flag is clear (false, 0), jump to the address stored in the given reg.
-
+                # & is a bitwise OP
+                
             elif ir == JNE:
+                # if self.flag:
+                # == 0b0
                 if self.flag & 0b1 == 0b0:
                     address = self.reg[operand_a]
                     self.pc = address
@@ -226,8 +228,7 @@ class CPU:
             else:
                 print(f"Invalid instruction {ir} at address {self.pc}")
                 sys.exit(1)
-            
-            # read value where the pointer is pointing
+
             
                 
                 
