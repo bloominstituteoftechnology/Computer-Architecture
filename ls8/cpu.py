@@ -8,6 +8,25 @@ class CPU:
     def __init__(self):
         """Construct a new CPU."""
         self.memory = [None] * 256
+        self.gen_reg =  { 
+                'R0': 0b1101010,
+                'R1': 0b0000000,
+                'R2': 0b0000000,
+                'R3': 0b0000000,
+                'R4': 0b0000000,
+                'R5': 0b0000000,    # R5  interrupt mask
+                'R6': 0b0000000,    # IS  interrupt status
+                'R7': 0b0000000     # SP  stack pointer
+            }
+        self.int_reg =  { 
+                        'PC': 0b0000000,    # PC program counter
+                        'IR': 0b0000000,    # IR instruction register
+                        'MAR': 0b0000000,   # MAR memory address register  
+                        'MDR': 0b0000000,   # memory data register
+                        'FL': 0b0000111,    # flags
+                    }
+        
+        
         pass
 
     def load(self):
@@ -75,8 +94,33 @@ class CPU:
                 print(f' {self.memory[i:end]}  mem {i } : {end} ')
                 break        
 
+    def read_gen_reg_b(self, reg):
+        return bin(self.gen_reg[reg])   
+
+    def read_gen_reg_h(self, reg):
+        return hex(self.gen_reg[reg])
+
+    def return_bin(self, reg_val):
+        return bin(reg_val)
+
+    def read_reg(self, reg_type, reg, base):
+        if reg_type == 'gen_reg':
+            if base == 'hex':
+                return self.read_gen_reg_h(reg)
+            if base == 'bin':
+                return bin(self.gen_reg[reg])   
+        elif reg_type == 'int_reg':
+            if base == 'hex':
+                return hex(self.int_reg[reg])
+            if base == 'bin':
+                return self.return_bin(self.int_reg[reg])            
 
 
 cpu = CPU()
 # print(f' memory is {cpu.memory} ')  
 cpu.dump_mem()
+print(cpu.read_gen_reg_b('R0'))
+print(cpu.read_gen_reg_h('R0'))
+print(cpu.read_reg('gen_reg', 'R0', 'hex'))
+print(cpu.read_reg('gen_reg', 'R0', 'bin'))
+print(cpu.read_reg('int_reg', 'FL', 'hex'))
