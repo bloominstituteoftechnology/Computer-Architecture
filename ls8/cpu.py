@@ -7,6 +7,7 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
+        self.memory = [None] * 256
         pass
 
     def load(self):
@@ -63,3 +64,19 @@ class CPU:
     def run(self):
         """Run the CPU."""
         pass
+
+    def dump_mem(self):
+        print(f' mem size: {len(self.memory)}\n ****** DUMP  *******')
+        
+        for i in range(0, len(self.memory), 8):
+            for j in range(i, len(self.memory), 8):
+                end = i + 7
+                # print(f' i {i }  :  j {i + 8}')
+                print(f' {self.memory[i:end]}  mem {i } : {end} ')
+                break        
+
+
+
+cpu = CPU()
+# print(f' memory is {cpu.memory} ')  
+cpu.dump_mem()
