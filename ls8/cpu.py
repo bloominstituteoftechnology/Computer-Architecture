@@ -11,7 +11,7 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        self.memory = [00] * 256
+        self.memory = [0] * 256
         self.gen_reg =  { 
                 0 : 0b0000000,   # clear to 0b0 on boot
                 1 : 0b0000000,
@@ -84,8 +84,8 @@ class CPU:
             self.ram_read(self.pc + 2)
         ), end='')
 
-        # for i in range(8):
-        #     print(" %02X" % self.reg[i], end='')
+        for i in range(8):
+            print(" %02X" % self.reg[i], end='')
 
         for i in range(8):
             print(" %02X" % self.gen_reg[i], end='')
@@ -102,27 +102,33 @@ class CPU:
 
         while self.running:
             # load up  
-            instruction_r = self.ram_read(self.int_reg['PC']) 
-            op_a = self.ram_read(self.int_reg['PC'] + 1)
-            op_b = self.ram_read(self.int_reg['PC'] + 2)
+            # instruction_r = self.ram_read(self.int_reg['PC']) 
+            # op_a = self.ram_read(self.int_reg['PC'] + 1)
+            # op_b = self.ram_read(self.int_reg['PC'] + 2)
+
+            instruction_r = self.ram_read(self.pc) 
+            op_a = self.ram_read(self.pc + 1)
+            op_b = self.ram_read(self.pc + 2)                
+
 
             self.trace()
 
             if instruction_r == HLT:
-                # print(f' HLT called')
+                print(f' HLT called')
                 self.running = False
                 break
 
             elif instruction_r == LDI:
-                # print(f' LDI called ')
+                print(f' LDI called ')
                 self.int_reg[op_a] = op_b            
-                self.int_reg['PC'] += 3
+                # self.int_reg['PC'] += 3
+                self.pc += 3
 
             elif instruction_r == PRN:
-                # print(f' PRN called')    
+                print(f' PRN called')    
                 print(f' {self.int_reg[op_a]}')
-                self.int_reg['PC'] += 2
-
+                # self.int_reg['PC'] += 2
+                self.pc += 2
 
 
 
@@ -141,15 +147,30 @@ class CPU:
     #             print(f' {self.memory[i:end]}  mem {i } : {end} ')
     #             break        
 
-    def dump_mem(self):
+    def dump_mem(self, base = None):
         print(f' mem size: {len(self.memory)}\n ****** DUMP  *******')
         
         for i in range(len(self.memory) - 1, 0, -8):
             for j in range(len(self.memory) - 1, i - 8, -8):
                 end = i - 7
                 # print(f' i {i }  :  j {end}')
-                print(f' {self.memory[end: i + 1]}  \t\t  mem {end } : {i} ')
+                str_mem = ''
+                for item in self.memory[end: i + 1]:
+                    if base == 'b':
+                        str_mem +=  str(bin(item)) + ",\t"
+                    elif base == 'h':
+                        str_mem +=  str(hex(item)) + ",\t "
+                    else:
+                        str_mem += str(item) + ",\t" 
+                    # print(f' {str_mem}')
+                # print(f' {(self.memory[end: i + 1])}  \t\t  mem {end } : {i} ')
+                print(f' {str_mem}  \t\t  mem {end } : {i} ')
                 break    
+
+
+
+
+
 
     def read_gen_reg_b(self, reg):
         return bin(self.gen_reg[reg])   
@@ -246,9 +267,12 @@ class CPU:
         self.memory[address] = val
         return val
         
+        # self.memory[address] = hex(val)
+        # return hex(val)
+        
     def ram_read(self, address):
         return self.memory[address]
-        # return self.memory[address]
+        # return hex(self.memory[address])
 
 
 
@@ -295,5 +319,5 @@ cpu = CPU()
 
 cpu.load()
 cpu.dump_mem()
-cpu.trace()
+cpu.dump_mem('h')
 cpu.run()
