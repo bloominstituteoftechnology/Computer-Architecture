@@ -116,7 +116,30 @@ class CPU:
             print(" %02X" % self.reg[i], end='')
 
         print()
+        
+    def ldi(self, reg_num, value):
+        self.reg[reg_num] = value
+
+    def prn(self, reg_num):
+        print(self.reg[reg_num])
 
     def run(self):
         """Run the CPU."""
-        pass
+        # pass
+        instruction_reg = self.ram_read(self.pc)
+        while instruction_reg != HLT:
+            num_operands = instruction_reg >> OPERANDS_OFFSET
+            if num_operands == 0:
+                self.dispatch_table[instruction_reg]()
+                self.pc += 1
+            elif num_operands == 1:
+                self.dispatch_table[instruction_reg](self.ram_read(self.pc + 1))
+                self.pc += 2
+            elif num_operands == 2:
+                self.dispatch_table[instruction_reg](self.ram_read(self.pc + 1), self.ram_read(self.pc + 2))
+                self.pc += 3
+            else:
+                print("I don't understant the command")
+            instruction_reg = self.ram_read(self.pc)
+            
+            # end of code
