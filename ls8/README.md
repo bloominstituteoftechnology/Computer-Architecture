@@ -1,7 +1,5 @@
 # Project: The LS-8 Emulator
 
-jdhfhkcvdefsjuhbg
-
 ## Implementation of the LS-8 Emulator
 
 _Objective_: to gain a deeper understanding of how a CPU functions at a
