@@ -47,7 +47,23 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        # pass
+        self.ram = [0] * 256
+        self.reg = [0] * 8
+        self.pc = 0
+        self.running = True
+        self.configure_dispatch_table()
+
+    def configure_dispatch_table(self):
+        self.dispatch_table = {}
+        self.dispatch_table[LDI] = self.ldi
+        self.dispatch_table[PRN] = self.prn
+
+    def ram_read(self, address) -> int:
+        return self.ram[address]
+
+    def ram_write(self, address, value):
+        self.ram[address] = value
         
 
     def load(self):
