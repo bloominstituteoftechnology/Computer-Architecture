@@ -2,22 +2,29 @@
 
 import sys
 
+from opcodes import *
+
+
+
 class CPU:
     """Main CPU class."""
 
     def __init__(self):
         """Construct a new CPU."""
-        self.memory = [0] * 256
+        self.memory = [00] * 256
         self.gen_reg =  { 
-                0 : 0b1101010,   # clear to 0b0 on boot
+                0 : 0b0000000,   # clear to 0b0 on boot
                 1 : 0b0000000,
                 2 : 0b0001000,
                 3 : 0b0000000,
                 4 : 0b0000000,
                 5 : 0b0000000,    # R5  interrupt mask
                 6 : 0b0000000,    # IS  interrupt status
-                7 : 0b11110100     # SP  stack pointer   # init to 0b0 
+                7 : 0b0000000     # SP  stack pointer   # init to 0b0 
             }
+
+        self.reg = [0] * 8    # needed for trace
+
         self.int_reg =  { 
                         'PC': 0b0000000,    # PC program counter
                         'IR': 0b0000000,    # IR instruction register
@@ -26,7 +33,9 @@ class CPU:
                         'FL': 0b0000000,    # flags
                     }
         
-        
+        self.running = False
+        self.pc = self.int_reg['PC']  # needed for trace
+
         pass
 
     def load(self):
@@ -47,7 +56,7 @@ class CPU:
         ]
 
         for instruction in program:
-            self.ram[address] = instruction
+            self.memory[address] = instruction
             address += 1
 
 
@@ -75,13 +84,51 @@ class CPU:
             self.ram_read(self.pc + 2)
         ), end='')
 
+        # for i in range(8):
+        #     print(" %02X" % self.reg[i], end='')
+
         for i in range(8):
-            print(" %02X" % self.reg[i], end='')
+            print(" %02X" % self.gen_reg[i], end='')
+
 
         print()
 
     def run(self):
         """Run the CPU."""
+        self.running = True
+
+        # load program
+        self.load()
+
+        while self.running:
+            # load up  
+            instruction_r = self.ram_read(self.int_reg['PC']) 
+            op_a = self.ram_read(self.int_reg['PC'] + 1)
+            op_b = self.ram_read(self.int_reg['PC'] + 2)
+
+            self.trace()
+
+            if instruction_r == HLT:
+                # print(f' HLT called')
+                self.running = False
+                break
+
+            elif instruction_r == LDI:
+                # print(f' LDI called ')
+                self.int_reg[op_a] = op_b            
+                self.int_reg['PC'] += 3
+
+            elif instruction_r == PRN:
+                # print(f' PRN called')    
+                print(f' {self.int_reg[op_a]}')
+                self.int_reg['PC'] += 2
+
+
+
+
+
+
+
         pass
 
     # def dump_mem(self):
@@ -101,7 +148,7 @@ class CPU:
             for j in range(len(self.memory) - 1, i - 8, -8):
                 end = i - 7
                 # print(f' i {i }  :  j {end}')
-                print(f' {self.memory[end: i]}  mem {i } : {end} ')
+                print(f' {self.memory[end: i + 1]}  \t\t  mem {end } : {i} ')
                 break    
 
     def read_gen_reg_b(self, reg):
@@ -157,6 +204,15 @@ class CPU:
         else:
             return None            
 
+    def check_valid_b(self, val):
+        test_val = str(val)
+    
+        if test_val >= '0' and test_val <= '255':
+        # val = int(val, 16)
+            # print(type(val))
+            return bin(val)
+        else:
+            return None
 
 
     def write_reg_h(self, reg_type, reg, val):
@@ -168,32 +224,76 @@ class CPU:
             else:
                 return None    
 
-
-
+    def write_mem_h(self, address, val):
+        if int(val, 16):
+            print(f' HEX write given')
+            # return
+        
+        
+        if self.check_valid_h(val):
+            self.memory[address] = hex(int(val, 16))
+            return val
+        return None
             
+    def read_mem_h(self, address):
+        if self.check_valid_h(str(address)):
+            return self.memory[address]
+        else:
+            raise ValueError(' Address out of range 0-255')
+            print(f' out of range')    
+
+    def ram_write(self, address, val):
+        self.memory[address] = val
+        return val
+        
+    def ram_read(self, address):
+        return self.memory[address]
+        # return self.memory[address]
 
 
 
 cpu = CPU()
 # print(f' memory is {cpu.memory} ')  
+# cpu.dump_mem()
+# print(f'*********   register  **********')
+# print(cpu.read_gen_reg_b(0))   # 0b1101010
+# print(f' used a binary register val')
+# print(cpu.read_gen_reg_d('010'))
+
+# print(cpu.read_gen_reg_h(0))   # 0x6a
+# print(cpu.read_reg('gen_reg', 0, 'hex'))  # 0x6a
+# print(cpu.read_reg('gen_reg', 0, 'bin'))  # 0b1101010
+# print(cpu.read_reg('gen_reg', 0))     # 106
+# print(cpu.read_reg('int_reg', 'FL', 'hex'))  # 0x7
+# print(cpu.read_reg('int_reg', 'FL', 'bin'))  # 0b111
+# print(cpu.read_reg('int_reg', 'FL'))         # 7
+
+# print(cpu.check_valid_h('FF'))
+# print(cpu.check_valid_h('0c0'))
+# print(cpu.check_valid_h('0b010'))  # bin returns None
+# print(cpu.check_valid_h('122'))   # dec returns none
+
+# cpu.write_reg_h('int_reg', 'FL', 'EF')
+# print(cpu.read_reg('int_reg', 'FL'))
+
+# print(f'  ***********   memory    ************')
+# print(cpu.write_mem_h(7, 'EF'))
+# print(cpu.write_mem_h(10, 'BB'))
+
+# print(cpu.write_mem(11, 0b1101))
+
+# cpu.dump_mem()
+
+# print(cpu.read_mem(10))
+# print(cpu.read_mem(500))   # should make error
+
+
+# print(cpu.check_valid_b(0b10000010))
+# print(cpu.write_mem_b(0, 0b10000010))
+# print(cpu.read_mem_b(0))
+# cpu.dump_mem()
+
+cpu.load()
 cpu.dump_mem()
-print(cpu.read_gen_reg_b(0))   # 0b1101010
-print(f' used a binary register val')
-print(cpu.read_gen_reg_d('010'))
-
-print(cpu.read_gen_reg_h(0))   # 0x6a
-print(cpu.read_reg('gen_reg', 0, 'hex'))  # 0x6a
-print(cpu.read_reg('gen_reg', 0, 'bin'))  # 0b1101010
-print(cpu.read_reg('gen_reg', 0))     # 106
-print(cpu.read_reg('int_reg', 'FL', 'hex'))  # 0x7
-print(cpu.read_reg('int_reg', 'FL', 'bin'))  # 0b111
-print(cpu.read_reg('int_reg', 'FL'))         # 7
-
-print(cpu.check_valid_h('FF'))
-print(cpu.check_valid_h('0c0'))
-print(cpu.check_valid_h('0b010'))  # bin returns None
-print(cpu.check_valid_h('122'))   # dec returns none
-
-cpu.write_reg_h('int_reg', 'FL', 'EF')
-print(cpu.read_reg('int_reg', 'FL'))
-
+cpu.trace()
+cpu.run()
