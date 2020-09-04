@@ -50,13 +50,18 @@ class CPU:
         program = []
         address = 0
 
-        with open(filename) as f:
-            for line in f:
-                if line.split("#")[0] != '\n' and line.split("#")[0] != '':
-                    # program.append(line.split('#')[0].strip())
+        try:    
+            with open(filename) as f:
+                for line in f:
+                    if line.split("#")[0] != '\n' and line.split("#")[0] != '':
+                        # program.append(line.split('#')[0].strip())
 
-                    self.memory[address] = int(line.split('#')[0].strip(), 2)
-                    address += 1
+                        self.memory[address] = int(line.split('#')[0].strip(), 2)
+                        address += 1
+        except FileNotFoundError:
+            print(f' filename {filename} NOT FOUND ')
+            sys.exit(2)
+            
         # print(f' NOW program is {program} ')
 
 
