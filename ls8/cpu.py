@@ -2,9 +2,11 @@
 
 import sys
 
-from opcodes import *
+# from opcodes import *
+import opcodes
 
-
+# MUL = 0b10100010
+ADD = 0b10100000
 
 class CPU:
     """Main CPU class."""
@@ -38,33 +40,55 @@ class CPU:
 
         pass
 
-    def load(self):
+    def load(self, filename):
         """Load a program into memory."""
 
         address = 0
 
+        # #  print(f' >>>> sys.argv    {sys.argv} sys.argv')
+
+        program = []
+        address = 0
+
+        with open(filename) as f:
+            for line in f:
+                if line.split("#")[0] != '\n' and line.split("#")[0] != '':
+                    # program.append(line.split('#')[0].strip())
+
+                    self.memory[address] = int(line.split('#')[0].strip(), 2)
+                    address += 1
+        # print(f' NOW program is {program} ')
+
+
         # For now, we've just hardcoded a program:
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+        # program = [
+        #     # From print8.ls8
+        #     0b10000010, # LDI R0,8
+        #     0b00000000,
+        #     0b00001000,
+        #     0b01000111, # PRN R0
+        #     0b00000000,
+        #     0b00000001, # HLT
+        # ]
 
-        for instruction in program:
-            self.memory[address] = instruction
-            address += 1
+        # for instruction in program:
+        #     self.memory[address] = instruction
+        #     address += 1
 
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
 
-        if op == "ADD":
+        # I removed quotes around variables
+        print(f' op  {op}')
+        if op == opcodes.ADD:
             self.reg[reg_a] += self.reg[reg_b]
+        elif op == opcodes.MUL:
+            self.reg[reg_a] *= self.reg[reg_b]  
+            # print(f' after mul >> self.reg[reg_a] {self.reg[reg_a]}  self.reg[reg_b] {self.reg[reg_b]} ')
+
+            # print(f' after MUL >>  reg_a {self.reg[reg_a]}' )  
         #elif op == "SUB": etc
         else:
             raise Exception("Unsupported ALU operation")
@@ -87,8 +111,8 @@ class CPU:
         for i in range(8):
             print(" %02X" % self.reg[i], end='')
 
-        for i in range(8):
-            print(" %02X" % self.gen_reg[i], end='')
+        # for i in range(8):
+        #     print(" %02X" % self.gen_reg[i], end='')
 
 
         print()
@@ -96,9 +120,6 @@ class CPU:
     def run(self):
         """Run the CPU."""
         self.running = True
-
-        # load program
-        self.load()
 
         while self.running:
             # load up  
@@ -113,24 +134,32 @@ class CPU:
 
             self.trace()
 
-            if instruction_r == HLT:
+            if instruction_r == opcodes.HLT:
                 print(f' HLT called')
                 self.running = False
                 break
 
-            elif instruction_r == LDI:
+            elif instruction_r == opcodes.LDI:
                 print(f' LDI called ')
-                self.int_reg[op_a] = op_b            
+                self.reg[op_a] = op_b            
                 # self.int_reg['PC'] += 3
                 self.pc += 3
 
-            elif instruction_r == PRN:
+            elif instruction_r == opcodes.PRN:
                 print(f' PRN called')    
-                print(f' {self.int_reg[op_a]}')
+                print(f' reg {op_a} val: {self.reg[op_a]}')
                 # self.int_reg['PC'] += 2
                 self.pc += 2
 
+            
 
+            elif instruction_r == opcodes.MUL:
+                print(f' MUL called ')
+                # print(f' op_a_reg {op_a}    op_b_reg  {op_b} ')
+                print(f' reg {op_a} val: {self.reg[op_a]}  reg {op_b} val: {self.reg[op_b]}')
+                self.alu(opcodes.MUL, op_a, op_b)           
+                # self.int_reg['PC'] += 3
+                self.pc += 3 
 
 
 
@@ -317,7 +346,7 @@ cpu = CPU()
 # print(cpu.read_mem_b(0))
 # cpu.dump_mem()
 
-cpu.load()
-cpu.dump_mem()
-cpu.dump_mem('h')
-cpu.run()
+# cpu.load('ls8/examples/print8.ls8')
+# cpu.dump_mem('h')
+# cpu.run()
+# cpu.dump_mem('h')
