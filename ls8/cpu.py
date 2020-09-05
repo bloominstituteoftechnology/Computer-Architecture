@@ -2,6 +2,10 @@
 
 import sys
 
+HALT = 0b00000001
+PRNT = 0b01000111
+LDI = 0b10000010
+
 class CPU:
     """Main CPU class."""
 
@@ -10,6 +14,7 @@ class CPU:
         self.registers = [0] * 8 # example R0 - R7
         self.ram = [0] * 256 # list
         self.running = True
+
 
     def load(self):
         """Load a program into memory."""
@@ -25,8 +30,8 @@ class CPU:
         program = [
             # From print8.ls8
             LDI, # LDI R0,8
-            0b00000000,
-            0b00001000,
+            0b00000000, # register 0
+            0b00001000, # print 8
             PRNT, # PRN R0
             0b00000000,
             HALT,
@@ -72,13 +77,27 @@ class CPU:
         while self.running: 
             instruction = self.ram[self.pc]
 
-            if instruction == self.ram_read(self.load()):
+            if instruction == LDI:
+                reg_location = self.ram_read(self.pc + 1)
+                reg_value = self.ram_read(self.pc + 2)
+                self.ram_write(reg_location, reg_value)
+                print(self.registers[reg_location])
+                self.pc += 2
+            elif instruction == PRNT:
+                curr_val = self.ram[self.pc + 1]
+                print(curr_val)
+                self.pc += 1
+            elif instruction == HALT:
                 self.running = False
+            else:
+                print(f'No such {instruction} exists')
+                sys.exit(1)
+        
+        self.pc += 1
         
 
     def ram_read(self, address):
-        if address in self.ram:
-            return self.ram[address]
+        return self.ram[address]
 
     def ram_write(self, address, value):
         self.ram[address] = value
