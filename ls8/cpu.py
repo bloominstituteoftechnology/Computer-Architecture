@@ -2,6 +2,11 @@
 
 import sys
 
+# HLT = 0b00000001
+# LDI = 0b10000010
+# PRN = 0b01000111
+# MUL = 0b10100010
+
 
 class CPU:
     """Main CPU class."""
@@ -11,6 +16,32 @@ class CPU:
         self.ram = [0] * 256
         self.reg = [0] * 8
         self.pc = 0
+        self.sp = 7  # reg that holds top of stack address.
+        # self.branchtable = {}
+        # self.branchtable[HLT] = self.handle_HLT
+        # self.branchtable[LDI] = self.handle_LDI
+        # self.branchtable[PRN] = self.handle_PRN
+        # self.branchtable[MUL] = self.handle_MUL
+
+    # def handle_HLT(self):
+    #     running = False
+
+    # def handle_LDI(self):
+    #     operand_a = self.ram_read(self.pc + 1)
+    #     operand_b = self.ram_read(self.pc + 2)
+    #     self.reg[operand_a] = operand_b
+    #     self.pc += 3
+
+    # def handle_PRN(self):
+    #     operand_c = self.ram_read(self.pc + 1)
+    #     print(self.reg[operand_c])
+    #     self.pc += 2
+
+    # def handle_MUL(self):
+    #     reg_a = self.ram_read(self.pc + 1)
+    #     reg_b = self.ram_read(self.pc + 2)
+    #     self.alu('MUL', reg_a, reg_b)
+    #     self.pc += 3
 
     def ram_read(self, MAR):
         # Memory Address Register (MAR)
@@ -87,12 +118,28 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
+        running = True
+
+        # ir = HLT
+        # self.branchtable[ir]()
+
+        # ir = LDI
+        # self.branchtable[ir]()
+
+        # ir = PRN
+        # self.branchtable[ir]()
+
+        # ir = MUL
+        # self.branchtable[ir]()
+
+        self.reg[self.sp] = len(self.ram) - 1
+
         HLT = 0b00000001
         LDI = 0b10000010
         PRN = 0b01000111
         MUL = 0b10100010
-
-        running = True
+        POP = 0b01000110
+        PUSH = 0b01000101
 
         while running:
             instruction = self.ram[self.pc]
@@ -112,3 +159,15 @@ class CPU:
                 reg_b = self.ram_read(self.pc + 2)
                 self.alu('MUL', reg_a, reg_b)
                 self.pc += 3
+            elif instruction == PUSH:
+                reg = self.ram_read(self.pc + 1)
+                reg_val = self.reg[reg]
+                self.reg[self.sp] -= 1
+                self.ram[self.reg[self.sp]] = reg_val
+                self.pc += 2
+            elif instruction == POP:
+                value = self.ram[self.reg[self.sp]]
+                reg = self.ram_read(self.pc + 1)
+                self.reg[reg] = value
+                self.reg[self.sp] += 1
+                self.pc += 2
