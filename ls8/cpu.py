@@ -128,8 +128,6 @@ class CPU:
 
         while running:
             debug_cnt = debug_cnt + 1
-            # print(f"Before {debug_cnt}")
-            # self.trace()
             ir = self.ram[self.pc]
 
             operand_a = self.ram_read(self.pc + 1)
@@ -137,13 +135,10 @@ class CPU:
 
             try:
                 operation_output = self.commands[ir](operand_a, operand_b)
-                # print(operation_output)
                 running = operation_output[1]
                 self.pc += operation_output[0]
 
-                # print(f"After {debug_cnt}")
-                # self.trace()
-
+                
             except Exception as e:
                 print(e)
                 print(f"command: {ir}")
