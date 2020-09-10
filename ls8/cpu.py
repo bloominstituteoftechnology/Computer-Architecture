@@ -49,6 +49,8 @@ class CPU:
         self.reg = [0] * 8
         self.pc = 0
         self.dispatch = {
+            0x82: self._ldi,
+            0x47: self._prn
         }
 
     def ram_read(self, address):
@@ -116,19 +118,34 @@ class CPU:
 
         operand_a = self.ram_read(self.pc + 1)
         operand_b = self.ram_read(self.pc + 2)
-        operation = CPU.ops.get(ir)
+        # operation = CPU.ops.get(ir)
+        operation = self.dispatch.get(ir)
+        args = ir >> 6
 
-        if operation is None:
+        # if operation is None:
+        if operation is None or ir == 1:
             return
-        elif operation == "HLT":
-            return
-        elif operation == "LDI":
-            self.reg[operand_a] = operand_b
-        elif operation == "PRN":
-            print(self.reg[operand_a])
+        elif args == 1:
+            operation(operand_a)
+        elif args == 2:
+            operation(operand_a, operand_b)
+        else:
+            operation()        
+        # elif operation == "HLT":
+        #     return
+        # elif operation == "LDI":
+        #     self.reg[operand_a] = operand_b
+        # elif operation == "PRN":
+        #     print(self.reg[operand_a])
 
-        self.pc += (ir >> 6) + 1
+        # self.pc += (ir >> 6) + 1
+        self.pc += args + 1
         self.run()
+    def _ldi(self, reg_address, value):
+        self.reg[reg_address] = value
+
+    def _prn(self, reg_address):
+        print(self.reg[reg_address])
 
 
 
