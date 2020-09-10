@@ -19,6 +19,7 @@ class CPU:
         self.pc = 0
         self.registers = [0] * 8
         self.SP = 7
+        self.running = False
 
         self.operations = {}
         self.operations[HLT] = self.handle_HLT
@@ -31,25 +32,39 @@ class CPU:
 
     
 
-    def load(self):
+    def load(self,file_name):
         """Load a program into memory."""
 
         address = 0
         # For now, we've just hardcoded a program:
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+        # program = [
+        #     # From print8.ls8
+        #     0b10000010, # LDI R0,8
+        #     0b00000000,
+        #     0b00001000,
+        #     0b01000111, # PRN R0
+        #     0b00000000,
+        #     0b00000001, # HLT
+        # ]
 
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+        # for instruction in program:
+        #     self.ram[address] = instruction
+        #     address += 1
+
+        try:
+            with open(file_name) as file:
+                for line in file:
+                    split_file = line.split("#")[0]
+                    comm = split_file.strip()
+                    if comm == "":
+                        continue
+                    instruction = int(comm, 2)
+                    self.ram[address] = instruction
+                    address += 1
+        except FileNotFoundError:
+            print(f"{sys.argv[0]} {sys.argv[1]} file not found")
+            sys.exit()   
 
     def ram_read(self, MAR):
         return self.ram[MAR]
@@ -63,6 +78,13 @@ class CPU:
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
         #elif op == "SUB": etc
+        if op == "AND":
+            if reg_a == 1 and reg_b == 1:
+                return True
+            else:
+                return False
+        if op == "MUL":
+            self.reg[reg_a] = self.reg[reg_a] * self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -136,5 +158,5 @@ class CPU:
         while self.running:
             ir = self.ram_read(self.pc)
             if ir in self.operations:
-                fun = self.operations[ir]
-                fun()
+                stuff = self.operations[ir]
+                stuff()
