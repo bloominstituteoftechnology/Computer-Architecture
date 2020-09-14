@@ -7,7 +7,9 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.ram = [0] * 256
+        self.reg = [0] * 8
+        self.pc = 0
 
     def load(self):
         """Load a program into memory."""
@@ -30,6 +32,11 @@ class CPU:
             self.ram[address] = instruction
             address += 1
 
+    def ram_read(self, MAR):
+        return self.ram[MAR]
+
+    def ram_write(self, MAR, MDR):
+        self.ram[MAR] = MDR
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -62,4 +69,18 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        ir = self.ram_read(self.pc)
+        self.instructions(ir)
+
+    def instructions(self, ir):
+        operand_a = self.ram_read(self.pc + 1)
+        operand_b = self.ram_read(self.pc + 2)
+        switcher = {
+            0b10000010: self.ldi(operand_a, operand_b), #LDI
+            0b01000111: print(self.reg[operand_a]), #PRN
+            0b00000001: exit() #HLT
+        }
+        return switcher.get(ir, "No instruction")
+
+    def ldi(self, operand_a, operand_b):
+        self.reg[operand_a] = operand_b
