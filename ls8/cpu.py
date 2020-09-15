@@ -7,8 +7,14 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
-
+        self.ram = [0] * 256
+        self.registers = [0] * 8 # registers 0 - 7
+        self.pc = 0 # Program Counter, address of the currently executing 
+        # the registers are "variables" and there are
+        # a fixed number of them (8)
+        self.HLT = 0b00000001
+        self.PRN = 0b01000111
+        self.LDI = 0b10000010 
     def load(self):
         """Load a program into memory."""
 
@@ -39,6 +45,13 @@ class CPU:
         #elif op == "SUB": etc
         else:
             raise Exception("Unsupported ALU operation")
+    
+    def ram_read(self, address):
+        return self.ram[address]
+    
+    def ram_write(self, value, address):
+        #overwrite in the ram position, or place this value at that position
+        self.ram[address] = value
 
     def trace(self):
         """
@@ -62,4 +75,23 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+
+
+        operating = True
+        while operating:
+            ir = self.ram_read(self.pc) # Instruction register reading the current item in the PC
+
+            operand_a = self.ram_read(self.pc + 1)
+            operand_b = self.ram_read(self.pc + 2)
+
+            if ir == self.HLT:
+                operating = False
+                self.pc += 1
+
+            if ir == self.PRN:
+                print(self.registers[operand_a])
+                self.pc += 2
+            if ir == self.LDI:
+                self.registers[operand_a] = operand_b
+                self.pc += 3
+            
