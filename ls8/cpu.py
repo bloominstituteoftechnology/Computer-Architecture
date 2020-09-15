@@ -2,12 +2,35 @@
 
 import sys
 
+
+LDI = 0b10000010
+# LDI = 0b10000011
+
+PRN = 0b01000111
+# PRN = 0b01000110
+
+
+HLT = 0b00000001
+# HLT = 0b00000011
+
 class CPU:
     """Main CPU class."""
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        # pass
+        self.ram = [0] * 256
+        self.reg = [0] * 8 #reg = general purpose registers
+        self.pc = 0 
+
+    def ram_read(self, MAR):
+        answer = self.ram[MAR]
+        print(answer)
+        return answer
+
+    def ram_write(self, MAR, MDR):
+        self.ram[MAR] = MDR
+
 
     def load(self):
         """Load a program into memory."""
@@ -62,4 +85,31 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        # pass
+
+        cont = True
+
+        while cont:
+            IR = self.ram_read(self.pc)
+            operand_a = self.ram_read(self.pc + 1)
+            operand_b = self.ram_read(self.pc + 2)
+
+            if IR == 0b10000010: #LDI
+                self.LDI_Handler(operand_a, operand_b)
+                self.pc += 2
+            elif IR == 0b01000111: # PRN
+                self.PRN_Handler(operand_a)
+                self.pc += 1
+            elif IR == HLT:
+                cont = False
+            
+            self.pc +=1
+
+    #register value set to integer
+    def LDI_Handler(self, key, value):
+        self.reg[key] = value
+        print(value, "LDI_Handler")
+
+    #to print value stored in register
+    def PRN_Handler(self, value):
+        print(self.reg[value], 'PRN_Handler')
