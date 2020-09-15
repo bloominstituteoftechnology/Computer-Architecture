@@ -11,26 +11,47 @@ class CPU:
         self.reg = [0] * 8
         self.pc = 0
 
-    def load(self):
+    def load(self, filename):
         """Load a program into memory."""
 
-        address = 0
+        try:
+            address = 0
 
+            with open(filename) as f:
+                for line in f:
+                    t = line.split('#')
+                    n = t[0].strip()
+
+                    if n == '':
+                        continue
+
+                    try:
+                        n = int(n, 2)
+                    except ValueError:
+                        print(f"Invalid number '{n}'")
+                        sys.exit(1)
+
+                    self.ram[address] = n
+                    address += 1
+
+        except FileNotFoundError:
+	        print(f"File not found: {sys.argv[1]}")
+	        sys.exit(2)
         # For now, we've just hardcoded a program:
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+        # program = [
+        #     # From print8.ls8
+        #     0b10000010, # LDI R0,8
+        #     0b00000000,
+        #     0b00001000,
+        #     0b01000111, # PRN R0
+        #     0b00000000,
+        #     0b00000001, # HLT
+        # ]
 
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+        # for instruction in program:
+        #     self.ram[address] = instruction
+        #     address += 1
 
     def ram_read(self, MAR):
         return self.ram[MAR]
