@@ -45,7 +45,7 @@ class CPU:
                     try:
                         instruction = int(value, 2)
                     except ValueError:
-                        print(f"Invalid number '{n}'")
+                        print(f"Invalid number '{value}'")
                         sys.exit(1)
 
                     self.ram[address] = instruction
