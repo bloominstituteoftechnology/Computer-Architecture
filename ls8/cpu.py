@@ -10,6 +10,12 @@ class CPU:
         self.ram = [0] * 256
         self.reg = [0] * 8
         self.pc = 0
+        self.dispatch = {
+            0b10000010: self.ldi, #LDI
+            0b01000111: self.prn, #PRN
+            0b10100010: self.mul, #MLT
+            0b00000001: self.hlt  #HLT
+        }
 
     def load(self, filename):
         """Load a program into memory."""
@@ -64,6 +70,8 @@ class CPU:
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
+        elif op == "MUL":
+            self.reg[reg_a] *= self.reg[reg_b]
         #elif op == "SUB": etc
         else:
             raise Exception("Unsupported ALU operation")
@@ -90,18 +98,26 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        ir = self.ram_read(self.pc)
-        self.instructions(ir)
+        while True:
+            ir = self.ram_read(self.pc)
+            self.dispatch[ir]()
+            number_of_operands = (ir & 0b11000000) >> 6
+            how_far_to_move_pc = number_of_operands + 1
+            self.pc += how_far_to_move_pc
 
-    def instructions(self, ir):
+    def ldi(self):
         operand_a = self.ram_read(self.pc + 1)
         operand_b = self.ram_read(self.pc + 2)
-        switcher = {
-            0b10000010: self.ldi(operand_a, operand_b), #LDI
-            0b01000111: print(self.reg[operand_a]), #PRN
-            0b00000001: exit() #HLT
-        }
-        return switcher.get(ir, "No instruction")
-
-    def ldi(self, operand_a, operand_b):
         self.reg[operand_a] = operand_b
+
+    def hlt(self):
+        exit()
+
+    def prn(self):
+        operand_a = self.ram_read(self.pc + 1)
+        print(self.reg[operand_a])
+
+    def mul(self):
+        operand_a = self.ram_read(self.pc + 1)
+        operand_b = self.ram_read(self.pc + 2)
+        self.alu("MUL", operand_a, operand_b)
