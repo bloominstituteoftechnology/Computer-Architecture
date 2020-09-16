@@ -2,6 +2,14 @@
 
 import sys
 
+SP = 7
+LDI = 0b10000010
+PRN = 0b01000111
+MUL = 0b10100010
+HLT = 0b00000001
+PUSH = 0b01000101
+POP = 0b01000110
+
 class CPU:
     """Main CPU class."""
 
@@ -10,12 +18,14 @@ class CPU:
         self.ram = [0] * 256
         self.reg = [0] * 8
         self.pc = 0
-        self.dispatch = {
-            0b10000010: self.ldi, #LDI
-            0b01000111: self.prn, #PRN
-            0b10100010: self.mul, #MLT
-            0b00000001: self.hlt  #HLT
-        }
+        self.reg[SP] = 0xF4
+        self.branchtable = {}
+        self.branchtable[LDI] = self.ldi
+        self.branchtable[PRN] = self.prn
+        self.branchtable[MUL] = self.mul
+        self.branchtable[HLT] = self.hlt
+        self.branchtable[POP] = self.pop
+        self.branchtable[PUSH] = self.push
 
     def load(self, filename):
         """Load a program into memory."""
@@ -100,7 +110,7 @@ class CPU:
         """Run the CPU."""
         while True:
             ir = self.ram_read(self.pc)
-            self.dispatch[ir]()
+            self.branchtable[ir]()
             number_of_operands = (ir & 0b11000000) >> 6
             how_far_to_move_pc = number_of_operands + 1
             self.pc += how_far_to_move_pc
@@ -121,3 +131,33 @@ class CPU:
         operand_a = self.ram_read(self.pc + 1)
         operand_b = self.ram_read(self.pc + 2)
         self.alu("MUL", operand_a, operand_b)
+
+    def push(self):
+        # Decrement SP
+        self.reg[SP] -= 1
+
+        # Get the reg num to push
+        reg_num = self.ram_read(self.pc + 1)
+
+        # Get the value to push
+        value = self.reg[reg_num]
+
+        # Copy the value to the SP address
+        top_of_stack_addr = self.reg[SP]
+        self.ram_write(top_of_stack_addr, value)
+
+    def pop(self):
+        # Get reg to pop into
+        reg_num = self.ram_read(self.pc + 1)
+
+        # Get the top of stack addr
+        top_of_stack_addr = self.reg[SP]
+
+		# Get the value at the top of the stack
+        value = self.ram_read(top_of_stack_addr)
+
+		# Store the value in the register
+        self.reg[reg_num] = value
+
+		# Increment the SP
+        self.reg[SP] += 1
