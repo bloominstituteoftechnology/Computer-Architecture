@@ -15,6 +15,7 @@ class CPU:
         self.HLT = 0b00000001
         self.PRN = 0b01000111
         self.LDI = 0b10000010 
+        self.MUL = 0b10100010
     def load(self):
         """Load a program into memory."""
 
@@ -22,19 +23,52 @@ class CPU:
 
         # For now, we've just hardcoded a program:
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+        # args = sys.argv[0]
+        # print(args, 'the first argument in sys.argv')
+        args2 = sys.argv[1]
+        # print(args2, 'second argument in sys.argv')
 
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+
+        with open(f"{args2}", 'r') as pro_file:
+
+            for line in pro_file:
+                # print(line)
+
+                # we will check each line, take out the notes and save those program numbers in
+                # our programs array. 
+                split_line = line.split('#')
+                # print(split_line) # returns ['binary number', 'comments from #']
+                bit = split_line[0].strip() #takes care of white space from first line 
+
+
+                if bit == "":
+                    continue
+
+                try:
+                    instruction = int(bit,2) # this turns our string of bit code, into an actual 
+                    # binary digit, which is what we want
+
+                except ValueError:
+                    print(f"Invalid value: {bit}")
+                
+                self.ram[address] = instruction
+                address += 1
+        # print(args2[0], 'second argument in second spot')
+        # program = [
+            # From print8.ls8
+            # 0b10000010, # LDI R0,8
+            # 0b00000000,
+            # 0b00001000,
+            # 0b01000111, # PRN R0
+            # 0b00000000,
+            # 0b00000001, # HLT
+        # ]
+
+        # print(program)
+
+        # for instruction in program:
+        #     self.ram[address] = instruction
+        #     address += 1
 
 
     def alu(self, op, reg_a, reg_b):
@@ -45,10 +79,10 @@ class CPU:
         #elif op == "SUB": etc
         else:
             raise Exception("Unsupported ALU operation")
-    
+
     def ram_read(self, address):
         return self.ram[address]
-    
+
     def ram_write(self, value, address):
         #overwrite in the ram position, or place this value at that position
         self.ram[address] = value
@@ -91,7 +125,13 @@ class CPU:
             if ir == self.PRN:
                 print(self.registers[operand_a])
                 self.pc += 2
+
             if ir == self.LDI:
                 self.registers[operand_a] = operand_b
                 self.pc += 3
-            
+
+            if ir == self.MUL:
+                reg_a = self.ram_read(self.pc + 1)
+                reg_b = self.ram_read(self.pc + 2)
+                self.registers[reg_a] = self.registers[reg_a] * self.registers[reg_b]
+                self.pc += 3
