@@ -7,8 +7,10 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
+        self.SP = 7 # this is our stack pointer
         self.ram = [0] * 256
         self.registers = [0] * 8 # registers 0 - 7
+        self.registers[self.SP] = 0xF4 #the seventh register is where the stack pointer starts at.
         self.pc = 0 # Program Counter, address of the currently executing 
         # the registers are "variables" and there are
         # a fixed number of them (8)
@@ -16,6 +18,9 @@ class CPU:
         self.PRN = 0b01000111
         self.LDI = 0b10000010 
         self.MUL = 0b10100010
+        self.PUSH = 0b01000101
+        self.POP = 0b01000110
+
     def load(self):
         """Load a program into memory."""
 
@@ -27,6 +32,8 @@ class CPU:
         # print(args, 'the first argument in sys.argv')
         args2 = sys.argv[1]
         # print(args2, 'second argument in sys.argv')
+
+
 
 
         with open(f"{args2}", 'r') as pro_file:
@@ -53,6 +60,7 @@ class CPU:
                 
                 self.ram[address] = instruction
                 address += 1
+
         # print(args2[0], 'second argument in second spot')
         # program = [
             # From print8.ls8
@@ -122,16 +130,58 @@ class CPU:
                 operating = False
                 self.pc += 1
 
-            if ir == self.PRN:
+            elif ir == self.PRN:
                 print(self.registers[operand_a])
                 self.pc += 2
 
-            if ir == self.LDI:
+            elif ir == self.LDI:
                 self.registers[operand_a] = operand_b
                 self.pc += 3
 
-            if ir == self.MUL:
+            elif ir == self.MUL:
                 reg_a = self.ram_read(self.pc + 1)
                 reg_b = self.ram_read(self.pc + 2)
                 self.registers[reg_a] = self.registers[reg_a] * self.registers[reg_b]
                 self.pc += 3
+            elif ir == self.PUSH:
+                # to push an item, we got to decrement the stack pointer
+                self.registers[self.SP] -= 1
+
+                # then we must get the reg num to push , 
+                reg_num = self.ram_read(self.pc + 1)
+
+
+                # we will set a value variable that is the value of the register num 
+                # in the list of registers and then we will work on adding that value to 
+                # be the value that is placed where the top of the stack is
+                value = self.registers[reg_num]
+
+                # now we will take that value and place it in the SP address
+                top_of_stack_addr = self.registers[self.SP]
+                self.ram[top_of_stack_addr] = value
+
+                # increment our PC 
+                self.pc += 2
+
+
+
+            elif ir == self.POP:
+                # we must get the register number of what we want to pop
+                reg_num = self.ram_read(self.pc + 1)
+
+                # get the address of top of stack
+                top_of_stack_addr = self.registers[self.SP]
+
+                # get the value that is at the top of the stack
+                value = self.ram_read(top_of_stack_addr)
+
+                # we then want to take that value and it to the register number we got
+
+                self.registers[reg_num] = value
+
+                # increment our SP
+                self.registers[self.SP] += 1
+                 
+                # lastly we will increment the PC 
+                # to continue well with the program
+                self.pc += 2
