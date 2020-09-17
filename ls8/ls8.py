@@ -7,5 +7,5 @@ from cpu import *
 
 cpu = CPU()
 
-cpu.load()
+cpu.load("/Users/swa_isthecreator/Documents/Lambda-CS-Projects/Computer-Architecture/ls8/examples/sprint_challenge.ls8")
 cpu.run()
