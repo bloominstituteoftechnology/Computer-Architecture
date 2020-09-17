@@ -2,10 +2,17 @@
 
 import sys
 
-HALT = 0b00000001
-PRN = 0b01000111
-LDI = 0b10000010
-MUL = 0b10100010
+# OP code
+
+HALT = 0b01 # 1
+PRN = 0b01000111 # 71
+LDI = 0b10000010 #130
+MUL = 0b10100010 #162
+ADD = 0b10100000 #160
+PUSH = 0b01000101 # 69
+POP = 0b01000110 # 70
+CMP = 0b10100111 # 167
+JMP = 0b01010100 # 84
 
 class CPU:
     """Main CPU class."""
@@ -13,29 +20,14 @@ class CPU:
     def __init__(self):
         self.pc = 0 # program counter
         self.reg = [0] * 8 # example R0 - R7
-        self.ram = [0] * 256 # list
+        self.ram = [0] * 256 # list # 8 bits
         self.running = True
-
+        self.flag = 0b00
 
     def load(self, filename):
         """Load a program into memory."""
         try:
             address = 0
-
-            # if len(sys.argv) < 2:
-            #     print(f'Please pass in second filename')
-            #     sys.exit()
-
-        
-        # with open(filename) as fp:
-        #     for line in fp:
-        #         comment_split = line.split("#")
-        #         num = comment_split[0].strip()
-        #         if num == '':  # ignore blanks
-        #             continue
-        #         val = int(num, 2)
-        #         self.ram[address] = val
-        #         address += 1
 
             with open(filename) as file: # reading the passed in filename
                 for line in file: # for every line in the file
@@ -60,11 +52,16 @@ class CPU:
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
 
-        if op == "ADD":
+        if op == ADD:
             self.reg[reg_a] += self.reg[reg_b]
         #elif op == "SUB": etc
         elif op == MUL:
             self.reg[reg_a] *= self.reg[reg_b]
+        elif op == CMP:
+            if self.reg[reg_a] == self.reg[reg_b]:
+                self.flag += bin(1)
+            else:
+                self.flag += bin(0)
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -91,30 +88,63 @@ class CPU:
     def run(self):
         """Run the CPU."""
 
-        while self.running: 
-            instruction = self.ram[self.pc]
+        self.reg[7] = 0xF4 #stack pointer
 
-            if instruction == LDI:
+        while self.running: 
+            cmd = self.ram[self.pc]
+
+            if cmd == LDI:
                 reg_location = self.ram_read(self.pc + 1)
                 reg_value = self.ram_read(self.pc + 2)
-                # self.ram_write(reg_location, reg_value)
                 self.reg[reg_location] = reg_value
                 print(self.reg[reg_location])
                 self.pc += 3
-            elif instruction == PRN:
+            elif cmd == PRN:
                 curr_val = self.ram[self.pc + 1]
                 print(self.reg[curr_val])
                 self.pc += 2
-            elif instruction == HALT:
+            elif cmd == HALT:
                 self.running = False
                 self.pc += 1
-            elif instruction == MUL:
+            elif cmd == MUL:
                 reg_location = self.ram_read(self.pc + 1)
                 reg_value = self.ram_read(self.pc + 2)
                 self.reg[reg_location] *= self.reg[reg_value]
                 self.pc += 3
+            elif cmd == PUSH:
+                # decrement stack pointer
+                self.reg[7] -= 1
+                # get the val from the register
+                reg_location = self.ram[self.pc + 1]
+                val = self.reg[reg_location]
+                # put val at the stack pointer address in memory
+                sp = self.reg[7]
+                self.ram[sp] = val
+
+                # increment program counter to put program back on track
+                self.pc += 2
+            elif cmd == POP:
+                # get stack pointer 
+                sp = self.reg[7]
+                # get register num to put val in
+                reg_location = self.ram[self.pc + 1]
+                # use stack pointer to get the val
+                val = self.ram[sp]
+                # put val into given register
+                self.reg[reg_location] = val
+                #increment stack pointer
+                self.reg[7] += 1
+
+                # increment program counter to put program back on track
+                self.pc += 2
+            elif cmd == JMP:
+                reg_location = self.ram_read(self.pc + 1)
+                reg_value = self.ram_read(self.pc + 1)
+                self.reg[reg_location] = reg_value
+
+                self.pc += 2
             else:
-                print(f'No such {instruction} exists')
+                print(f'No such {cmd} exists')
                 sys.exit(1)
         
 
