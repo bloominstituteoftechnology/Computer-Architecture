@@ -7,28 +7,55 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.ram = [0] * 256
+        self.reg = [0] * 8
+        self.pc = 0 # not a command
+        self.HLT = 1 # command
+        self.LDI = 130 # command
+        self.PRN = 71 # command
+        self.PUSH = 69 # command
+        self.POP = 70 # command
+        self.MUL = 162 # command
+        self.sp = 7 # not a command
+        self.CMP = 167
+        self.JMP = 84
+        self.JEQ = 85
+        self.JNE = 86
+        self.fl = 0
 
     def load(self):
         """Load a program into memory."""
 
-        address = 0
+        if len(sys.argv) != 2:
+            print("usage: ls8.py filename")
+            sys.exit(1)
 
-        # For now, we've just hardcoded a program:
+        try:
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+            address = 0
 
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+            with open(sys.argv[1]) as f:
+                for line in f:
+                    t = line.split('#')
+                    n = t[0].strip()
+
+                    if n == '':
+                        continue
+
+                    try:
+                        n = int(n, 2)
+                    except ValueError:
+                        print(f"Invalid number: '{n}")
+                        sys.exit(1)
+
+                    self.ram_write(address, n)
+                    address += 1
+
+        except FileNotFoundError:
+            print(f'File not found: {sys.argv[1]}')
+            sys.exit(2)
+
+
 
 
     def alu(self, op, reg_a, reg_b):
@@ -36,7 +63,14 @@ class CPU:
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
-        #elif op == "SUB": etc
+        elif op == "SUB":
+            self.reg[reg_a] -= self.reg[reg_b]
+        elif op == "MUL":
+            self.reg[reg_a] *= self.reg[reg_b]
+        elif op == "DIV":
+            self.reg[reg_a] //= self.reg[reg_b]
+        elif op == "MOD":
+            self.reg[reg_a] %= self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -60,6 +94,64 @@ class CPU:
 
         print()
 
+    def ram_read(self, MAR):
+        return self.ram[MAR]
+
+    def ram_write(self, MAR, MDR):
+        self.ram[MAR] = MDR
+
     def run(self):
         """Run the CPU."""
-        pass
+        running = True
+        while running:
+            ir = self.ram_read(self.pc)
+            if ir == self.LDI:
+                self.pc += 1
+                reg_idx = self.ram_read(self.pc)
+                self.pc += 1
+                reg_val = self.ram_read(self.pc)
+                self.reg[reg_idx] = reg_val
+                self.pc += 1
+            elif ir == self.MUL:
+                self.pc += 1
+                num1_idx = self.ram_read(self.pc)
+                self.pc += 1
+                num2_idx = self.ram_read(self.pc)
+                self.alu("MUL", num1_idx, num2_idx)
+                self.pc += 1
+            elif ir == self.PUSH:
+                self.pc += 1
+                reg_num = self.ram[self.pc]
+                value = self.reg[reg_num]
+                stack_top = self.reg[self.sp]
+                self.ram[stack_top] = value
+                self.pc += 1
+            elif ir == self.POP:
+                self.pc += 1
+                reg_num = self.ram[self.pc]
+                stack_top = self.reg[self.sp]
+                value = self.ram[stack_top]
+                self.reg[reg_num] = value
+                self.reg[self.sp] += 1
+                self.pc += 1
+            elif ir == self.PRN:
+                self.pc += 1
+                print(self.reg[self.ram_read(self.pc)])
+                self.pc += 1
+            elif ir == self.CMP:
+                self.pc += 1
+                registerA = self.reg[self.ram_read(self.pc)]
+                self.pc += 1
+                registerB = self.reg[self.ram_read(self.pc)]
+                if registerA < registerB:
+                    self.fl = 4
+                elif registerA > registerB:
+                    self.fl = 2
+                elif registerA == registerB:
+                    self.fl = 1
+                self.pc += 1
+            elif ir == self.JEQ:
+                if self.fl == 1:
+                    self.pc = self.reg[self.ram_read(self.pc)]
+            elif ir == self.HLT:
+                running = False
