@@ -7,19 +7,29 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        self.SP = 7 # this is our stack pointer
+        self.SP = 7 # this is our stack pointer position in the registers
         self.ram = [0] * 256
         self.registers = [0] * 8 # registers 0 - 7
         self.registers[self.SP] = 0xF4 #the seventh register is where the stack pointer starts at.
         self.pc = 0 # Program Counter, address of the currently executing 
         # the registers are "variables" and there are
         # a fixed number of them (8)
+        self.flag = 0b00000000
+
+
         self.HLT = 0b00000001
         self.PRN = 0b01000111
         self.LDI = 0b10000010 
         self.MUL = 0b10100010
         self.PUSH = 0b01000101
         self.POP = 0b01000110
+
+        # Sprint Challenge Additions
+        self.CMP = 0b10100111
+        self.JMP = 0b01010100
+        self.JEQ = 0b01010101
+        self.JNE = 0b01010110
+
 
     def load(self):
         """Load a program into memory."""
@@ -85,6 +95,16 @@ class CPU:
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
         #elif op == "SUB": etc
+        elif op == "CMP":
+            if self.registers[reg_a] > self.registers[reg_b]:
+                self.flag = 0b00000010
+
+            elif self.registers[reg_a] < self.registers[reg_b]:
+                self.flag = 0b00000100
+
+            else:
+                self.flag = 0b00000001
+
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -139,10 +159,10 @@ class CPU:
                 self.pc += 3
 
             elif ir == self.MUL:
-                reg_a = self.ram_read(self.pc + 1)
-                reg_b = self.ram_read(self.pc + 2)
-                self.registers[reg_a] = self.registers[reg_a] * self.registers[reg_b]
+                
+                self.registers[operand_a] = self.registers[operand_a] * self.registers[operand_b]
                 self.pc += 3
+            
             elif ir == self.PUSH:
                 # to push an item, we got to decrement the stack pointer
                 self.registers[self.SP] -= 1
@@ -162,9 +182,7 @@ class CPU:
 
                 # increment our PC 
                 self.pc += 2
-
-
-
+       
             elif ir == self.POP:
                 # we must get the register number of what we want to pop
                 reg_num = self.ram_read(self.pc + 1)
@@ -185,3 +203,46 @@ class CPU:
                 # lastly we will increment the PC 
                 # to continue well with the program
                 self.pc += 2
+
+            elif ir == self.CMP:
+                # CMP is an operation handled in the ALU
+                self.alu('CMP', operand_a, operand_b)
+
+                self.pc += 3
+
+            elif ir == self.JMP:
+                # we will check the current address stored in the 
+                # given register 
+                cur_reg = operand_a
+                # then we will set our PC to the address 
+                # stored in the given register
+                self.pc = self.registers[cur_reg]
+
+            elif ir == self.JEQ:
+                # we have to check if the flag is set to equal, or true
+                # then we go ahead and jump to the address
+                # stored in the given register
+
+                if self.flag == 0b00000001:
+
+                    # the address is operand a that we have above
+
+                    self.pc = self.registers[operand_a]
+
+                # else we will jump 2 on our program counter
+                else:
+                    self.pc += 2
+
+            elif ir == self.JNE:
+                # if the E flag is clear or false, we will jump to the address stored in the given 
+                # register, if not we will jump 2 on our PC
+                if self.flag != 0b00000001:
+
+                    # the register address is operand a
+                    self.pc = self.registers[operand_a]
+
+                else:
+                    self.pc += 2
+
+
+
