@@ -1,6 +1,7 @@
 """CPU functionality."""
 
 import sys
+from operations import *
 
 class CPU:
     """Main CPU class."""
