@@ -21,6 +21,7 @@ class CPU:
     def HLT(self):
         self.running = False
         self.pc += 1
+        sys.exit()
 
     def LDI(self):
         reg_num = self.ram[self.pc + 1]
@@ -36,24 +37,49 @@ class CPU:
 
     def load(self):
         """Load a program into memory."""
-
+        """
+            open a file
+            with open("fiolename") as f:
+                for line in f:
+                    print(line)
+                    
+            get from command line 
+            sys.exit(1)
+        """
         address = 0
+        if len(sys.argv) != 2:
+            print("no file given to run")
+        try:
+            with open(sys.argv[1], "r") as file:
+                program = file.readlines()
+
+                for instruction in program:
+                    if instruction.startswith("#"):
+                        continue
+                    split_inst = instruction.split(' ')[0]
+                    stripped_inst = split_inst.strip()
+                    if stripped_inst == '':
+                        continue
+                    self.ram[address] = int(stripped_inst, 2)
+                    address += 1
+        except FileNotFoundError:
+            print(f"could not find file {sys.argv[1]}")
 
         # For now, we've just hardcoded a program:
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+        # program = [
+        #     # From print8.ls8
+        #     0b10000010, # LDI R0,8
+        #     0b00000000,
+        #     0b00001000,
+        #     0b01000111, # PRN R0
+        #     0b00000000,
+        #     0b00000001, # HLT
+        # ]
 
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+        # for instruction in program:
+        #     self.ram[address] = instruction
+        #     address += 1
 
 
     def alu(self, op, reg_a, reg_b):
@@ -93,7 +119,7 @@ class CPU:
             instruction = self.ram_read(self.pc)
             if instruction == 0b00000001: #  HLT
                 self.HLT()
-            elif instruction == 0b10000010: #  LDI
+            elif instruction == 0b10000010:  #  LDI
                 self.LDI()
             elif instruction == 0b01000111: #PRN
                 self.PRN()

@@ -1,3 +1,4 @@
+# . Day 1 _____-------
 # The index in the memory array, aka location, address, pointer
 
 #1 print beej
@@ -42,3 +43,12 @@ while running:
         reg_num = memory[pc + 1]
         print(registers[reg_num])
         pc += 2
+
+#  Day 2 _____-------
+
+#  Bitwise Opperations
+# And Or X-Or
+
+#bit shifting
+
+
