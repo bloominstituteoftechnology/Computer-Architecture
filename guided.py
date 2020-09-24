@@ -3,12 +3,15 @@
 #1 print beej
 #2 halt
 # 3 Store_reg store a value in a register
+# pring reg value
 
 memory = [  # big array of bytes 8 bits per byte
     1, # print beej
     3, # store in reg r4 37
     4, # 4 and 37 are args for savereg also called operands
     37,
+    4, #printreg r4
+    4,
     2 # halt
 ]
 """
@@ -34,6 +37,8 @@ while running:
         reg_num = memory[pc + 1]
         value = memory[pc + 2]
         registers[reg_num] = value
-        print(f"{registers[reg_num]}")
         pc += 3
-        
+    elif ir == 4:
+        reg_num = memory[pc + 1]
+        print(registers[reg_num])
+        pc += 2
