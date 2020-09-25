@@ -11,6 +11,12 @@ class CPU:
         self.ram = [0] * 256
         self.pc = 0
         self.running = False
+        self.instr = {
+            0b10000010: self.LDI,
+            0b10100010: self.MUL,
+            0b01000111: self.PRN,
+            0b00000001: self.HLT
+        }
 
     def ram_read(self, location):
         return self.ram[location]
@@ -65,7 +71,6 @@ class CPU:
         except FileNotFoundError:
             print(f"could not find file {sys.argv[1]}")
 
-
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
         if op == "ADD":
@@ -78,6 +83,10 @@ class CPU:
         else:
             raise Exception("Unsupported ALU operation")
         self.pc += 3
+
+    def MUL(self, op1=None, op2=None):
+        self.alu("MUL", op1, op2)
+
     def trace(self):
         """
         Handy function to print out the CPU state. You might want to call this
@@ -104,21 +113,27 @@ class CPU:
         self.running = True
         while self.running:
             instruction = self.ram_read(self.pc)
-            ir1 = self.ram_read(self.pc + 1)
-            ir2 = self.ram_read(self.pc + 2)
+            if instruction in self.instr:
+                if bin(instruction >> 5 & 0b001) == bin(0b1):
+                    self.instr[instruction](op1=self.ram_read(self.pc + 1), op2 = self.ram_read(self.pc + 2))
+                else:
+                    self.instr[instruction]()
+
+            # ir1 = self.ram_read(self.pc + 1)
+            # ir2 = self.ram_read(self.pc + 2)
             # test = 0b11110000
             # binary = bin(test & 3)
             #
             # print(binary)
             # print(bin(instruction >> 5 & 0b001) == bin(0b1))
-            if instruction == 0b00000001: #  HLT
-                self.HLT()
-            elif instruction == 0b10000010:  #  LDI
-                self.LDI()
-            elif instruction == 0b01000111: #PRN
-                self.PRN()
-            elif bin(instruction >> 5 & 0b001) == bin(0b1):
-                if bin(instruction & 3) == bin(0b0):
-                    self.alu("ADD", ir1, ir2)
-                elif bin(instruction & 3) == bin(0b10):
-                    self.alu('MUL', ir1, ir2)
+            # if instruction == 0b00000001: #  HLT
+            #     self.HLT()
+            # elif instruction == 0b10000010:  #  LDI
+            #     self.LDI()
+            # elif instruction == 0b01000111: #PRN
+            #     self.PRN()
+            # elif bin(instruction >> 5 & 0b001) == bin(0b1):
+            #     if bin(instruction & 3) == bin(0b0):
+            #         self.alu("ADD", ir1, ir2)
+            #     elif bin(instruction & 3) == bin(0b10):
+            #         self.alu('MUL', ir1, ir2)
