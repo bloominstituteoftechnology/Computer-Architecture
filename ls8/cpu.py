@@ -7,37 +7,51 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        self.register = [0] * 8
+        self.reg = [0] * 8
         self.ram = [0] * 256
         self.pc = 0
+        self.sp = 7  # pointer location in register
+        self.reg[self.sp] = 0xF3  # Slot in memory 243
         self.running = False
         self.instr = {
             0b10000010: self.LDI,
             0b10100010: self.MUL,
             0b01000111: self.PRN,
-            0b00000001: self.HLT
+            0b00000001: self.HLT,
+            0b01000101: self.PUSH,
+            0b01000110: self.POP
         }
 
-    def ram_read(self, location):
-        return self.ram[location]
+    def PUSH(self, op1=None, op2=None):
+        self.reg[self.sp] -= 1
+        self.ram_write(self.reg[self.sp], self.reg[op1])
+        self.pc += 2
 
-    def ram_write(self, location, payload):
-        self.ram[location] = payload
+    def POP(self, op1=None, op2=None):
+        self.reg[op1] = self.ram_read(self.reg[self.sp])
+        self.reg[self.sp] += 1
+        self.pc += 2
 
-    def HLT(self):
+    def ram_read(self, op1=None, op2=None):
+        return self.ram[op1]
+
+    def ram_write(self, op1=None, op2=None):
+        self.ram[op1] = op2
+
+    def HLT(self, op1=None, op2=None):
         self.running = False
         self.pc += 1
         sys.exit()
 
-    def LDI(self):
+    def LDI(self, op1=None, op2=None):
         reg_num = self.ram[self.pc + 1]
         value = self.ram[self.pc + 2]
-        self.register[reg_num] = value
+        self.reg[reg_num] = value
         self.pc += 3
 
-    def PRN(self):
-        reg_num = self.ram[self.pc + 1]
-        print(self.register[reg_num])
+    def PRN(self, op1=None, op2=None):
+        # reg_num = self.ram[self.pc + 1]
+        print(self.reg[op1])
         self.pc += 2
 
 
@@ -74,10 +88,10 @@ class CPU:
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
         if op == "ADD":
-            self.register[reg_a] += self.register[reg_b]
+            self.reg[reg_a] += self.reg[reg_b]
 
         if op == "MUL":
-            self.register[reg_a] *= self.register[reg_b]
+            self.reg[reg_a] *= self.reg[reg_b]
 
         #elif op == "SUB": etc
         else:
@@ -109,31 +123,15 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-
         self.running = True
         while self.running:
             instruction = self.ram_read(self.pc)
             if instruction in self.instr:
-                if bin(instruction >> 5 & 0b001) == bin(0b1):
-                    self.instr[instruction](op1=self.ram_read(self.pc + 1), op2 = self.ram_read(self.pc + 2))
-                else:
-                    self.instr[instruction]()
-
-            # ir1 = self.ram_read(self.pc + 1)
-            # ir2 = self.ram_read(self.pc + 2)
-            # test = 0b11110000
-            # binary = bin(test & 3)
-            #
-            # print(binary)
-            # print(bin(instruction >> 5 & 0b001) == bin(0b1))
-            # if instruction == 0b00000001: #  HLT
-            #     self.HLT()
-            # elif instruction == 0b10000010:  #  LDI
-            #     self.LDI()
-            # elif instruction == 0b01000111: #PRN
-            #     self.PRN()
-            # elif bin(instruction >> 5 & 0b001) == bin(0b1):
-            #     if bin(instruction & 3) == bin(0b0):
-            #         self.alu("ADD", ir1, ir2)
-            #     elif bin(instruction & 3) == bin(0b10):
-            #         self.alu('MUL', ir1, ir2)
+                # if bin(instruction >> 5 & 0b001) == bin(0b1):
+                #     self.instr[instruction](self.ram_read(self.pc + 1), self.ram_read(self.pc + 2))
+                # else:
+                #     self.instr[instruction]()
+                self.instr[instruction](self.ram_read(self.pc + 1), self.ram_read(self.pc + 2))
+            else:
+                print("Unknown Instruction Command")
+                self.HLT()
