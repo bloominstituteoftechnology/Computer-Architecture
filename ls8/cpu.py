@@ -65,32 +65,19 @@ class CPU:
         except FileNotFoundError:
             print(f"could not find file {sys.argv[1]}")
 
-        # For now, we've just hardcoded a program:
-
-        # program = [
-        #     # From print8.ls8
-        #     0b10000010, # LDI R0,8
-        #     0b00000000,
-        #     0b00001000,
-        #     0b01000111, # PRN R0
-        #     0b00000000,
-        #     0b00000001, # HLT
-        # ]
-
-        # for instruction in program:
-        #     self.ram[address] = instruction
-        #     address += 1
-
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
-
         if op == "ADD":
-            self.reg[reg_a] += self.reg[reg_b]
+            self.register[reg_a] += self.register[reg_b]
+
+        if op == "MUL":
+            self.register[reg_a] *= self.register[reg_b]
+
         #elif op == "SUB": etc
         else:
             raise Exception("Unsupported ALU operation")
-
+        self.pc += 3
     def trace(self):
         """
         Handy function to print out the CPU state. You might want to call this
@@ -117,9 +104,21 @@ class CPU:
         self.running = True
         while self.running:
             instruction = self.ram_read(self.pc)
+            ir1 = self.ram_read(self.pc + 1)
+            ir2 = self.ram_read(self.pc + 2)
+            # test = 0b11110000
+            # binary = bin(test & 3)
+            #
+            # print(binary)
+            # print(bin(instruction >> 5 & 0b001) == bin(0b1))
             if instruction == 0b00000001: #  HLT
                 self.HLT()
             elif instruction == 0b10000010:  #  LDI
                 self.LDI()
             elif instruction == 0b01000111: #PRN
                 self.PRN()
+            elif bin(instruction >> 5 & 0b001) == bin(0b1):
+                if bin(instruction & 3) == bin(0b0):
+                    self.alu("ADD", ir1, ir2)
+                elif bin(instruction & 3) == bin(0b10):
+                    self.alu('MUL', ir1, ir2)
