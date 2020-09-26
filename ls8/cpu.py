@@ -12,6 +12,7 @@ class CPU:
         self.pc = 0
         self.sp = 7  # pointer location in register
         self.reg[self.sp] = 0xF3  # Slot in memory 243
+        self.fl = 0b00000000 # Flags Register
         self.running = False
         self.instr = {
             0b10000010: self.LDI,
@@ -19,8 +20,42 @@ class CPU:
             0b01000111: self.PRN,
             0b00000001: self.HLT,
             0b01000101: self.PUSH,
-            0b01000110: self.POP
+            0b01000110: self.POP,
+            0b01010000: self.CALL,
+            0b00010001: self.RET,
+            0b10100000: self.ADD,
+            0b10100111: self.CMP,
+            0b01010101: self.JEQ,
+            0b01010110: self.JNE,
+            0b01010100: self.JMP
         }
+
+    def JMP(self, op1=None, op2=None):
+        self.pc = self.reg[op1]
+
+    def JNE(self, op1=None, op2=None):
+        if (self.fl & 0b00000001) == 0:
+            self.pc = self.reg[op1]
+        else:
+            self.pc += 2
+
+    def JEQ(self, op1=None, op2=None):
+        if self.fl & 0b00000001 == 1:
+            self.pc = self.reg[op1]
+        else:
+            self.pc += 2
+
+
+    def CALL(self, op1=None, op2=None):
+        self.reg[self.sp] -= 1
+        self.ram_write(self.reg[self.sp], self.pc + 2)
+        self.pc =self.reg[op1]
+
+
+    def RET(self, op1=None, op2=None):
+        self.pc = self.ram_read(self.reg[self.sp])
+        self.reg[self.sp] += 1
+
 
     def PUSH(self, op1=None, op2=None):
         self.reg[self.sp] -= 1
@@ -32,7 +67,7 @@ class CPU:
         self.reg[self.sp] += 1
         self.pc += 2
 
-    def ram_read(self, op1=None, op2=None):
+    def ram_read(self, op1=None):
         return self.ram[op1]
 
     def ram_write(self, op1=None, op2=None):
@@ -50,22 +85,13 @@ class CPU:
         self.pc += 3
 
     def PRN(self, op1=None, op2=None):
-        # reg_num = self.ram[self.pc + 1]
         print(self.reg[op1])
         self.pc += 2
 
 
     def load(self):
         """Load a program into memory."""
-        """
-            open a file
-            with open("fiolename") as f:
-                for line in f:
-                    print(line)
-                    
-            get from command line 
-            sys.exit(1)
-        """
+
         address = 0
         if len(sys.argv) != 2:
             print("no file given to run")
@@ -89,9 +115,15 @@ class CPU:
         """ALU operations."""
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
-
-        if op == "MUL":
+        elif op == "MUL":
             self.reg[reg_a] *= self.reg[reg_b]
+        elif op == "CMP":
+            if self.reg[reg_a] == self.reg[reg_b]:
+                self.fl = 0b00000001
+            elif self.reg[reg_a] > self.reg[reg_b]:
+                self.fl = 0b00000010
+            elif self.reg[reg_a] < self.reg[reg_b]:
+                self.fl = 0b00000100
 
         #elif op == "SUB": etc
         else:
@@ -100,6 +132,12 @@ class CPU:
 
     def MUL(self, op1=None, op2=None):
         self.alu("MUL", op1, op2)
+
+    def ADD(self, op1=None, op2=None):
+        self.alu("ADD", op1, op2)
+
+    def CMP(self, op1=None, op2=None):
+        self.alu("CMP", op1, op2)
 
     def trace(self):
         """
@@ -127,10 +165,6 @@ class CPU:
         while self.running:
             instruction = self.ram_read(self.pc)
             if instruction in self.instr:
-                # if bin(instruction >> 5 & 0b001) == bin(0b1):
-                #     self.instr[instruction](self.ram_read(self.pc + 1), self.ram_read(self.pc + 2))
-                # else:
-                #     self.instr[instruction]()
                 self.instr[instruction](self.ram_read(self.pc + 1), self.ram_read(self.pc + 2))
             else:
                 print("Unknown Instruction Command")
