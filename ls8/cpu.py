@@ -7,7 +7,21 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+
+        # General Purpose Registers
+        self.registers = [0] * 8
+
+        # Internal Registers
+        self.pc = 0
+        self.ir = 0
+        self.mar = 0
+        self.mdr = 0
+        self.fl = 0
+
+        # Instructions
+        self.LDI = 0b10000010
+        self.PRN = 0b01000111
+        self.HLT = 0b00000001
 
     def load(self):
         """Load a program into memory."""
@@ -59,6 +73,12 @@ class CPU:
             print(" %02X" % self.reg[i], end='')
 
         print()
+
+    def ram_read(read_value):
+        return self.registers[read_value]
+
+    def ram_write(write_value, write_address_location):
+        pass
 
     def run(self):
         """Run the CPU."""
