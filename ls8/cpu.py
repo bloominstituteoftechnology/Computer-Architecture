@@ -23,6 +23,9 @@ class CPU:
         self.PRN = 0b01000111
         self.HLT = 0b00000001
 
+        # RAM
+        self.ram = [0] * 256
+
     def load(self):
         """Load a program into memory."""
 
