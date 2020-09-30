@@ -7,7 +7,10 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        # creationg of the register
+        self.reg = [0] * 8 # the register is 8 bits long
+        self.ram = [0] * 256 # this the memory or the ram
+        self.pc = 0 # this the program counter
 
     def load(self):
         """Load a program into memory."""
@@ -60,6 +63,26 @@ class CPU:
 
         print()
 
+
+    def ram_read(self, mem_add_reg):
+        return self.ram[mem_add_reg]
+
+
+    def ram_write(self, mem_dat_reg, mem_add_reg):
+        self.ram[mem_add_reg] = mem_dat_reg
+
+
     def run(self):
         """Run the CPU."""
-        pass
+
+        # here is where we will store the 
+        # name with the number of each action
+        # to perform
+        
+        ir = self.ram_read(self.pc)
+
+        running = True
+        
+        # Loop for the program to run
+        while running:
+
