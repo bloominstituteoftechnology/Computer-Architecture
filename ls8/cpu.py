@@ -74,7 +74,25 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        running = True
+        while running:
+            # Fetch the next instruction
+            self.ir = self.ram_read(self.pc)
+            operand_a = self.ram_read(self.pc + 1)
+            operand_b = self.ram_read(self.pc + 2)
+
+            # Decode instruction
+            binary_ir = bin(self.ir)[2:].zfill(8)
+            operand_count = int(binary_ir[:2], 2)
+            is_ALU_operation = binary_ir[2] == '1'
+            instruction_does_set_pc = binary_ir[3] == '1'
+            instruction_id = int(binary_ir[4:], 2)
+
+            # Increment the program counter
+            self.pc += (1 + operand_count)
+
+            # Execute instruction
+            # TODO: Implement operations execution
     
     def ram_read(self, mar):
         if mar >= 0 and mar < len(self.ram):
