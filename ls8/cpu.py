@@ -6,6 +6,7 @@ import sys
 LDI = 0b10000010 # LOAD IMMEDIATE
 PRN = 0b01000111 # PRINT
 HLT = 0b00000001 # HALT
+MUL = 0b10100010 # MULTIPLY
 
 
 class CPU:
@@ -36,22 +37,38 @@ class CPU:
         """Load a program into memory."""
 
         address = 0
+        try:
+            with open(sys.argv[1]) as f:
+                for line in f:
+                    split_line = line.split('#')
+                    code_value = split_line[0].strip()
+
+                    if code_value == '':
+                        continue
+
+                    num = int(split_line[0])
+                    self.ram[address] = num
+                    address += 1
+
+        except FileNotFoundError:
+            print(f"{sys.argv[1]} file not found")
+            sys.exit(2)
 
         # For now, we've just hardcoded a program:
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+        # program = [
+        #     # From print8.ls8
+        #     0b10000010, # LDI R0,8
+        #     0b00000000,
+        #     0b00001000,
+        #     0b01000111, # PRN R0
+        #     0b00000000,
+        #     0b00000001, # HLT
+        # ]
 
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+        # for instruction in program:
+        #     self.ram[address] = instruction
+        #     address += 1
 
 
     def alu(self, op, reg_a, reg_b):
@@ -117,4 +134,11 @@ class CPU:
                 # Assign value to Reg Key
                 self.reg[operand_a] = operand_b
                 # Update PC
+                self.pc += 3
+
+            # MUL
+            elif IR == MUL:
+                reg_1 = self.ram_read(self.pc + 1)
+                reg_2 = self.ram_read(self.pc + 2)
+                self.reg[reg_1] = self.reg[reg_1] * self.reg[reg_2]
                 self.pc += 3
