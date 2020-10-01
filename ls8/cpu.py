@@ -22,6 +22,7 @@ class CPU:
         self.LDI = 0b10000010
         self.PRN = 0b01000111
         self.HLT = 0b00000001
+        self.MUL = 0b10100010
 
         # RAM
         self.ram = [0] * 256
@@ -61,8 +62,10 @@ class CPU:
         """ALU operations."""
 
         if op == "ADD":
-            self.reg[reg_a] += self.reg[reg_b]
+            self.registers[reg_a] += self.registers[reg_b]
         #elif op == "SUB": etc
+        if op == self.MUL:
+            return self.registers[reg_a] * self.registers[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -102,6 +105,17 @@ class CPU:
             if instruction == self.LDI:
                 MAR = self.ram[self.pc + 1]
                 MDR = self.ram[self.pc + 2]
+
+                self.ram_write(MDR, MAR)
+
+                self.pc += 2
+
+            elif instruction == self.MUL:
+                reg_a = self.ram[self.pc + 1]
+                reg_b = self.ram[self.pc + 2]
+
+                MAR = reg_a
+                MDR = self.alu(instruction, reg_a, reg_b)
 
                 self.ram_write(MDR, MAR)
 
