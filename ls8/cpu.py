@@ -38,6 +38,20 @@ class CPU:
         '''Flags register'''
         pass
 
+    def ram_read(self, mar):
+        '''
+        Returns the value stored at the Memory Addres Register (mar)
+        Spec specifies that mdr and mar are explicitely passed in as variables
+        '''
+        return self.ram[mar]
+
+    def ram_write(self, mdr, mar):
+        '''
+        Writes the value stored in the Memory Data Register (mdr) to the 
+        location specified by the Memory Address Register(mar). Spec specifies
+        that mdr and mar are explicitely passed in as variables.
+        self.ram[mar] = mdr
+        '''
 
     def load(self):
         """Load a program into memory."""
