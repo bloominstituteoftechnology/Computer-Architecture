@@ -14,8 +14,8 @@ class CPU:
         # Internal Registers
         self.pc = 0
         self.ir = 0
-        self.mar = 0
-        self.mdr = 0
+        # self.mar = 0
+        # self.mdr = 0
         self.fl = 0
 
         # Instructions
@@ -77,12 +77,39 @@ class CPU:
 
         print()
 
-    def ram_read(read_value):
+    def ram_read(self, read_value):
         return self.registers[read_value]
 
-    def ram_write(write_value, write_address_location):
-        pass
+    def ram_write(self, write_value, write_address_location):
+        self.registers[write_address_location] = write_value
 
     def run(self):
         """Run the CPU."""
-        pass
+        running = True
+
+        while running:
+            instruction = self.ram[self.pc]
+
+            if instruction == self.LDI:
+                MAR = self.ram[self.pc + 1]
+                MDR = self.ram[self.pc + 2]
+
+                self.ram_write(MDR, MAR)
+
+                self.pc += 2
+
+            elif instruction == self.PRN:
+                MAR = self.ram[self.pc + 1]
+                print(self.ram_read(MAR))
+
+                self.pc += 1
+
+            elif instruction == self.HLT:
+                print("Exiting program.")
+                running = False
+
+            else:
+                print("Unknown Instruction. Exiting Program.")
+                running = False
+
+            self.pc += 1
