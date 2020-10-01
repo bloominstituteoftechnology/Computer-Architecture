@@ -82,8 +82,7 @@ class CPU:
             operand_b = self.ram_read(self.pc + 2)
 
             if ir == HLT:
-                self.running = False
-                self.pc += 1
+                return
             elif ir == LDI:
                 self.reg[operand_a] = operand_b
                 self.pc += 3
