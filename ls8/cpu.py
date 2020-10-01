@@ -7,7 +7,37 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
+        self.registers = [0] * 8
+        self.ram = [0b00000000] * 256
+
+    @property
+    def pc(self):
+        '''Returns the Program Counter, address of currently executing
+        instruction'''
+        return self.registers[0]
+
+    @property
+    def ir(self):
+        '''Instruction Register, contains copy of currently executing 
+        instruction'''
+        return self.registers[1]
+
+    @property
+    def mar(self):
+        '''Memory Address Register, holds the memory address being read or 
+        written to.'''
+        return self.registers[2]
+
+    @property
+    def mdr(self):
+        '''Memory Data Register, holds the value to write or the value read'''
+        return self.registers[3]
+
+    @property
+    def fl(self):
+        '''Flags register'''
         pass
+
 
     def load(self):
         """Load a program into memory."""
