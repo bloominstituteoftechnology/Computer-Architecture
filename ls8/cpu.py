@@ -5,33 +5,39 @@ import sys
 class CPU:
     """Main CPU class."""
 
+    # All instructions will be class constants, to keep conditionals readable
+    HLT = 0b00000001
+    LDI = 0b10000010
+    PRN = 0b01000111
+
     def __init__(self):
         """Construct a new CPU."""
         self.registers = [0] * 8
+        self.int_registers = [0] * 5
         self.ram = [0b00000000] * 256
 
     @property
     def pc(self):
         '''Returns the Program Counter, address of currently executing
         instruction'''
-        return self.registers[0]
+        return self.int_registers[0]
 
     @property
     def ir(self):
         '''Instruction Register, contains copy of currently executing 
         instruction'''
-        return self.registers[1]
+        return self.int_registers[1]
 
     @property
     def mar(self):
         '''Memory Address Register, holds the memory address being read or 
         written to.'''
-        return self.registers[2]
+        return self.int_registers[2]
 
     @property
     def mdr(self):
         '''Memory Data Register, holds the value to write or the value read'''
-        return self.registers[3]
+        return self.int_registers[3]
 
     @property
     def fl(self):
@@ -50,8 +56,8 @@ class CPU:
         Writes the value stored in the Memory Data Register (mdr) to the 
         location specified by the Memory Address Register(mar). Spec specifies
         that mdr and mar are explicitely passed in as variables.
-        self.ram[mar] = mdr
         '''
+        self.ram[mar] = mdr
 
     def load(self):
         """Load a program into memory."""
@@ -106,4 +112,31 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+
+        running = True
+
+        while running:
+            self.ir = self.ram_read(self.pc)
+
+            #TODO Maybe these are conditional reads, depending on what the
+            # actual operation that is being specified. Maybe there is no harm
+            # in reading and not using them. Think about this.
+            operand_a = self.ram_read(self.pc +1 )
+            operand_b = self.ram_read(self.pc + 2)
+
+            if self.ir == HLT:
+                running = False #Not necessary, keeping with convetion
+                break
+
+            #TODO consider breaking these out like the ALU is broken out
+            # a dictionary style switch might be good.
+            if self.ir = LDI:
+                self.registers[operand_a] = operand_b
+                self.pc += 3
+            elif self.ir = PRN:
+                print(self.registers[operand_a])
+                self.pc += 2
+
+
+
+
