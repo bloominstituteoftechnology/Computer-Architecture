@@ -2,13 +2,13 @@
 
 import sys
 
+# All instructions will be class constants, to keep conditionals readable
+HLT = 0b00000001
+LDI = 0b10000010
+PRN = 0b01000111
+
 class CPU:
     """Main CPU class."""
-
-    # All instructions will be class constants, to keep conditionals readable
-    HLT = 0b00000001
-    LDI = 0b10000010
-    PRN = 0b01000111
 
     def __init__(self):
         """Construct a new CPU."""
@@ -22,11 +22,19 @@ class CPU:
         instruction'''
         return self.int_registers[0]
 
+    @pc.setter
+    def pc(self, value):
+        self.int_registers[0] = value
+
     @property
     def ir(self):
         '''Instruction Register, contains copy of currently executing 
         instruction'''
         return self.int_registers[1]
+
+    @ir.setter
+    def ir(self, value):
+        self.int_registers[1] = value
 
     @property
     def mar(self):
@@ -130,10 +138,10 @@ class CPU:
 
             #TODO consider breaking these out like the ALU is broken out
             # a dictionary style switch might be good.
-            if self.ir = LDI:
+            if self.ir == LDI:
                 self.registers[operand_a] = operand_b
                 self.pc += 3
-            elif self.ir = PRN:
+            elif self.ir == PRN:
                 print(self.registers[operand_a])
                 self.pc += 2
 
