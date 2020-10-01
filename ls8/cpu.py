@@ -142,3 +142,6 @@ class CPU:
                 reg_2 = self.ram_read(self.pc + 2)
                 self.reg[reg_1] = self.reg[reg_1] * self.reg[reg_2]
                 self.pc += 3
+
+            else:
+                sys.exit()
