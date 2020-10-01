@@ -2,34 +2,57 @@
 
 import sys
 
+
+
+LDI=     0b10000010 # LDI R0,8
+PRNR0 =  0b01000111 # PRN R0
+ADD =    0b10100000
+HLT=     0b00000001
 class CPU:
     """Main CPU class."""
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
-
+        self.ram = [0]*256
+        self.reg = [0]*8
+        self.pc = 0
+        self.running = False
+        self.sp = 7
+        self.memory = [
+            LDI,
+            PRNR0,
+            ADD,
+            HLT
+            
+        ]
     def load(self):
         """Load a program into memory."""
 
-        address = 0
-
+ 
         # For now, we've just hardcoded a program:
 
         program = [
             # From print8.ls8
-            0b10000010, # LDI R0,8
+        0b10000010, # LDI R0,8
+              0b00000000,
+              0b00001000,
+        0b01000111, # PRN R0
             0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
+        0b00000001, # HLT
         ]
 
         for instruction in program:
             self.ram[address] = instruction
             address += 1
-
+            
+    def ram_read(self, key):
+        return self.ram[key]
+    
+    def ram_write(self, key, value):
+        self.ram[key]=value
+        
+        
+        
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -37,6 +60,8 @@ class CPU:
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
         #elif op == "SUB": etc
+        elif op == "LDI":
+            print(8)
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -62,4 +87,21 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+              
+        
+        
+        self.running = True
+        
+        while self.running:
+             command = self.memory[self.pc]
+             
+             if command == ADD:
+                 
+                reg_idx_1 = self.memory[self.pc+1]
+                reg_idx_2 = self.memory[self.pc+2]
+                
+             elif command == HLT:
+                 self.running = False
+            
+             elif command == PRNO:
+                 
