@@ -5,6 +5,7 @@ import sys
 HLT = 0b00000001
 LDI = 0b10000010
 PRN = 0b01000111
+MUL = 0b10100010
 
 class CPU:
     """Main CPU class."""
@@ -107,6 +108,9 @@ class CPU:
         elif self.ir == PRN:
             print(self.reg[operand_a])
             self.pc += 2
+        elif self.ir == MUL:
+            self.reg[operand_a] *= self.reg[operand_b]
+            self.pc += 3
         else:
             print(f"Error: Could not execute instruction: {self.ir}")
             sys.exit(1)

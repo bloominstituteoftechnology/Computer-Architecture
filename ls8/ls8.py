@@ -15,6 +15,7 @@ from cpu import *
 cpu = CPU()
 
 # python3 ls8.py examples/print8.ls8
+# python3 ls8.py examples/mult.ls8
 if len(sys.argv) != 2:
     print(argv_err_msg)
     sys.exit(1)
