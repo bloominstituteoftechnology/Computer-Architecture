@@ -7,12 +7,21 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.ram = [0] * 256
+        self.reg = [0] * 8
+        self.pc = 0
+        self.running = True
 
     def load(self):
         """Load a program into memory."""
-
-        address = 0
+        self.ram[address] = instruction
+        address += 1
+    
+    def ram_read(self, index):
+        return self.ram[index]
+    
+    def ram_write(self, index, value):
+        self.ram[index] = value
 
         # For now, we've just hardcoded a program:
 
@@ -62,4 +71,28 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        LDI = 0b10000010
+        PRN = 0b01000111
+        HLT = 0b00000001
+
+        while self.running:
+            ir = self.ram[self.pc]
+            operation_a = self.ram_read([self.pc + 1])
+            operation_b = self.ram_read([self.pc + 2])
+
+            if ir == HLT:
+                self.running = False
+                self.pc += 1
+
+            elif ir == PRN:
+                print(operation_a)
+                self.pc += 2
+            
+            elif ir == LDI:
+                self.reg[operation_a] = operation_b
+                self.pc += 3
+            
+            else:
+                self.running = False
+                print(f"OOf Bad input: {ir}")
+
