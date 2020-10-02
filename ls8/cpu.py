@@ -20,6 +20,7 @@ class CPU:
         self.mar = 0 # Memory Address Register: holds the memory address we're reading or writing
         self.mdr = 0 # Memory Data Register: holds the value to write or the value just read
         self.fl = 0 # Flag Register: holds the current flags status
+        self.halted = False
 
         # Initialize the Stack Pointer
         # SP points at the value at the top of the stack (most recently pushed), or at address F4 if the stack is empty.
