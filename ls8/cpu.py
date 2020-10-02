@@ -2,6 +2,10 @@
 
 import sys
 
+HLT = 0b00000001
+LDI = 0b10000010
+PRN = 0b01000111
+
 class CPU:
     """Main CPU class."""
 
@@ -25,7 +29,16 @@ class CPU:
         # Initialize the Stack Pointer
         # SP points at the value at the top of the stack (most recently pushed), or at address F4 if the stack is empty.
         self.reg[7] = 0xF4 # 244 # int('F4', 16)
+
+    # Property wrapper for SP (Stack Pointer)
+    @property
+    def sp(self):
+        return self.reg[7]
     
+    @sp.setter
+    def sp(self, a):
+        self.reg[7] = a & 0xFF
+
     def ram_read(self, mar):
         if mar >= 0 and mar < len(self.ram):
             return self.ram[mar]
@@ -92,30 +105,22 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        running = True
-        while running:
-            # Fetch the next instruction
+        while not self.halted:
             self.ir = self.ram_read(self.pc)
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
+            self.execute_instruction(operand_a, operand_b)
 
-            # Decode instruction
-            binary_ir = bin(self.ir)[2:].zfill(8)
-            operand_count = int(binary_ir[:2], 2)
-            is_ALU_operation = binary_ir[2] == '1'
-            instruction_does_set_pc = binary_ir[3] == '1'
-            instruction_id = int(binary_ir[4:], 2)
-
-            # Increment the program counter
-            self.pc += (1 + operand_count)
-
-            # Execute instruction
-            if self.ir == int('00000001', 2): # HLT
-                running = False
-            elif self.ir == int('10000010', 2): # LDI
-                self.reg[operand_a] = operand_b
-            elif self.ir == int('01000111', 2): # PRN
-                print(self.reg[operand_a])
-            else:
-                print(f"Error: Could not execute instruction: {bin(self.ir)[2:].zfill(8)}")
-                sys.exit(1)
+    def execute_instruction(self, operand_a, operand_b):
+        if self.ir == HLT:
+            self.halted = True
+            self.pc += 1
+        elif self.ir == LDI:
+            self.reg[operand_a] = operand_b
+            self.pc += 3
+        elif self.ir == PRN:
+            print(self.reg[operand_a])
+            self.pc += 2
+        else:
+            print(f"Error: Could not execute instruction: {self.ir}")
+            sys.exit(1)
