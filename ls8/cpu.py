@@ -84,14 +84,11 @@ class CPU:
             op_b = self.ram_read(self.pc + 2)
 
             if ir == LDI:
-                number = op_a
-                value = op_b
-                self.reg[number] = value
+                self.reg[op_a] = op_b
                 self.pc += 3
 
             elif ir == PRN:
-                number = op_a
-                print(number)
+                print(self.reg[op_a])
                 self.pc += 2
 
             elif ir == HLT:
