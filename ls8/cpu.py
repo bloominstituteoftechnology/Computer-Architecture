@@ -14,8 +14,11 @@ class CPU:
 
     def load(self):
         """Load a program into memory."""
-
-        address = 0
+        self.ram[address] = instruction
+        address += 1
+    
+    def ram_read(self, index):
+        return self.ram[index]
 
         # For now, we've just hardcoded a program:
 
