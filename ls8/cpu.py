@@ -19,6 +19,9 @@ class CPU:
     
     def ram_read(self, index):
         return self.ram[index]
+    
+    def ram_write(self, index, value):
+        self.ram[index] = value
 
         # For now, we've just hardcoded a program:
 
