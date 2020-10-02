@@ -31,3 +31,8 @@ if t:
 else:
     print("T is None")
 
+#print(f"This is printing the amount the binary number from a string{int("0b00000001", base=0)}")
+
+
+val = int("00000011", base=2)
+print(val)

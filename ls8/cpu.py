@@ -20,23 +20,64 @@ class CPU:
     def load(self):
         """Load a program into memory."""
 
-        address = 0
+        #address = 0
 
         # For now, we've just hardcoded a program:
+        if len(sys.argv) != 2:
+            print("You need to specify what program you want the LS8 to run")
+            print("Such as, ls8.py \"name of file to run on\" ")
+            exit(2)
+        file_to_open = sys.argv[1]
+        self.read_file_to_mem(file_to_open)
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
 
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+        # program = [
+        #     # From print8.ls8
+        #     0b10000010, # LDI R0,8
+        #     0b00000000,
+        #     0b00001000,
+        #     0b01000111, # PRN R0
+        #     0b00000000,
+        #     0b00000001, # HLT
+        # ]
+
+        # for instruction in program:
+        #     self.ram[address] = instruction
+        #     address += 1
+
+
+    def read_file_to_mem(self, fileName):
+        """
+        This will read the file into memory so that we can then run the code.
+        This program will remove all the comments and will put the binary into the memory.
+        """
+        memCount = 0
+        
+        with open(fileName, mode="r") as program:
+            # looping through each line of the program
+            for line in program:
+                binaryNum = ""
+                # will put each binary into the memory 
+                # will then increment the binary.
+                # ignore any comments
+                for char in line:
+                    # This will make it to skip all the rest after a comment
+                    if char == "#":
+                        break
+                    elif char == "\n":
+                        continue
+                    if char.isdigit():
+                        binaryNum += char
+                # checking to see if binaryNum is empty or not 
+                # if empty will not put it into memory
+                if binaryNum:
+                    try:
+                        # add to the memory and increment the memCounter
+                        self.ram[memCount] = int(binaryNum, base=2)
+                        memCount +=1
+                    except:
+                        print(f"Improper number:  a number was not in binary form.  {binaryNum} is not proper code")
+                        sys.exit(1)
 
 
     def alu(self, op, reg_a, reg_b):
@@ -141,7 +182,7 @@ class CPU:
 
 
     def get_num_operands(self, opcode):
-        return self.bitwise_opp(opcode, mask=0b11000000, bitShiftVal=6)
+        return self.bitwise_opp(opcode, maskFirst=False,  mask=None, bitShiftVal=6)
 
 
     def get_instruction_code(self, opcode):
@@ -164,6 +205,14 @@ class CPU:
         return 0b00010000 == self.bitwise_opp(opcode, mask=0b00010000)
 
 
+    def instruction_size(self, opcode):
+        """
+        This funtion will tell how much to increment the 
+        PC counter after an instruction.
+        """
+        return self.get_num_operands(opcode) + 1
+
+
     def run(self):
         """Run the CPU."""
 
@@ -179,6 +228,7 @@ class CPU:
         while running:
 
             ir = self.ram_read(self.pc)
+           
 
             # This means HALT -- will stop the program from running
             if ir == HLT:
@@ -189,17 +239,16 @@ class CPU:
                 # will increment the PC (program counter by 3) 
                 # because has 2 parameters
                 self.reg[self.ram[self.pc+1]] = self.ram[self.pc+2]
-                self.pc +=3
+                #self.pc +=3
 
             # PRN --- print register number.
             # will print what is found int he register number passed in
             elif ir == PRN:
                 print(self.reg[self.ram_read(self.pc+1)])
-                self.pc +=2
+                #self.pc +=2
+
+            # This line is to increment the pc counter
+            self.pc += self.instruction_size(ir)
 
 
 
-if __name__ == "__main__":
-    cpu = CPU()
-    cpu.load()
-    cpu.run()
