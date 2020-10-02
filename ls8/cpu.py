@@ -71,4 +71,28 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        LDI = 0b10000010
+        PRN = 0b01000111
+        HLT = 0b00000001
+
+        while self.running:
+            ir = self.ram[self.pc]
+            operation_a = self.ram_read([self.pc + 1])
+            operation_b = self.ram_read([self.pc + 2])
+
+            if ir == HLT:
+                self.running = False
+                self.pc += 1
+
+            elif ir == PRN:
+                print(operation_a)
+                self.pc += 2
+            
+            elif ir == LDI:
+                self.reg[operation_a] = operation_b
+                self.pc += 3
+            
+            else:
+                self.running = False
+                print(f"OOf Bad input: {ir}")
+
