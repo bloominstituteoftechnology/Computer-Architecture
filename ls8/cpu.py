@@ -7,6 +7,8 @@ HLT = 0b00000001
 LDI = 0b10000010
 PRN = 0b01000111
 MUL = 0b10100010
+ADD = 0b10100000
+NOP = 0b00000000
 
 class CPU:
     """Main CPU class."""
@@ -14,8 +16,18 @@ class CPU:
     def __init__(self):
         """Construct a new CPU."""
         self.registers = [0] * 8
+        self.registers[7] = 0xF4
         self.int_registers = [0] * 5
         self.ram = [0b00000000] * 256
+        self.dispatch = {}
+        self.dispatch[NOP] = self.nop
+        self.dispatch[LDI] = self.ldi
+        self.dispatch[PRN] = self.prn
+        self.dispatch[MUL] = self.alu
+        self.dispatch[ADD] = self.alu
+
+###############################################################################
+###################Internal Register Properties################################
 
     @property
     def pc(self):
@@ -43,15 +55,70 @@ class CPU:
         written to.'''
         return self.int_registers[2]
 
+    @mar.setter
+    def mar(self, value):
+        self.int_registers[2]
+
     @property
     def mdr(self):
         '''Memory Data Register, holds the value to write or the value read'''
         return self.int_registers[3]
 
+    @mdr.setter
+    def mdr(self, value):
+        self.int_registers[3]
+
     @property
     def fl(self):
         '''Flags register'''
-        pass
+        return self.int_registers[4]
+
+    @fl.setter
+    def fl(self, value):
+        self.int_registers[4] = value
+
+###############################################################################
+############################## Instructions ###################################
+
+    def ldi(self, op, op_a, op_b):
+        '''
+        Set the register at addres op_a to an integer value (op_b)
+        op not used, for consistent usage accross instructions and alu
+        '''
+        self.registers[op_a] = op_b
+        self.pc += 3
+
+    def prn(self, op, op_a, op_b):
+        '''
+        Print register - Prints value stored at register a. Register b is not
+        used, and keeping with usage convention
+        op and op_b not used, for consistent usage accross instructions and alu
+        '''
+        print(self.registers[op_a])
+        self.pc += 2
+
+    def nop(self, op, op_a, op_b):
+        '''
+        No Operation
+        '''
+        self.pc += 1
+
+###############################################################################
+####################### Arithmetic Logic Unit #################################
+
+    def alu(self, op, reg_a, reg_b):
+        """ALU operations."""
+
+        if op == ADD:
+            self.registers[reg_a] += self.registers[reg_b]
+            self.pc += 3
+        elif op == MUL:
+            self.registers[reg_a] *= self.registers[reg_b]
+            self.pc += 3
+        else:
+            raise Exception("Unsupported ALU operation")
+
+###############################################################################
 
     def ram_read(self, mar):
         '''
@@ -77,16 +144,6 @@ class CPU:
             self.ram[address] = instruction
             address += 1
 
-    def alu(self, op, reg_a, reg_b):
-        """ALU operations."""
-
-        if op == "ADD":
-            self.registers[reg_a] += self.registers[reg_b]
-        elif op == "MUL":
-            self.registers[reg_a] *= self.registers[reg_b]
-        else:
-            raise Exception("Unsupported ALU operation")
-
     def trace(self):
         """
         Handy function to print out the CPU state. You might want to call this
@@ -109,34 +166,20 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-
         running = True
 
         while running:
             self.ir = self.ram_read(self.pc)
 
-            #TODO Maybe these are conditional reads, depending on what the
-            # actual operation that is being specified. Maybe there is no harm
-            # in reading and not using them. Think about this.
-            operand_a = self.ram_read(self.pc +1 )
+            operand_a = self.ram_read(self.pc +1)
             operand_b = self.ram_read(self.pc + 2)
 
             if self.ir == HLT:
                 running = False #Not necessary, keeping with convetion
                 break
 
-            #TODO consider breaking these out like the ALU is broken out
-            # a dictionary style switch might be good.
-            if self.ir == LDI:
-                self.registers[operand_a] = operand_b
-                self.pc += 3
-            elif self.ir == PRN:
-                print(self.registers[operand_a])
-                self.pc += 2
-            elif self.ir == MUL:
-                self.alu('MUL', operand_a, operand_b)
-                self.pc += 3
-
+            #print(self.ir)
+            self.dispatch[self.ir](self.ir, operand_a, operand_b)
 
 
 
