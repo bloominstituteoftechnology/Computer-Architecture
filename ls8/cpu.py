@@ -9,6 +9,8 @@ PRN = 0b01000111
 MUL = 0b10100010
 ADD = 0b10100000
 NOP = 0b00000000
+PUSH = 0b01000101
+POP = 0b01000110
 
 class CPU:
     """Main CPU class."""
@@ -25,10 +27,13 @@ class CPU:
         self.dispatch[PRN] = self.prn
         self.dispatch[MUL] = self.alu
         self.dispatch[ADD] = self.alu
+        self.dispatch[PUSH] = self.push
+        self.dispatch[POP] = self.pop
 
 ###############################################################################
-###################Internal Register Properties################################
+########################## Register Properties ################################
 
+########################## Internal ###########################################
     @property
     def pc(self):
         '''Returns the Program Counter, address of currently executing
@@ -77,6 +82,16 @@ class CPU:
     def fl(self, value):
         self.int_registers[4] = value
 
+################## User-accessible registers ##################################
+
+    @property
+    def sp(self):
+        return self.registers[7]
+
+    @sp.setter
+    def sp(self, value):
+        self.registers[7] = value
+
 ###############################################################################
 ############################## Instructions ###################################
 
@@ -102,6 +117,24 @@ class CPU:
         No Operation
         '''
         self.pc += 1
+
+    def push(self, op, op_a, op_b):
+        '''
+        Push value stored in at register address in op_a to the stack
+        op and op_b not used, for consistent usage accross instructions and alu
+        '''
+        self.sp -= 1
+        self.ram_write(self.registers[op_a], self.sp)
+        self.pc += 2
+
+    def pop(self, op, op_a, op_b):
+        '''
+        Pops the value at the top of the stack into register address op_a
+        '''
+        self.registers[op_a] = self.ram_read(self.sp)
+        self.sp += 1
+        self.pc += 2
+
 
 ###############################################################################
 ####################### Arithmetic Logic Unit #################################
