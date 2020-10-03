@@ -6,16 +6,95 @@ import sys
 LDI = 0b10000010
 PRN =  0b01000111
 HLT = 0b00000001
+MUL = 0b10100010
 
 class CPU:
     """Main CPU class."""
-
+    
+    
     def __init__(self):
         """Construct a new CPU."""
         # creationg of the register
+        self.codes = {}
         self.reg = [0] * 8 # the register is 8 bits long
         self.ram = [0] * 256 # this the memory or the ram
         self.pc = 0 # this the program counter
+        # putting in the opcodes
+        self.build_codes_dict()
+
+    # This means HALT -- will stop the program from running
+    def op_HLT(self):
+        sys.exit()
+
+
+    # PRN --- print register number.
+    def op_PRN(self):
+        print(self.reg[self.ram_read(self.pc+1)])
+
+
+    # LDI -- setting the value of the a register to an integer
+    def op_LDI(self):
+        self.reg[self.ram[self.pc+1]] = self.ram[self.pc+2]
+
+    def op_MUL(self):
+        # get the value from the first register
+        #fval = self.reg[self.ram[self.pc + 1]]
+        sVal = self.reg[self.ram[self.pc + 2]]
+        # will set the reg where the second val was
+        # to the the same as firstVal
+        self.reg[self.ram[self.pc + 2]] = self.reg[self.ram[self.pc + 1]]
+        # calling the alu for addition and will do it 
+        # for the number of sval and then will put the 
+        # amounts into the register of the fval -- self.pc + 1
+        # def alu(self, op, reg_a, reg_b):
+        #if op == "ADD":
+            #self.reg[reg_a] += self.reg[reg_b]
+        # this amount for the range is because 
+        # any number times 1 is itself
+        if sVal > 1:
+            for _ in range(1, sVal): 
+                
+                self.alu("ADD", self.ram[self.pc + 1], self.ram[self.pc + 2])
+        if sVal == 0:
+            # setting the register
+            self.reg[self.ram[self.pc + 1]] = 0
+         
+        
+
+    def build_codes_dict(self):
+        """
+        This is the function that will build 
+        the dictionary that contains the opcodes 
+        as the key and the value is the function that the opcode will need 
+        to call
+        """
+        self.codes[HLT] = self.op_HLT
+        self.codes[PRN] = self.op_PRN
+        self.codes[LDI] = self.op_LDI
+        self.codes[MUL] = self.op_MUL
+    
+
+    def run(self):
+        """Run the CPU."""
+
+        # here is where we will store the 
+        # name with the number of each action
+        # to perform
+        
+        
+
+        running = True
+        
+        # Loop for the program to run
+        while running:
+
+            ir = self.ram_read(self.pc)
+            # calling the function 
+            self.codes[ir]()
+            
+            
+            # This line is to increment the pc counter
+            self.pc += self.instruction_size(ir)
 
     def load(self):
         """Load a program into memory."""
@@ -213,42 +292,6 @@ class CPU:
         return self.get_num_operands(opcode) + 1
 
 
-    def run(self):
-        """Run the CPU."""
-
-        # here is where we will store the 
-        # name with the number of each action
-        # to perform
-        
-        
-
-        running = True
-        
-        # Loop for the program to run
-        while running:
-
-            ir = self.ram_read(self.pc)
-           
-
-            # This means HALT -- will stop the program from running
-            if ir == HLT:
-                break
-
-            # LDI -- setting the value of the a register to an integer
-            elif ir == LDI:
-                # will increment the PC (program counter by 3) 
-                # because has 2 parameters
-                self.reg[self.ram[self.pc+1]] = self.ram[self.pc+2]
-                #self.pc +=3
-
-            # PRN --- print register number.
-            # will print what is found int he register number passed in
-            elif ir == PRN:
-                print(self.reg[self.ram_read(self.pc+1)])
-                #self.pc +=2
-
-            # This line is to increment the pc counter
-            self.pc += self.instruction_size(ir)
-
+    
 
 
