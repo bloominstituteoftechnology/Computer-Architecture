@@ -3,14 +3,17 @@
 import sys
 
 # All instructions will be class constants, to keep conditionals readable
-HLT = 0b00000001
-LDI = 0b10000010
-PRN = 0b01000111
-MUL = 0b10100010
-ADD = 0b10100000
-NOP = 0b00000000
+HLT =  0b00000001
+LDI =  0b10000010
+PRN =  0b01000111
+MUL =  0b10100010
+ADD =  0b10100000
+NOP =  0b00000000
 PUSH = 0b01000101
-POP = 0b01000110
+POP =  0b01000110
+CALL = 0b01010000
+RET =  0b00010001
+ADD =  0b10100000
 
 class CPU:
     """Main CPU class."""
@@ -21,6 +24,7 @@ class CPU:
         self.registers[7] = 0xF4
         self.int_registers = [0] * 5
         self.ram = [0b00000000] * 256
+
         self.dispatch = {}
         self.dispatch[NOP] = self.nop
         self.dispatch[LDI] = self.ldi
@@ -29,6 +33,9 @@ class CPU:
         self.dispatch[ADD] = self.alu
         self.dispatch[PUSH] = self.push
         self.dispatch[POP] = self.pop
+        self.dispatch[CALL] = self.call
+        self.dispatch[RET] = self.ret
+        self.dispatch[ADD] = self.alu
 
 ###############################################################################
 ########################## Register Properties ################################
@@ -135,6 +142,26 @@ class CPU:
         self.sp += 1
         self.pc += 2
 
+    def call(self, op, op_a, op_b):
+        '''
+        Calls a subroutine at the address stored in the register op_a
+        op and op_b not used, for consistent usage accross instructions and alu
+        '''
+        # push next instruction in memory to the stack
+        # self.pc + 2, because address + 1 is used for op_a (register address)
+        self.sp -= 1
+        self.ram_write(self.pc + 2, self.sp)
+        self.pc = self.registers[op_a]
+
+    def ret(self, op, op_a, op_b):
+        '''
+        Returns from subroutine
+        op and op_b not used, for consistent usage accross instructions and alu
+        '''
+        # I don't know what registers have important values, so I need to
+        # manually pop in here instead of calling pop
+        self.pc = self.ram_read(self.sp)
+        self.sp += 1
 
 ###############################################################################
 ####################### Arithmetic Logic Unit #################################
