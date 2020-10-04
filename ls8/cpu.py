@@ -5,6 +5,7 @@ import sys
 LDI = 0b10000010
 PRN = 0b01000111
 HLT = 0b00000001
+MUL = 0b10100010
 
 class CPU:
     """Main CPU class."""
@@ -17,24 +18,49 @@ class CPU:
 
     def load(self):
         """Load a program into memory."""
+        if (len(sys.argv)) != 2:
+            print("Remember to pass the second file name")
+            print("Usage: python3 ls8.py <second_file_name.py>")
+            sys.exit()
 
-        address = 0
+        try:
+            address = 0
+            with open(sys.argv[1]) as f:
+                for line in f:
+                    split = line.split("#")
+                    value = split[0].strip()
+                    if value == "":
+                        continue
+                    
+                    try:
+                        instruction = int(value, 2)
+                    except ValueError:
+                        print(f'Invalid number {value}')
+                        sys.exit(1)
+                    
+                    self.ram[address] = instruction
+                    address += 1
+        except FileNotFoundError:
+            print(f'Error from {sys.argv[0]}: {sys.argv[1]} not found')
+            sys.exit()
 
-        # For now, we've just hardcoded a program:
+        # address = 0
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+        # # For now, we've just hardcoded a program:
 
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+        # program = [
+        #     # From print8.ls8
+        #     0b10000010, # LDI R0,8
+        #     0b00000000,
+        #     0b00001000,
+        #     0b01000111, # PRN R0
+        #     0b00000000,
+        #     0b00000001, # HLT
+        # ]
+
+        # for instruction in program:
+        #     self.ram[address] = instruction
+        #     address += 1
 
 
     def alu(self, op, reg_a, reg_b):
@@ -89,3 +115,8 @@ class CPU:
             elif ir == PRN:
                 print(self.reg[operand_a])
                 self.pc += 2
+            elif ir == MUL:
+                reg_1 = self.ram_read(self.pc + 1)
+                reg_2 = self.ram_read(self.pc + 2)
+                self.reg[reg_1] = self.reg[reg_1] * self.reg[reg_2]
+                self.pc += 3
