@@ -47,6 +47,12 @@ class CPU:
     def sp(self, a):
         self.reg[7] = a & 0xFF
 
+    def instruction_size(self):
+        return ((self.ir >> 6) & 0b11) + 1
+    
+    def instruction_sets_pc(self):
+        return ((self.ir >> 4) & 0b0001) == 1
+    
     def ram_read(self, mar):
         if mar >= 0 and mar < len(self.ram):
             return self.ram[mar]
@@ -97,6 +103,8 @@ class CPU:
 
         print()
 
+    # Run Loop
+
     def run(self):
         """Run the CPU."""
         while not self.halted:
@@ -104,8 +112,8 @@ class CPU:
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
 
-            instructionSize = ((self.ir >> 6) & 0b11) + 1
-            self.pc += instructionSize
+            if not self.instruction_sets_pc():
+                self.pc += self.instruction_size()
 
             self.execute_instruction(operand_a, operand_b)
 
