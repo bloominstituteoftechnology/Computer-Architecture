@@ -31,6 +31,13 @@ class CPU:
         # SP points at the value at the top of the stack (most recently pushed), or at address F4 if the stack is empty.
         self.reg[7] = 0xF4 # 244 # int('F4', 16)
 
+        # Setup Branch Table
+        self.branchtable = {}
+        self.branchtable[HLT] = self.execute_HLT
+        self.branchtable[LDI] = self.execute_LDI
+        self.branchtable[PRN] = self.execute_PRN
+        self.branchtable[MUL] = self.execute_MUL
+
     # Property wrapper for SP (Stack Pointer)
     @property
     def sp(self):
@@ -96,21 +103,32 @@ class CPU:
             self.ir = self.ram_read(self.pc)
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
+
+            instructionSize = ((self.ir >> 6) & 0b11) + 1
+            self.pc += instructionSize
+
             self.execute_instruction(operand_a, operand_b)
 
+
     def execute_instruction(self, operand_a, operand_b):
-        if self.ir == HLT:
-            self.halted = True
-            self.pc += 1
-        elif self.ir == LDI:
-            self.reg[operand_a] = operand_b
-            self.pc += 3
-        elif self.ir == PRN:
-            print(self.reg[operand_a])
-            self.pc += 2
-        elif self.ir == MUL:
-            self.reg[operand_a] *= self.reg[operand_b]
-            self.pc += 3
+        if self.ir in self.branchtable:
+            self.branchtable[self.ir](operand_a, operand_b)
         else:
-            print(f"Error: Could not execute instruction: {self.ir}")
+            print(f"Error: Could not find instruction: {self.ir} in branch table.")
             sys.exit(1)
+    
+    # Define operations to be loaded into the branch table
+
+    def execute_HLT(self, operand_a, operand_b):
+        self.halted = True
+    
+    def execute_LDI(self, operand_a, operand_b):
+        self.reg[operand_a] = operand_b
+    
+    def execute_PRN(self, operand_a, operand_b):
+        print(self.reg[operand_a])
+    
+    def execute_MUL(self, operand_a, operand_b):
+        self.reg[operand_a] *= self.reg[operand_b]
+    
+    
