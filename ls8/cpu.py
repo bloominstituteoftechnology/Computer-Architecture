@@ -4,7 +4,6 @@ import sys
 
 class CPU:
     """Main CPU class."""
-
     def __init__(self):
         """Construct a new CPU."""
         self.ram = [0] * 256
@@ -16,7 +15,7 @@ class CPU:
             4: 0,
             5: 0,
             6: 0,
-            7: 0
+            7: 0      # Reserved for 'SP' - the Stack Pointer
         }
         self.registers_internal = {
             "PC": 0,
@@ -28,18 +27,26 @@ class CPU:
         self.running  = True
         self.raw_data = []
     
+    def hex2dec(self, hx_str):
+        map_hx2dec = {
+            "F4": 244
+        }
+        return map_hx2dec[hx_str]
+
+    
     def load(self, instructions):
         """Load a program into memory."""
-
         address = 0
 
-        # For now, we've just hardcoded a program:
-
+        # grab the passed program instructions
         program = instructions
 
         for instruction in program:
             self.ram[address] = instruction
             address += 1
+
+        # Initialize the 'SP' Stack Pointer register
+        self.registers[7] = self.hex2dec("F4")
 
     def ram_read(self, loc):
         """Return the value that passed memory location"""
@@ -48,6 +55,7 @@ class CPU:
         return self.ram[loc]
 
     def ram_write(self, val, loc):
+        """Write the value to the passed memory location"""
         self.registers_internal["MAR"] = loc    # the memory address being written to
         self.registers_internal["MDR"] = val    # the value to be written
         self.ram[loc] = val
@@ -85,6 +93,22 @@ class CPU:
 
         print()
 
+    def stack_push(self, val):
+        """stack_push pushes the value onto the 'stack'"""
+        # Increment the stack counter
+        self.registers[7] = self.registers[7] - 1
+        # Push the value onto stack (set the value at the now current location)
+        self.ram_write(val, self.registers[7])
+
+    def stack_pop(self):
+        """stack_pop pops and returns the current value from the 'stack'"""
+        # Read the value a the current stack location
+        ret_val = self.ram_read(self.registers[7])
+        # Adjust the stack pointer to the next logical stack value
+        self.registers[7] = self.registers[7] + 1
+
+        return ret_val
+
     def run(self):
         """Run the CPU."""
         ctr_ovrflw = 1
@@ -110,12 +134,36 @@ class CPU:
             #* Execute the current instruction
             # LDI Instruction: load into register - Decimal = 130
             if instr == 130:
+                # Attempting to access a reserved register?
+                if operand_a in [5, 6, 7]:
+                    # attempting to access a reserved register: 5, 6, 7
+                    print("ERR: attempting to access a reserved register: 5, 6, 7")
+                    break
+
                 # Operand A: register in which to load data
                 # Operand B: data to be loaded
                 self.registers[operand_a] = operand_b
 
                 # Advance the program counter 3 memory locations
                 self.registers_internal["PC"] = self.registers_internal["PC"] + 3 
+
+            # PUSH Instruction: push register value onto the stack - Decimal = 69
+            elif instr == 69:
+                self.stack_push(self.registers[operand_a])
+
+                # Advance the program counter 3 memory locations
+                self.registers_internal["PC"] = self.registers_internal["PC"] + 2 
+
+            # POP Instruction: pop the current stack value from the stack - Decimal = 70
+            #   and load that value into the register reference by operand A
+            elif instr == 70:
+                # Pop the value
+                tmp_val = self.stack_pop()
+                # Load the value into the register reference in operand A
+                self.registers[operand_a] = tmp_val
+
+                # Advance the program counter 3 memory locations
+                self.registers_internal["PC"] = self.registers_internal["PC"] + 2 
 
             # PRN Instruction: print register - Decimal = 71
             elif instr == 71:
