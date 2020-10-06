@@ -7,7 +7,9 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.ram = [0] *256
+        self.pc = 0 #point to the instruction in memory
+        self.reg = [0] *8
 
     def load(self):
         """Load a program into memory."""
@@ -59,7 +61,33 @@ class CPU:
             print(" %02X" % self.reg[i], end='')
 
         print()
-
+    def ram_read(self, MAR):
+        '''MAR contain address that is being read or written too'''
+        return self.ram[MAR]
+    def ram_write(self, MAR, MDR):
+        '''MDR contains the data to read or write '''
+        self.ram[MAR] = MDR
     def run(self):
         """Run the CPU."""
-        pass
+        HLT = 0b00000001
+        LDI = 0b10000010
+        PRN = 0b01000111
+
+        running =True
+        while running:
+           commondToExecute = self.ram_read(self.pc)
+           opr_a = self.ram_read(self.pc + 1)
+           opr_b = self.ram_read(self.pc + 2)
+           if commondToExecute == HLT:
+               running =False
+               self.pc +=1
+           elif commondToExecute == LDI:
+               self.reg[opr_a] = opr_b
+               self.pc +=3
+           elif commondToExecute ==PRN:
+               print(self.reg[opr_a])
+               self.pc +=2
+                
+
+        
+
