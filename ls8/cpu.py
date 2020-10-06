@@ -3,10 +3,12 @@
 import sys
 import os.path
 
-HLT = 0b00000001
-LDI = 0b10000010
-PRN = 0b01000111
-MUL = 0b10100010
+HLT  = 0b00000001
+LDI  = 0b10000010
+PRN  = 0b01000111
+MUL  = 0b10100010
+PUSH = 0b01000101
+POP  = 0b01000110
 
 class CPU:
     """Main CPU class."""
@@ -38,6 +40,8 @@ class CPU:
         self.branchtable[LDI] = self.execute_LDI
         self.branchtable[PRN] = self.execute_PRN
         self.branchtable[MUL] = self.execute_MUL
+        self.branchtable[PUSH] = self.execute_PUSH
+        self.branchtable[POP] = self.execute_POP
 
     # Property wrapper for SP (Stack Pointer)
     @property
@@ -151,4 +155,13 @@ class CPU:
     def execute_MUL(self, operand_a, operand_b):
         self.reg[operand_a] *= self.reg[operand_b]
     
+    def execute_PUSH(self, operand_a, operand_b):
+        self.sp -= 1
+        value_in_register = self.reg[operand_a]
+        self.ram[self.sp] = value_in_register
+    
+    def execute_POP(self, operand_a, operand_b):
+        top_most_value_in_stack = self.ram[self.sp]
+        self.reg[operand_a] = top_most_value_in_stack
+        self.sp += 1
     
