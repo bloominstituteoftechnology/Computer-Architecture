@@ -127,7 +127,6 @@ class CPU:
             self.ir = self.ram_read(self.pc)
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
-
             if not self.instruction_sets_pc():
                 self.pc += self.instruction_size()
 
@@ -143,25 +142,26 @@ class CPU:
     
     # Define operations to be loaded into the branch table
 
-    def execute_HLT(self, operand_a, operand_b):
+    def execute_HLT(self, a=None, b=None):
         self.halted = True
     
-    def execute_LDI(self, operand_a, operand_b):
-        self.reg[operand_a] = operand_b
+    def execute_LDI(self, reg_num, val):
+        self.reg[reg_num] = val
     
-    def execute_PRN(self, operand_a, operand_b):
-        print(self.reg[operand_a])
+    def execute_PRN(self, reg_num, b=None):
+        print(self.reg[reg_num])
     
-    def execute_MUL(self, operand_a, operand_b):
-        self.reg[operand_a] *= self.reg[operand_b]
+    def execute_MUL(self, reg_num, reg_num2):
+        self.reg[reg_num] *= self.reg[reg_num2]
     
-    def execute_PUSH(self, operand_a, operand_b):
+    def execute_PUSH(self, reg_num, b=None):
         self.sp -= 1
-        value_in_register = self.reg[operand_a]
-        self.ram[self.sp] = value_in_register
+        self.mdr = self.reg[reg_num]
+        self.ram_write(self.sp, self.mdr)
     
-    def execute_POP(self, operand_a, operand_b):
-        top_most_value_in_stack = self.ram[self.sp]
-        self.reg[operand_a] = top_most_value_in_stack
+    def execute_POP(self, dest_reg_num, b=None):
+        self.mdr = self.ram_read(self.sp)
+        self.reg[dest_reg_num] = self.mdr
         self.sp += 1
     
+        self.sp += 1
