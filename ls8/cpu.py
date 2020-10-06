@@ -7,6 +7,8 @@ LDI = 0b10000010
 PRN =  0b01000111
 HLT = 0b00000001
 MUL = 0b10100010
+PUSH = 0b01000101
+POP = 0b01000110
 
 class CPU:
     """Main CPU class."""
@@ -21,12 +23,37 @@ class CPU:
         self.pc = 0 # this the program counter
         # putting in the opcodes
         self.build_codes_dict()
+        # initializing the register 7 to the address 0xf4 in ram
+        self.reg[7] = 0xf4
+        # address for the end of the program -- will let us know if we can do a push
+        self.end_program_addr = None
 
     # This means HALT -- will stop the program from running
     def op_HLT(self):
         sys.exit()
 
+    # POP -- used to pop off of the stack
+    def op_POP(self):
+        # 1. Copy the value from the address pointed to by `SP` to the given register.
+        # 2. Increment `SP`.
+        if self.reg[7] == 0xf4:
+            raise("Unable to pop becuase the stack is empty")
+        self.reg[self.ram[self.pc+1]] = self.ram[self.reg[7]]
+        self.reg[7] += 1
 
+
+    # PUSH -- push on to the stack
+    def op_PUSH(self):
+        #1. Decrement the `SP`.
+        #2. Copy the value in the given register to the address pointed to by  `SP`.
+
+        #decrementing the register 7
+        if self.reg[7] - 1 == self.end_program_addr:
+            raise ("Stack overflow:  unable to do this as this will overwrite the program")
+        self.reg[7] -= 1
+        register_num = self.ram[self.pc + 1]
+        self.ram[self.reg[7]] = self.reg[register_num]
+  
     # PRN --- print register number.
     def op_PRN(self):
         print(self.reg[self.ram_read(self.pc+1)])
@@ -72,6 +99,8 @@ class CPU:
         self.codes[PRN] = self.op_PRN
         self.codes[LDI] = self.op_LDI
         self.codes[MUL] = self.op_MUL
+        self.codes[PUSH] = self.op_PUSH
+        self.codes[POP] = self.op_POP
     
 
     def run(self):
@@ -157,6 +186,8 @@ class CPU:
                     except:
                         print(f"Improper number:  a number was not in binary form.  {binaryNum} is not proper code")
                         sys.exit(1)
+                # storing the end of the program to not allow stack overflow        
+                self.end_program_addr = memCount
 
 
     def alu(self, op, reg_a, reg_b):
