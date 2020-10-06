@@ -163,5 +163,3 @@ class CPU:
         self.mdr = self.ram_read(self.sp)
         self.reg[dest_reg_num] = self.mdr
         self.sp += 1
-    
-        self.sp += 1
