@@ -60,6 +60,26 @@ class CPU:
     def JMP(self):
         self.pc = self.registers[self.ram[self.pc + 1]]
 
+    def CALL(self):
+        return_addy = self.pc + 2
+
+        # self.registers[7] is the stack pointer
+        self.registers[7] -= 1
+
+        self.ram[self.registers[7]] = return_addy
+
+        # subroutine address(points to the register address after the CALL binary code is called)
+        self.pc = self.registers[self.ram[self.pc + 1]]
+    
+    def RET(self):
+        # pc set to what is on top of the stack
+        self.pc = self.ram[self.registers[7]]
+        self.registers[7] += 1
+
+
+         
+
+
 
     def load(self):
         """Load a program into memory."""
@@ -148,7 +168,7 @@ class CPU:
     def PC_MANIP(self, op):
 
         if op == 0b01010000:
-            return 'CALL'
+            self.CALL()
         elif op == 0b01010010:
             return 'INT'
         elif op == 0b00010011:
@@ -168,7 +188,7 @@ class CPU:
         elif op == 0b01010110:
             return 'JNE'
         elif op == 0b00010001:
-            return 'RET'
+            self.RET()
     def trace(self):
         """
         Handy function to print out the CPU state. You might want to call this
