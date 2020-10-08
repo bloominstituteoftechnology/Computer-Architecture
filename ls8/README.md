@@ -239,6 +239,7 @@ One you run it with `python3 ls8.py examples/mult.ls8`, you should see:
 ```
 72
 ```
+ 
 
 Check the LS-8 spec for what the `MUL` instruction does.
 

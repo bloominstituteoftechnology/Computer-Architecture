@@ -54,7 +54,7 @@ class CPU:
                         instruction = int(num, 2)
                         self.ram_write(instruction, address)
                         address += 1
-                        # print("{:08}: {:d}".format(instruction, instruction))
+                        # print("{:08b}: {:d}".format(instruction, instruction))
                     except:
                         # print("Can't convert stirng to number")
                         # continue in this use case keeps program running rather than skipping the rest of the lines.
@@ -136,8 +136,22 @@ class CPU:
             self.reg[self.sp] += 1
             self.pc += 1
 
+        def CALL(operand_a, operand_b):
+            self.reg[self.sp] -= 1
+            address_to_next_instruction = self.pc + 2
+            self.ram_write(address_to_next_instruction, self.reg[self.sp])
+            next_instruction = self.reg[operand_a]
+            self.pc = next_instruction - 1
+        def RET(operand_a, operand_b):
+            self.pc = self.ram_read(self.reg[self.sp]) - 1
+            self.reg[self.sp] += 1
+        
+        def ADD(operand_a, operand_b):
+            self.reg[operand_a] = self.reg[operand_a] + self.reg[operand_b]
+            self.pc += 2
         while not self.halted:
             command_to_execute = self.ram_read(self.pc)
+            # print(command_to_execute)
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
 
@@ -149,6 +163,9 @@ class CPU:
                     0b10100010: MUL,
                     0b01000101: PUSH,
                     0b01000110: POP,
+                    0b01010000: CALL,
+                    0b00010001: RET,
+                    0b10100000: ADD,
                 }
                 return switcher.get(command, unknown_command)   
 
