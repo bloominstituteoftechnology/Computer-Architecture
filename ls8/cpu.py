@@ -2,13 +2,17 @@
 
 import sys
 
+SP = 7
 
-LDI = 0b10000010
+LDI =  0b10000010
 PRN =  0b01000111
-HLT = 0b00000001
-MUL = 0b10100010
+HLT =  0b00000001
+MUL =  0b10100010
 PUSH = 0b01000101
-POP = 0b01000110
+POP =  0b01000110
+CALL = 0b01010000
+RET =  0b00010001
+ADD =  0b10100000
 
 class CPU:
     """Main CPU class."""
@@ -28,6 +32,37 @@ class CPU:
         # address for the end of the program -- will let us know if we can do a push
         self.end_program_addr = None
 
+
+    # Function to add the values of two different registers
+    def op_ADD(self):
+        
+        # send the next two values in the registers to the alu
+        reg1 = self.ram[self.pc + 1]
+        reg2 = self.ram[self.pc + 2]
+        self.alu("ADD", reg1, reg2)
+
+
+    # This function will move the pc counter to the address that is 
+    # found in the register after the opCode.  Will push the current pc point + 1 on the stack
+    def op_CALL(self):
+        
+        where_to_return_to = self.pc + self.instruction_size(CALL)
+        reg_num = self.ram[self.pc + 1]
+        self.pc = self.reg[reg_num]
+        self.op_PUSH(where_to_return_to) 
+
+
+    # This function will return from the subroutine and will pop off the stack 
+    # where to set the pc counter to
+    def op_RET(self):
+        # Return from subroutine.
+        # Pop the value from the top of the stack and store it in the `PC`.
+        # using my own version of the POP so that it doesn't try to set to just any 
+        # register
+        self.pc = self.ram[self.reg[SP]]
+        self.reg[SP] +=1
+
+
     # This means HALT -- will stop the program from running
     def op_HLT(self):
         sys.exit()
@@ -36,24 +71,32 @@ class CPU:
     def op_POP(self):
         # 1. Copy the value from the address pointed to by `SP` to the given register.
         # 2. Increment `SP`.
-        if self.reg[7] == 0xf4:
+        if self.reg[SP] == 0xf4:
             raise("Unable to pop becuase the stack is empty")
-        self.reg[self.ram[self.pc+1]] = self.ram[self.reg[7]]
-        self.reg[7] += 1
+        self.reg[self.ram[self.pc+1]] = self.ram[self.reg[SP]]
+        self.reg[SP] += 1
 
 
     # PUSH -- push on to the stack
-    def op_PUSH(self):
+    def op_PUSH(self, val=None):
         #1. Decrement the `SP`.
         #2. Copy the value in the given register to the address pointed to by  `SP`.
 
+        # This means that we will use the value in the next register to put on the stack
+        # using val so that we can put in our own value or just use pc + 1 to get the value
+        if val == None:
+            register_num = self.ram[self.pc + 1 ]
+            val =  self.reg[register_num]
         #decrementing the register 7
-        if self.reg[7] - 1 == self.end_program_addr:
+        if self.reg[SP] - 1 == self.end_program_addr:
             raise ("Stack overflow:  unable to do this as this will overwrite the program")
-        self.reg[7] -= 1
-        register_num = self.ram[self.pc + 1]
-        self.ram[self.reg[7]] = self.reg[register_num]
+        self.reg[SP] -= 1
+        # using the address in the stack pointer to point to the location in ram (top of the stack)
+        # where we will put the value that was in the register
+        self.ram[self.reg[SP]]  = val
+        
   
+
     # PRN --- print register number.
     def op_PRN(self):
         print(self.reg[self.ram_read(self.pc+1)])
@@ -101,7 +144,9 @@ class CPU:
         self.codes[MUL] = self.op_MUL
         self.codes[PUSH] = self.op_PUSH
         self.codes[POP] = self.op_POP
-    
+        self.codes[RET] = self.op_RET
+        self.codes[CALL] = self.op_CALL
+        self.codes[ADD] = self.op_ADD
 
     def run(self):
         """Run the CPU."""
@@ -113,17 +158,21 @@ class CPU:
         
 
         running = True
+
         
         # Loop for the program to run
         while running:
-
+            
             ir = self.ram_read(self.pc)
             # calling the function 
             self.codes[ir]()
             
+            # This is to check if the function itself will move the PC if if does
+            # then this is skipped
             
-            # This line is to increment the pc counter
-            self.pc += self.instruction_size(ir)
+            if self.sets_PC(ir) == False:
+                # This line is to increment the pc counter
+                self.pc += self.instruction_size(ir)
 
     def load(self):
         """Load a program into memory."""
@@ -262,7 +311,7 @@ class CPU:
                     # ANDing  -- to extract some of the bits out of the 
                     # byte 
                     elif maskType == 1:
-                        value = value & maskType
+                        value = value & mask
                     else:
                         raise Exception("Wrong value for mask type used")
                 if firstDone == False:
@@ -312,6 +361,7 @@ class CPU:
         Will return True if the opcode is used to set the program counter, and
         False otherwise
         """
+        
         return 0b00010000 == self.bitwise_opp(opcode, mask=0b00010000)
 
 
