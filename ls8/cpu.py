@@ -50,6 +50,7 @@ class CPU:
         self.branchtable[ADD] = self.execute_ADD
 
     # Property wrapper for SP (Stack Pointer)
+
     @property
     def sp(self):
         return self.reg[7]
@@ -58,12 +59,26 @@ class CPU:
     def sp(self, a):
         self.reg[7] = a & 0xFF
 
+    # Computed Properties
+
+    @property
+    def operand_a(self):
+        return self.ram_read(self.pc + 1)
+    
+    @property
+    def operand_b(self):
+        return self.ram_read(self.pc + 2)
+    
+    @property
     def instruction_size(self):
         return ((self.ir >> 6) & 0b11) + 1
     
+    @property
     def instruction_sets_pc(self):
         return ((self.ir >> 4) & 0b0001) == 1
     
+    # CPU Methods
+
     def ram_read(self, mar):
         if mar >= 0 and mar < len(self.ram):
             return self.ram[mar]
@@ -130,55 +145,54 @@ class CPU:
     def run(self):
         """Run the CPU."""
         while not self.halted:
+
+            # Fetch the next instruction (it is decoded lazily using computed properties)
             self.ir = self.ram_read(self.pc)
-            operand_a = self.ram_read(self.pc + 1)
-            operand_b = self.ram_read(self.pc + 2)
-            if not self.instruction_sets_pc():
-                self.pc += self.instruction_size()
 
-            self.execute_instruction(operand_a, operand_b)
+            # Execute the instruction
+            if self.ir in self.branchtable:
+                self.branchtable[self.ir]()
+            else:
+                print(f"Error: Could not find instruction: {self.ir} in branch table.")
+                sys.exit(1)
+
+            # Increment the program counter if necessary
+            if not self.instruction_sets_pc:
+                self.pc += self.instruction_size
 
 
-    def execute_instruction(self, operand_a, operand_b):
-        if self.ir in self.branchtable:
-            self.branchtable[self.ir](operand_a, operand_b)
-        else:
-            print(f"Error: Could not find instruction: {self.ir} in branch table.")
-            sys.exit(1)
-    
-    # Define operations to be loaded into the branch table
+    # Define the operations to be loaded into the branch table
 
-    def execute_HLT(self, a=None, b=None):
+    def execute_HLT(self):
         self.halted = True
     
-    def execute_LDI(self, reg_num, val):
-        self.reg[reg_num] = val
+    def execute_LDI(self):
+        self.reg[self.operand_a] = self.operand_b
     
-    def execute_PRN(self, reg_num, b=None):
-        print(self.reg[reg_num])
+    def execute_PRN(self):
+        print(self.reg[self.operand_a])
     
-    def execute_MUL(self, reg_num, reg_num2):
-        self.reg[reg_num] *= self.reg[reg_num2]
+    def execute_MUL(self):
+        self.reg[self.operand_a] *= self.reg[self.operand_b]
     
-    def execute_PUSH(self, reg_num, b=None):
+    def execute_PUSH(self):
         self.sp -= 1
-        self.mdr = self.reg[reg_num]
+        self.mdr = self.reg[self.operand_a]
         self.ram_write(self.sp, self.mdr)
     
-    def execute_POP(self, dest_reg_num, b=None):
+    def execute_POP(self):
         self.mdr = self.ram_read(self.sp)
-        self.reg[dest_reg_num] = self.mdr
+        self.reg[self.operand_a] = self.mdr
         self.sp += 1
     
-    def execute_CALL(self, dest_reg_num, b=None):
+    def execute_CALL(self):
         self.sp -= 1
-        self.ram_write(self.sp, self.pc + self.instruction_size())
-        self.pc = self.reg[dest_reg_num]
+        self.ram_write(self.sp, self.pc + self.instruction_size)
+        self.pc = self.reg[self.operand_a]
 
-    def execute_RET(self, a=None, b=None):
-        self.mdr = self.ram_read(self.sp)
-        self.pc = self.mdr
+    def execute_RET(self):
+        self.pc = self.ram_read(self.sp)
         self.sp += 1
     
-    def execute_ADD(self, reg_num, reg_num2):
-        self.reg[reg_num] += self.reg[reg_num2]
+    def execute_ADD(self):
+        self.reg[self.operand_a] += self.reg[self.operand_b]
