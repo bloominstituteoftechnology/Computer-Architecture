@@ -13,6 +13,8 @@ POP =  0b01000110
 CALL = 0b01010000
 RET =  0b00010001
 JMP =  0b01010100
+JEQ =  0b01010101
+JNE =  0b01010110
 
 # Arithemtic
 MUL =  0b10100010
@@ -47,6 +49,8 @@ class CPU:
         self.dispatch[ADD] = self.alu
         self.dispatch[CMP] = self.alu
         self.dispatch[JMP] = self.jmp
+        self.dispatch[JEQ] = self.jeq
+        self.dispatch[JNE] = self.jne
 
 ###############################################################################
 ########################## Register Properties ################################
@@ -176,10 +180,29 @@ class CPU:
 
     def jmp(self, op, op_a, op_b):
         '''
-        Jump to the address stored in the register at addres op_a
+        Jump to the address stored in the register at address op_a
         op and op_b not used, for consistent usage accross instructions and alu
         '''
         self.pc = self.registers[op_a]
+
+    def jeq(self, op, op_a, op_b):
+        '''
+        If the equal flag is set, jump to the address stored in the register at
+        address op_a
+        op and op_b not used, for consistent usage accross instructions and alu
+        '''
+        if self.fl == EQUAL:
+            self.jmp(JMP, op_a, op_b)
+
+    def jne(self, op, op_a, op_b):
+        '''
+        If the equal flag is clear, jump to the address stored in the register
+        at address op_a
+        op and op_b not used, for consistent usage accross instructions and alu
+        '''
+        if self.fl != EQUAL:
+            self.jmp(JMP, op_a, op_b)
+
 
 
 ###############################################################################
@@ -266,8 +289,3 @@ class CPU:
 
             #print(self.ir)
             self.dispatch[self.ir](self.ir, operand_a, operand_b)
-
-
-
-
-
