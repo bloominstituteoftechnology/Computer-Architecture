@@ -175,6 +175,11 @@ class CPU:
         self.sp += 1
 
     def jmp(self, op, op_a, op_b):
+        '''
+        Jump to the address stored in the register at addres op_a
+        op and op_b not used, for consistent usage accross instructions and alu
+        '''
+        self.pc = self.registers[op_a]
 
 
 ###############################################################################
