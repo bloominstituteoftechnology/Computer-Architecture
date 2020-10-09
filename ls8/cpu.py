@@ -192,7 +192,9 @@ class CPU:
         op and op_b not used, for consistent usage accross instructions and alu
         '''
         if self.fl == EQUAL:
-            self.jmp(JMP, op_a, op_b)
+            self.pc = self.registers[op_a]
+        else:
+            self.pc += 2
 
     def jne(self, op, op_a, op_b):
         '''
@@ -201,7 +203,9 @@ class CPU:
         op and op_b not used, for consistent usage accross instructions and alu
         '''
         if self.fl != EQUAL:
-            self.jmp(JMP, op_a, op_b)
+            self.pc = self.registers[op_a]
+        else:
+            self.pc += 2
 
 
 
@@ -217,13 +221,14 @@ class CPU:
         elif op == MUL:
             self.registers[reg_a] *= self.registers[reg_b]
             self.pc += 3
-        elif op = CMP:
+        elif op == CMP:
             if self.registers[reg_a] == self.registers[reg_b]:
                 self.fl = EQUAL
-            elif self.registers[reg_a] < self.register[reg_b]:
+            elif self.registers[reg_a] < self.registers[reg_b]:
                 self.fl = LESSTHAN
-            elif self.registers[reg_a] > self.register[reg_b]:
+            elif self.registers[reg_a] > self.registers[reg_b]:
                 self.fl = GREATERTHAN
+            self.pc += 3
         else:
             raise Exception("Unsupported ALU operation")
 
