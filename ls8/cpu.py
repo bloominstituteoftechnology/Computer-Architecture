@@ -13,7 +13,7 @@ class CPU:
 
         # Stack Pointer
         self.sp = 7
-        self.registers[self.sp] = 0xF4
+        self.registers[7] = 0xF4
 
         # Internal Registers
         self.pc = 0
@@ -96,10 +96,10 @@ class CPU:
         print()
 
     def ram_read(self, read_value):
-        return self.registers[read_value]
+        return self.ram[read_value]
 
     def ram_write(self, write_value, write_address_location):
-        self.registers[write_address_location] = write_value
+        self.ram[write_address_location] = write_value
 
     def run(self):
         """Run the CPU."""
@@ -112,15 +112,29 @@ class CPU:
                 MAR = self.ram[self.pc + 1]
                 MDR = self.ram[self.pc + 2]
 
-                self.ram_write(MDR, MAR)
+                self.registers[MAR] = MDR
 
                 self.pc += 2
 
             elif instruction == self.PUSH:
-                pass
+                self.registers[self.sp] -= 1
+
+                reg = self.ram[self.pc + 1]
+                value  = self.registers[reg]
+
+                self.ram_write(value, self.registers[self.sp])
+
+                self.pc += 1
 
             elif instruction == self.POP:
-                pass
+                value = self.ram_read(self.registers[self.sp])
+                
+                reg = self.ram[self.pc + 1]
+                self.registers[reg] = value
+
+                self.registers[self.sp] += 1
+
+                self.pc += 1
 
             elif instruction == self.MUL:
                 reg_a = self.ram[self.pc + 1]
@@ -129,13 +143,12 @@ class CPU:
                 MAR = reg_a
                 MDR = self.alu(instruction, reg_a, reg_b)
 
-                self.ram_write(MDR, MAR)
+                self.registers[MAR] = MDR
 
                 self.pc += 2
 
             elif instruction == self.PRN:
-                MAR = self.ram[self.pc + 1]
-                print(self.ram_read(MAR))
+                print(self.registers[self.ram[self.pc + 1]])
 
                 self.pc += 1
 
@@ -144,6 +157,7 @@ class CPU:
                 running = False
 
             else:
+                print(instruction)
                 print("Unknown Instruction. Exiting Program.")
                 running = False
 
