@@ -23,6 +23,8 @@ class CPU:
         self.fl = 0
 
         # Instructions
+        self.CALL = 0b01010000
+        self.RET = 0b00010001
         self.LDI = 0b10000010
         self.PRN = 0b01000111
         self.HLT = 0b00000001
