@@ -2,7 +2,11 @@
 
 import sys
 
-SP = 7
+SP = 7 # stack pointer -- the register that holds the stack pointer
+IM = 5 # register for the interupt mask
+IS = 6 # register for the interupts status
+
+
 
 LDI =  0b10000010
 PRN =  0b01000111
@@ -13,6 +17,10 @@ POP =  0b01000110
 CALL = 0b01010000
 RET =  0b00010001
 ADD =  0b10100000
+ST  =  0b10000100
+CMP =  0b10100111
+JMP =  0b01010100
+PRA =  0b01001000
 
 class CPU:
     """Main CPU class."""
@@ -25,13 +33,31 @@ class CPU:
         self.reg = [0] * 8 # the register is 8 bits long
         self.ram = [0] * 256 # this the memory or the ram
         self.pc = 0 # this the program counter
+        self.FL = 0b00000000 # FLag this is the internal register that  can hold the flags for compare 00000LGE
         # putting in the opcodes
         self.build_codes_dict()
         # initializing the register 7 to the address 0xf4 in ram
-        self.reg[7] = 0xf4
+        self.reg[SP] = 0xf4
         # address for the end of the program -- will let us know if we can do a push
         self.end_program_addr = None
 
+    # ST -- store the value in register b in the address found in register a
+    def op_ST(self):
+        # will use this register that has the address where we will store the value
+        regA = self.ram[self.pc+1]
+        # finding the register number in ram and then will get the value out of that register
+        val_from_regB = self.reg[self.ram[self.pc+2]]
+        self.reg[regA] = val_from_regB
+
+    # JMP -- Jump to the address stored in the given register
+    def op_JMP(self):
+        self.pc = self.reg[self.ram[self.pc + 1]]
+
+    # PRA -- Print to the console the ASCII character corresponding to the value in the
+    # register
+    def op_PRA(self):
+        value = self.reg[self.ram[self.pc + 1]]
+        print(chr(value))
 
     # Function to add the values of two different registers
     def op_ADD(self):
@@ -147,7 +173,9 @@ class CPU:
         self.codes[RET] = self.op_RET
         self.codes[CALL] = self.op_CALL
         self.codes[ADD] = self.op_ADD
-
+        self.codes[ST] = self.op_ST
+        self.codes[JMP] = self.op_JMP
+        self.codes[PRA] = self.op_PRA
     def run(self):
         """Run the CPU."""
 
@@ -243,7 +271,15 @@ class CPU:
         """ALU operations."""
 
         if op == "ADD":
-            self.reg[reg_a] += self.reg[reg_b]
+            # pulling the values out and then will put it back in after 
+            # masking it with 0xFF to make sure that the value is just in the range 
+            # that can fit in the register
+            regAVal = self.reg[reg_a]
+            regBVal = self.reg[reg_b]
+            val = regBVal + regAVal
+            val = val & 0xFF
+            self.reg[reg_a] = val
+            #self.reg[reg_a] += self.reg[reg_b]
         #elif op == "SUB": etc
         else:
             raise Exception("Unsupported ALU operation")
