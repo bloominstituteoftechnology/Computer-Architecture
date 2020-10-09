@@ -3,18 +3,26 @@
 import sys
 
 # All instructions will be class constants, to keep conditionals readable
+# Instructions
 HLT =  0b00000001
 LDI =  0b10000010
 PRN =  0b01000111
-MUL =  0b10100010
-ADD =  0b10100000
 NOP =  0b00000000
 PUSH = 0b01000101
 POP =  0b01000110
 CALL = 0b01010000
 RET =  0b00010001
+JMP =  0b01010100
+
+# Arithemtic
+MUL =  0b10100010
 ADD =  0b10100000
 CMP =  0b10100111
+
+# Flags
+EQUAL = 0b00000001
+LESSTHAN = 0b00000100
+GREATERTHAN = 0b00000010
 
 class CPU:
     """Main CPU class."""
@@ -38,6 +46,7 @@ class CPU:
         self.dispatch[RET] = self.ret
         self.dispatch[ADD] = self.alu
         self.dispatch[CMP] = self.alu
+        self.dispatch[JMP] = self.jmp
 
 ###############################################################################
 ########################## Register Properties ################################
@@ -84,7 +93,7 @@ class CPU:
 
     @property
     def fl(self):
-        '''Flags register'''
+        '''Flags register for storing less than greather than or equal flags'''
         return self.int_registers[4]
 
     @fl.setter
@@ -165,6 +174,9 @@ class CPU:
         self.pc = self.ram_read(self.sp)
         self.sp += 1
 
+    def jmp(self, op, op_a, op_b):
+
+
 ###############################################################################
 ####################### Arithmetic Logic Unit #################################
 
@@ -179,14 +191,11 @@ class CPU:
             self.pc += 3
         elif op = CMP:
             if self.registers[reg_a] == self.registers[reg_b]:
-                # setting the equal flag
-                self.fl(0b00000001)
+                self.fl = EQUAL
             elif self.registers[reg_a] < self.register[reg_b]:
-                # setting the less than flag
-                self.fl(0b00000100)
+                self.fl = LESSTHAN
             elif self.registers[reg_a] > self.register[reg_b]:
-                # setting the greater than flag
-                self.fl(0b00000010)
+                self.fl = GREATERTHAN
         else:
             raise Exception("Unsupported ALU operation")
 
