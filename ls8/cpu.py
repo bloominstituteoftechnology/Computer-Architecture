@@ -14,6 +14,7 @@ POP =  0b01000110
 CALL = 0b01010000
 RET =  0b00010001
 ADD =  0b10100000
+CMP =  0b10100111
 
 class CPU:
     """Main CPU class."""
@@ -36,6 +37,7 @@ class CPU:
         self.dispatch[CALL] = self.call
         self.dispatch[RET] = self.ret
         self.dispatch[ADD] = self.alu
+        self.dispatch[CMP] = self.alu
 
 ###############################################################################
 ########################## Register Properties ################################
@@ -175,6 +177,16 @@ class CPU:
         elif op == MUL:
             self.registers[reg_a] *= self.registers[reg_b]
             self.pc += 3
+        elif op = CMP:
+            if self.registers[reg_a] == self.registers[reg_b]:
+                # setting the equal flag
+                self.fl(0b00000001)
+            elif self.registers[reg_a] < self.register[reg_b]:
+                # setting the less than flag
+                self.fl(0b00000100)
+            elif self.registers[reg_a] > self.register[reg_b]:
+                # setting the greater than flag
+                self.fl(0b00000010)
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -212,8 +224,8 @@ class CPU:
 
         print(f"TRACE: %02X | %02X %02X %02X |" % (
             self.pc,
-            #self.fl,
-            #self.ie,
+            self.fl,
+            self.ir,
             self.ram_read(self.pc),
             self.ram_read(self.pc + 1),
             self.ram_read(self.pc + 2)
@@ -231,7 +243,7 @@ class CPU:
         while running:
             self.ir = self.ram_read(self.pc)
 
-            operand_a = self.ram_read(self.pc +1)
+            operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
 
             if self.ir == HLT:
