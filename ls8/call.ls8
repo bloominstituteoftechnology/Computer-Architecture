@@ -1,0 +1,21 @@
+#subroutine
+save
+0b00000100
+R0
+address to jump to
+# print 99
+PRINT_NUM
+0b00000011
+99
+#call out subroutine to print PRINT_TIM
+CALL 
+0#R0
+
+
+ 
+#halt
+
+#subroutine 
+PRINT_TIM
+PRINT_TIM
+RET

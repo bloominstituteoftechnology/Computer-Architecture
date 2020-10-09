@@ -8,7 +8,9 @@ LDI=    0b10000010 # LDI R0,8
 PRNR0 =  0b01000111 # PRN R0
 ADD =    0b10100000
 HLT=     0b00000001
-
+POP =    0b01000110
+CALL =   0b01010000
+RET =    0b00010001
 
 
 
@@ -21,7 +23,7 @@ class CPU:
         self.reg = [0]*8
         self.pc = 0
         self.reg[7] = 0xF4
-        self.sp = 7
+         
         
          
          
@@ -52,18 +54,18 @@ class CPU:
         
         self.ram[mar] = mdr
     
-    def PUSH(self, value=None) :
-        self.sp -=1
-        if not value:
-            value = self.reg[self.ram_read(self.pc +1)]  
+    # def PUSH(self, value=None) :
+    #     self.sp -=1
+    #     if not value:
+    #         value = self.reg[self.ram_read(self.pc +1)]  
         
-    def POP(self )  :
-        value = self.ram[self.sp]
-        target_reg_address = self.ram[self.pc + 1]
-        self.reg[target_reg_address] = value
-                    # Increment SP
-        self.sp += 1
-        self.pc += 2
+    # def POP(self )  :
+    #     value = self.ram[self.sp]
+    #     target_reg_address = self.ram[self.pc + 1]
+    #     self.reg[target_reg_address] = value
+    #                 # Increment SP
+    #     self.sp += 1
+    #     self.pc += 2
         
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -119,8 +121,8 @@ class CPU:
                 print(self.reg[self.ram_read(self.pc + 1)])
             #  elif command == 
             
-            elif command == 0b10100010: # MUL
-                self.alu("MUL", self.ram_read(self.pc + 1), self.ram_read(self.pc + 2))
+            # elif command == 0b10100010: # MUL
+            #     self.alu("MUL", self.ram_read(self.pc + 1), self.ram_read(self.pc + 2))
             
             elif command == 0b00000001:  #HLT
                 running = False
@@ -138,10 +140,29 @@ class CPU:
                 self.reg[target_reg_address] = value
                             # Increment SP
                 self.reg[7] += 1
-                    
+            
+            elif command ==  0b01010000: # CALL
+                self.reg[7] -=1
+                self.ram_write(self.reg[7], self.pc+2) 
+                self.pc = self.reg[op_a]
+                
+                
+                # return_address = self.pc +2
+                # self.reg[7]-=1
+                # SP = self.reg[7]
+                # self.ram[SP]= return_address
+                # reg_idx = self.ram[self.pc]+1
+                # subroutine_address = self.reg[reg_idx]
+                # pc = subroutine_address
+                
+            elif command ==  0b00010001:  # RET 
+                self.pc = self.ram_read(self.reg[7])  
+                self.reg[7]   +=1
+                
             else:   
                 print('unknown command')
                 running = False
+                print(f'unknown command: {command}')
             
             self.pc +=(command >>6)  +1
                 

@@ -1,0 +1,49 @@
+subs:
+CALL and RET
+aka functions
+
+
+
+CALL spec does not allow thins
+-How to pass params tfrom one function to another?
+
+_COuld we use the stack and memory adresses
+-Registers- store the params in registers before calling
+
+
+
+
+def mult2print(our_num):
+    our_num += our_num
+    print(our_num)
+    return
+
+
+    mult2print(10)
+    mult2print(15)
+    mult2print(18)
+    mult2print(30)
+    sys.exit(1)
+
+    CALL uses regs to pass params to subroutine(function)
+    RET
+
+
+    700:0
+    699:2   <--SP
+    698:2
+    697:3
+    696:6
+    695: 
+    def add (x,y):
+      z = x+y
+      return z
+      
+    def mult(a,b):
+       z = a*b 
+       return z
+
+    def main() :
+       a=2
+
+       c = mult(2,3) 
