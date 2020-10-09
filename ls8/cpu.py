@@ -8,7 +8,7 @@ PRN = 0b01000111
 MULT = 0b10100010
 PUSH = 0b01000101
 POP = 0b01000110
-SP = 7
+SP = 7 # stack pointer
 
 class CPU:
     """Main CPU class."""
@@ -85,7 +85,7 @@ class CPU:
             self.halted = True
             self.pc += 1
         elif instruction == PRN:
-            print(self.reg[operand_a])
+#            print(self.reg[operand_a])
             self.pc += 2
         elif instruction == LDI:
             self.reg[operand_a] = operand_b
@@ -98,15 +98,18 @@ class CPU:
             self.reg[SP] -= 1
             # write the value stored in register onto the stack
             valueFromRegister = self.reg[operand_a]
+            print("push...", valueFromRegister)
             self.ram_write(valueFromRegister, self.reg[SP])
             self.pc += 2
         elif instruction == POP:
+            print("### DEBUG: pop ###")
             # save the value on top of the stack onto the register given
-            topmostValue = self.ram_read(self.reg[SP])
-            self.reg[operand_a] = topmostValue
+            topMostValue = self.ram_read(self.reg[SP])
+            print("pop...", topMostValue)
+            self.reg[operand_a] = topMostValue
             # increment the stack pointer
             self.reg[SP] += 1
             self.pc += 2
         else:
-            print("Idk this instruction. Exiting")
+            print("DEBUG: UNKNOWN INSTRUCTION")
             sys.exit(1)
