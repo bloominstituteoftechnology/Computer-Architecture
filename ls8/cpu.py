@@ -11,6 +11,10 @@ class CPU:
         # General Purpose Registers
         self.registers = [0] * 8
 
+        # Stack Pointer
+        self.sp = 7
+        self.registers[self.sp] = 0xF4
+
         # Internal Registers
         self.pc = 0
         self.ir = 0
@@ -23,6 +27,8 @@ class CPU:
         self.PRN = 0b01000111
         self.HLT = 0b00000001
         self.MUL = 0b10100010
+        self.PUSH = 0b01000101
+        self.POP = 0b01000110
 
         # RAM
         self.ram = [0] * 256
@@ -109,6 +115,12 @@ class CPU:
                 self.ram_write(MDR, MAR)
 
                 self.pc += 2
+
+            elif instruction == self.PUSH:
+                pass
+
+            elif instruction == self.POP:
+                pass
 
             elif instruction == self.MUL:
                 reg_a = self.ram[self.pc + 1]
