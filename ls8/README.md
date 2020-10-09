@@ -64,6 +64,51 @@ but you'll have to implement those three above instructions first!
 * Note what has been implemented, and what hasn't.
 * Read this whole file.
 * Skim the spec.
+```
+cpu.py - where the cpu object lives
+ls8.py - a simple main file for loading and runnin the cpu objects
+
+Implemented:
+ADD
+constructer
+
+Missing:
+run method
+AND
+CALL
+CMP
+DEC
+DIV
+HLT
+INC
+INT
+IRET
+JEQ
+JGE
+JGT
+JLE
+JLT
+JMP
+JNE
+LD
+LDI
+MOD
+MUL
+NOP
+NOT
+OR
+POP
+PRA
+PRN
+PUSH
+RET
+SHL
+SHR
+ST
+SUB
+XOR
+
+```
 
 ## Step 1: Add the constructor to `cpu.py`
 
