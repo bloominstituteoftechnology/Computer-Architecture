@@ -2,12 +2,15 @@
 
 import sys
 
-LDI = 0b10000010
-PRN = 0b01000111
-HLT = 0b00000001
-MUL = 0b10100010
-PUSH = 0b01000101
-POP = 0b01000110
+LDI     = 0b10000010
+PRN     = 0b01000111
+HLT     = 0b00000001
+MUL     = 0b10100010
+PUSH    = 0b01000101
+POP     = 0b01000110
+CALL    = 0b01010000
+RET     = 0b00010001
+ADD     = 0b10100000
 
 class CPU:
     """Main CPU class."""
@@ -20,9 +23,10 @@ class CPU:
         self.ir = 0
         self.mar = 0
         self.mdr = 0
+        self.fl = 0
         self.halted = False
         self.sp = 7
-
+        
         self.reg[7] = 0xF4
 
         self.branchtable = {}
@@ -32,6 +36,9 @@ class CPU:
         self.branchtable[MUL] = self.handle_MUL
         self.branchtable[PUSH] = self.handle_PUSH
         self.branchtable[POP] = self.handle_POP
+        self.branchtable[CALL] = self.handle_CALL
+        self.branchtable[RET] = self.handle_RET
+        self.branchtable[ADD] = self.handle_ADD
 
     def ram_read(self, mar):
         return self.ram[mar]
@@ -135,3 +142,15 @@ class CPU:
         self.mdr = self.ram_read(self.sp)
         self.reg[num] = self.mdr
         self.sp += 1
+
+    def handle_CALL(self, a=None, b=None):
+        self.sp -= 1
+        self.ram_write(self.sp, self.pc + ((self.ir >> 6) & 0b11) + 1)
+        self.pc = self.reg[self.ram_read(self.pc + 1)]
+
+    def handle_RET(self, a=None, b=None):
+        self.pc = self.ram_read(self.sp)
+        self.sp += 1
+
+    def handle_ADD(self, operand_a, operand_b):
+        self.reg[operand_a] += self.reg[operand_b]
