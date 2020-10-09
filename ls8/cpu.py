@@ -110,10 +110,14 @@ class CPU:
         
         while running:
             command = self.ram[self.pc]
-             
+            print(command) 
             op_a = self.ram_read(self.pc +1)
             op_b = self.ram_read(self.pc +2)
-             
+            alu = (command >> 5) & 0b001
+            sets_pointer = (command >> 4) & 0b0001
+            
+            # if alu:
+            #     self.alu(command, op_a, op_b)
             if command == 0b10000010: #LDI
                 self.reg[self.ram_read(self.pc+1)] = self.ram_read(self.pc +2)
                 
@@ -121,9 +125,12 @@ class CPU:
                 print(self.reg[self.ram_read(self.pc + 1)])
             #  elif command == 
             
-            # elif command == 0b10100010: # MUL
-            #     self.alu("MUL", self.ram_read(self.pc + 1), self.ram_read(self.pc + 2))
-            
+            elif command == 0b10100010: # MUL
+                self.alu("MUL", self.ram_read(self.pc + 1), self.ram_read(self.pc + 2))
+            elif command == 0b10100000:
+                self.alu("ADD", op_a, op_b)
+                # self.pc +=3
+                
             elif command == 0b00000001:  #HLT
                 running = False
                  
@@ -140,12 +147,12 @@ class CPU:
                 self.reg[target_reg_address] = value
                             # Increment SP
                 self.reg[7] += 1
-            
+                
             elif command ==  0b01010000: # CALL
                 self.reg[7] -=1
                 self.ram_write(self.reg[7], self.pc+2) 
                 self.pc = self.reg[op_a]
-                
+                 
                 
                 # return_address = self.pc +2
                 # self.reg[7]-=1
@@ -155,14 +162,16 @@ class CPU:
                 # subroutine_address = self.reg[reg_idx]
                 # pc = subroutine_address
                 
-            elif command ==  0b00010001:  # RET 
+            elif command ==  0b00010001 :  # RET 
                 self.pc = self.ram_read(self.reg[7])  
                 self.reg[7]   +=1
                 
             else:   
-                print('unknown command')
+                # print('unknown command')
                 running = False
                 print(f'unknown command: {command}')
             
-            self.pc +=(command >>6)  +1
-                
+            if command >> 4 & 0b0001:
+                continue
+            else:
+                self.pc += (command >> 6)  + 1
