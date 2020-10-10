@@ -22,6 +22,7 @@ CMP =  0b10100111
 JMP =  0b01010100
 PRA =  0b01001000
 JEQ =  0b01010101
+JNE =  0b01010110
 
 
 class CPU:
@@ -51,6 +52,16 @@ class CPU:
         # This is sent to the alu
         self.alu("CMP", self.ram[self.pc + 1], self.ram[self.pc + 2])
 
+
+    # JNE -- If `E` flag is clear (false, 0), jump to the address stored in the given
+    # register.
+    def op_JNE(self):
+        #  `FL` bits: `00000LGE`
+        maskedVal = self.FL & 0b00000001
+        if maskedVal == 0:
+            self.pc = self.reg[self.ram[self.pc + 1]]
+        else:
+            self.pc = self.pc + 2
 
     # JEQ -- If `equal` flag is set (true), jump to the address stored in the given register
     def op_JEQ(self):
@@ -200,8 +211,9 @@ class CPU:
         self.codes[PRA] = self.op_PRA
         self.codes[CMP] = self.op_CMP
         self.codes[JEQ] = self.op_JEQ
+        self.codes[JNE] = self.op_JNE
 
-        
+
     def run(self):
         """Run the CPU."""
 
