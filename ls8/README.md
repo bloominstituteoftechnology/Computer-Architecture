@@ -138,7 +138,6 @@ LS-8 program you loaded.
 
 We can consider `HLT` to be similar to Python's `exit()` in that we stop
 whatever we are doing, wherever we are.
-
 ## Step 5: Add the `LDI` instruction
 
 This instruction sets a specified register to a specified value.
