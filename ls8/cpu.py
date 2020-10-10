@@ -29,6 +29,7 @@ class CPU:
         self.PRN = 0b01000111
         self.HLT = 0b00000001
         self.MUL = 0b10100010
+        self.ADD = 0b10100000
         self.PUSH = 0b01000101
         self.POP = 0b01000110
 
@@ -69,8 +70,8 @@ class CPU:
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
 
-        if op == "ADD":
-            self.registers[reg_a] += self.registers[reg_b]
+        if op == self.ADD:
+            return self.registers[reg_a] + self.registers[reg_b]
         #elif op == "SUB": etc
         if op == self.MUL:
             return self.registers[reg_a] * self.registers[reg_b]
@@ -138,7 +139,34 @@ class CPU:
 
                 self.pc += 1
 
+            elif instruction == self.CALL:
+                self.registers[self.sp] -= 1
+                
+                reg = self.ram[self.pc + 1]
+                pc_value  = self.registers[reg]
+
+                self.ram_write(self.pc + 2, self.registers[self.sp])
+
+                self.pc = pc_value
+
+            elif instruction == self.RET:
+                value = self.ram_read(self.registers[self.sp])
+                self.pc = value
+
+                self.registers[self.sp] += 1
+
             elif instruction == self.MUL:
+                reg_a = self.ram[self.pc + 1]
+                reg_b = self.ram[self.pc + 2]
+
+                MAR = reg_a
+                MDR = self.alu(instruction, reg_a, reg_b)
+
+                self.registers[MAR] = MDR
+
+                self.pc += 2
+
+            elif instruction == self.ADD:
                 reg_a = self.ram[self.pc + 1]
                 reg_b = self.ram[self.pc + 2]
 
@@ -163,4 +191,5 @@ class CPU:
                 print("Unknown Instruction. Exiting Program.")
                 running = False
 
-            self.pc += 1
+            if instruction not in [self.CALL, self.RET]: 
+                self.pc += 1
