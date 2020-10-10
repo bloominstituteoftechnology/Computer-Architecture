@@ -21,6 +21,8 @@ ST  =  0b10000100
 CMP =  0b10100111
 JMP =  0b01010100
 PRA =  0b01001000
+JEQ =  0b01010101
+
 
 class CPU:
     """Main CPU class."""
@@ -40,6 +42,26 @@ class CPU:
         self.reg[SP] = 0xf4
         # address for the end of the program -- will let us know if we can do a push
         self.end_program_addr = None
+
+
+    # CMP -- *This is an instruction handled by the ALU.*
+    def op_CMP(self):
+        # `FL` bits: `00000LGE`
+        # * If they are equal, set the Equal `E` flag to 1, otherwise set it to 0
+        # This is sent to the alu
+        self.alu("CMP", self.ram[self.pc + 1], self.ram[self.pc + 2])
+
+
+    # JEQ -- If `equal` flag is set (true), jump to the address stored in the given register
+    def op_JEQ(self):
+        # `FL` bits: `00000LGE`
+        # need to check if the equal flag is set to true
+        maskedVal = self.FL & 0b00000001
+        if maskedVal == 0b00000001:
+            self.pc = self.reg[self.ram[self.pc + 1]]
+        else:
+            self.pc = self.pc + 2
+
 
     # ST -- store the value in register b in the address found in register a
     def op_ST(self):
@@ -176,6 +198,10 @@ class CPU:
         self.codes[ST] = self.op_ST
         self.codes[JMP] = self.op_JMP
         self.codes[PRA] = self.op_PRA
+        self.codes[CMP] = self.op_CMP
+        self.codes[JEQ] = self.op_JEQ
+
+        
     def run(self):
         """Run the CPU."""
 
@@ -269,18 +295,36 @@ class CPU:
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
+        
+        regAVal = self.reg[reg_a]
+        regBVal = self.reg[reg_b]
 
         if op == "ADD":
             # pulling the values out and then will put it back in after 
             # masking it with 0xFF to make sure that the value is just in the range 
             # that can fit in the register
-            regAVal = self.reg[reg_a]
-            regBVal = self.reg[reg_b]
+            
             val = regBVal + regAVal
             val = val & 0xFF
             self.reg[reg_a] = val
             #self.reg[reg_a] += self.reg[reg_b]
         #elif op == "SUB": etc
+        elif op == "CMP":
+            # If they are equal, set the Equal `E` flag to 1, otherwise set it to 0.
+            # * If registerA is less than registerB, set the Less-than `L` flag to 1,
+            # otherwise set it to 0.
+            # * If registerA is greater than registerB, set the Greater-than `G` flag
+            # to 1, otherwise set it to 0.
+            # # `FL` bits: `00000LGE`
+            if regAVal == regBVal:
+                self.FL = self.FL | 0b00000001
+                self.FL = self.FL & 0b00000001
+            if regAVal < regBVal:
+                self.FL = self.FL | 0b00000100
+                self.FL = self.FL & 0b00000100
+            else:
+                self.FL = self.FL | 0b00000010
+                self.FL = self.FL & 0b00000010 
         else:
             raise Exception("Unsupported ALU operation")
 
