@@ -12,6 +12,8 @@ class CPU:
         self.registers = [0] * 8
         self.pc = 0
 
+        self.flags = 0b00000000
+
         # list of opcodes
         self.branchtable = {}
         self.branchtable[0b10000010] = self.LDI
@@ -57,9 +59,6 @@ class CPU:
         self.pc += 2
         return True
 
-    def JMP(self):
-        self.pc = self.registers[self.ram[self.pc + 1]]
-
     def CALL(self):
         return_addy = self.pc + 2
 
@@ -76,9 +75,20 @@ class CPU:
         self.pc = self.ram[self.registers[7]]
         self.registers[7] += 1
 
+    def JMP(self):
+        self.pc = self.registers[self.ram[self.pc + 1]]
 
-         
-
+    def JEQ(self):
+        if self.flag & 0b1 == 1:
+            self.JMP()
+        else:
+            self.pc += 2
+    
+    def JNE(self):
+        if self.flag & 0b00000001 == 0:
+            self.JMP()        
+        else:
+            self.pc += 2 
 
 
     def load(self):
@@ -132,6 +142,13 @@ class CPU:
             self.registers[reg_a] *= self.registers[reg_b]
         elif op == "DIV":
             self.registers[reg_a] //= self.registers[reg_b]
+        elif op == "CMP":
+            if self.registers[reg_a] < self.registers[reg_b]:
+                self.flag = 0b00000100
+            elif self.registers[reg_a] > self.registers[reg_b]:
+                self.flag = 0b00000010
+            elif self.registers[reg_a] == self.registers[reg_b]:
+                self.flag = 0b00000001    
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -174,7 +191,7 @@ class CPU:
         elif op == 0b00010011:
             return 'IRET'
         elif op == 0b01010101:
-            return 'JEQ'
+            self.JEQ()
         elif op == 0b01011010:
             return 'JGE'
         elif op == 0b01010111:
@@ -186,7 +203,7 @@ class CPU:
         elif op == 0b01010100:
             self.JMP()
         elif op == 0b01010110:
-            return 'JNE'
+            self.JNE()
         elif op == 0b00010001:
             self.RET()
     def trace(self):
@@ -216,6 +233,8 @@ class CPU:
 
         while running:
             ir = self.ram_read(self.pc)
+            operand_a = self.ram[self.pc + 1]
+            operand_b = self.ram[self.pc + 2]
             # alu operation
             is_alu_op = (ir >> 5) & 0b001 == 1
             # program counter manipulation operation
@@ -223,7 +242,7 @@ class CPU:
 
             if is_alu_op:
                 operation_type = self.ALU_OPERS(ir)
-                self.alu(operation_type,self.ram[self.pc + 1], self.ram[self.pc + 2] )
+                self.alu(operation_type, operand_a, operand_b )
                 self.pc += 3
             elif pc_manip:
                 self.PC_MANIP(ir)
