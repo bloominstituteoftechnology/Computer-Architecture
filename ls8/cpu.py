@@ -331,12 +331,16 @@ class CPU:
             if regAVal == regBVal:
                 self.FL = self.FL | 0b00000001
                 self.FL = self.FL & 0b00000001
-            if regAVal < regBVal:
+                return
+
+            elif regAVal < regBVal:
                 self.FL = self.FL | 0b00000100
                 self.FL = self.FL & 0b00000100
+                return
             else:
                 self.FL = self.FL | 0b00000010
                 self.FL = self.FL & 0b00000010 
+                return
         else:
             raise Exception("Unsupported ALU operation")
 
