@@ -1,33 +1,57 @@
 """CPU functionality."""
 
 import sys
+from table import Branchtable
 
 class CPU:
     """Main CPU class."""
 
-    def __init__(self):
+    def __init__(self, program):
         """Construct a new CPU."""
-        pass
+        # Clear Registers
+        self.reg = [0] * 8
+        
+        # set internal registers to 0
+        self.pc = 0
+        self.ir = 0
+        self.fl = 0
+        self.mar = 0
+        self.mdr = 0
 
-    def load(self):
+
+        # RAM is cleared to zero
+        self.ram = [0] * 256
+
+        # R7 is set to keyboard interupt
+        self.reg[7] = self.ram[0xF4]
+
+        # load program into memory
+        self.load(program)
+
+        # initialize branchtable
+        self.branchtable = Branchtable(self)
+
+    def load(self, program):
         """Load a program into memory."""
 
         address = 0
+        data = []
 
-        # For now, we've just hardcoded a program:
+        # parse program all lines in the file
+        with open(program, 'r') as f:
+            for line in f:
+                # check for comments
+                line = line.split('#')[0]
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+                # remove new line tokens
+                line = line.strip('\n') 
 
-        for instruction in program:
-            self.ram[address] = instruction
+                # check for empty lines
+                if line:
+                    data.append(int(line, 2))        
+
+        for instruction in data:
+            self.ram_write(address, instruction)
             address += 1
 
 
@@ -36,7 +60,17 @@ class CPU:
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
-        #elif op == "SUB": etc
+        elif op == "SUB":
+            self.reg[reg_a] -= self.reg[reg_b]
+        elif op == "MUL":
+            self.reg[reg_a] *= self.reg[reg_b]
+        elif op == "DIV":
+            if reg_b == 0:
+                raise Exception("Can't divide by zero")
+                # set next instruction to halt
+                self.ir = 0x01
+            
+            self.reg[reg_a] /= self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -60,6 +94,66 @@ class CPU:
 
         print()
 
+    def ram_read(self, mar):
+        '''
+        read data at provided address and return value stored there
+        '''
+        # store current memory address being read
+        self.mar = mar
+
+        # store data retrieved from that address
+        self.mdr = self.ram[mar]
+
+        return self.mdr
+    
+    def ram_write(self, mar, mdr):
+        '''
+        write provided data to provided memory location in RAM
+        '''
+        # store memory address being written to
+        self.mar = mar
+
+        # store data loaded at that address
+        self.mdr = mdr
+
+        # store data in ram
+        self.ram[mar] = mdr
+
     def run(self):
         """Run the CPU."""
-        pass
+        HALT = 0x01
+
+        while True:
+            # check if instruction is to halt
+            if self.ir == HALT:
+                break
+
+            # load instruction register
+            self.ir = self.ram_read(self.pc)
+            
+            # check if instruction is to halt
+            if self.ir == HALT:
+                break
+
+            # get operands
+            operand_a = self.ram[self.pc + 1]
+            operand_b = self.ram[self.pc + 2]
+
+            # get instruction from table
+            if self.branchtable.contains(self.ir):
+                instruction = self.branchtable.instruction(self.ir)
+
+            # run the routine
+            instruction(operand_a, operand_b)
+
+            # increment program counter adding in num of operands needed
+            self.pc += 1 + (self.ir >> 6)
+
+
+            
+
+
+
+        
+
+        
