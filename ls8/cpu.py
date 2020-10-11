@@ -18,12 +18,17 @@ class CPU:
         self.mar = 0
         self.mdr = 0
 
+        # initialize stack pointer
+        self.sp = 0xF4
 
         # RAM is cleared to zero
         self.ram = [0] * 256
 
         # R7 is set to keyboard interupt
         self.reg[7] = self.ram[0xF4]
+
+        # set halt flag
+        self.halt = False
 
         # load program into memory
         self.load(program)
@@ -67,8 +72,8 @@ class CPU:
         elif op == "DIV":
             if reg_b == 0:
                 raise Exception("Can't divide by zero")
-                # set next instruction to halt
-                self.ir = 0x01
+                # halt program
+                self.halt = True
             
             self.reg[reg_a] /= self.reg[reg_b]
         else:
@@ -79,6 +84,7 @@ class CPU:
         Handy function to print out the CPU state. You might want to call this
         from run() if you need help debugging.
         """
+
 
         print(f"TRACE: %02X | %02X %02X %02X |" % (
             self.pc,
@@ -121,19 +127,9 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        HALT = 0x01
-
-        while True:
-            # check if instruction is to halt
-            if self.ir == HALT:
-                break
-
+        while not self.halt:
             # load instruction register
             self.ir = self.ram_read(self.pc)
-            
-            # check if instruction is to halt
-            if self.ir == HALT:
-                break
 
             # get operands
             operand_a = self.ram[self.pc + 1]
@@ -146,9 +142,13 @@ class CPU:
             # run the routine
             instruction(operand_a, operand_b)
 
-            # increment program counter adding in num of operands needed
-            self.pc += 1 + (self.ir >> 6)
-
+            # check if program counter is manually set
+            if (self.ir >> 4) & 0b0001 == 1:
+                continue
+            else:
+                # increment program counter adding in num of operands needed
+                self.pc += 1 + (self.ir >> 6)
+            
 
             
 
