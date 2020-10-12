@@ -70,6 +70,7 @@ class CPU:
     def run(self):
         """Run the CPU."""
         ir = self.ram[self.pc]
+        # register_pointer = 0
 
         operand_a = self.ram_read(self.pc + 1)
         operand_b = self.ram_read(self.pc + 2)
@@ -83,4 +84,10 @@ class CPU:
             elif ir == 0b00000001:
                 #HLT
                 running = False
+            elif ir == 0b10000010:
+                #LDI
+                self.register[self.pc] = 8
+            elif ir == 0b01000111:
+                #PRN
+                print(self.register[self.pc])
 
