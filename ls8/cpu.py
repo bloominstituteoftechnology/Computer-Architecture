@@ -20,7 +20,7 @@ class CPU:
         self.ir = 0
         # self.mar = 0
         # self.mdr = 0
-        self.fl = 0
+        self.fl = 0b00000000
 
         # Instructions
         self.CALL = 0b01010000
@@ -32,6 +32,10 @@ class CPU:
         self.ADD = 0b10100000
         self.PUSH = 0b01000101
         self.POP = 0b01000110
+        self.CMP = 0b10100111
+        self.JMP = 0b01010100
+        self.JEQ = 0b01010101
+        self.JNE = 0b01010110
 
         # RAM
         self.ram = [0] * 256
@@ -73,8 +77,15 @@ class CPU:
         if op == self.ADD:
             return self.registers[reg_a] + self.registers[reg_b]
         #elif op == "SUB": etc
-        if op == self.MUL:
+        elif op == self.MUL:
             return self.registers[reg_a] * self.registers[reg_b]
+        elif op == self.CMP:
+            if self.registers[reg_a] == self.registers[reg_b]:
+                self.fl = 0b00000001
+            # elif self.registers[reg_a] < self.registers[reg_b]:
+            #     self.fl = 0b00000100
+            # elif self.registers[reg_a] > self.registers[reg_b]:
+            #     self.fl = 0b00000010
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -94,7 +105,7 @@ class CPU:
         ), end='')
 
         for i in range(8):
-            print(" %02X" % self.reg[i], end='')
+            print(" %02X" % self.registers[i], end='')
 
         print()
 
@@ -155,6 +166,21 @@ class CPU:
 
                 self.registers[self.sp] += 1
 
+            elif instruction == self.JMP:
+                self.pc = self.registers[self.ram_read(self.pc + 1)]
+
+            elif instruction == self.JEQ:
+                if self.fl == 0b00000001:
+                    self.pc = self.registers[self.ram_read(self.pc + 1)]
+                else:
+                    self.pc += 2
+
+            elif instruction == self.JNE:
+                if self.fl == 0b00000000:
+                    self.pc = self.registers[self.ram_read(self.pc + 1)]
+                else:
+                    self.pc += 2
+
             elif instruction == self.MUL:
                 reg_a = self.ram[self.pc + 1]
                 reg_b = self.ram[self.pc + 2]
@@ -177,6 +203,14 @@ class CPU:
 
                 self.pc += 2
 
+            elif instruction == self.CMP:
+                reg_a = self.ram[self.pc + 1]
+                reg_b = self.ram[self.pc + 2]
+
+                self.alu(instruction, reg_a, reg_b)
+
+                self.pc += 2
+
             elif instruction == self.PRN:
                 print(self.registers[self.ram[self.pc + 1]])
 
@@ -191,5 +225,5 @@ class CPU:
                 print("Unknown Instruction. Exiting Program.")
                 running = False
 
-            if instruction not in [self.CALL, self.RET]: 
+            if instruction not in [self.CALL, self.RET, self.JMP, self.JNE, self.JEQ]: 
                 self.pc += 1
