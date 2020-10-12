@@ -11,10 +11,10 @@ class CPU:
         self.register = [0] * 8
         self.pc = 0
     
-    def ram_read():
-        pass
-    def ram_write():
-        pass
+    def ram_read(self, address):
+        print(self.ram[address])
+    def ram_write(self, value, address):
+        self.ram[address] = value
 
     def load(self):
         """Load a program into memory."""
@@ -69,4 +69,18 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        ir = self.ram[self.pc]
+
+        operand_a = self.ram_read(self.pc + 1)
+        operand_b = self.ram_read(self.pc + 2)
+        
+        running = True
+
+        while running is True:
+
+            if ir == 0b00001000:
+                print(self.register[self.pc])
+            elif ir == 0b00000001:
+                #HLT
+                running = False
+
