@@ -1,6 +1,7 @@
 '''
 Branchtable for O(1) access to instruction functions
 '''
+SP = 7 # stack pointer
 class Branchtable():
     def __init__(self, cpu):
         self.branchtable = {}
@@ -15,6 +16,10 @@ class Branchtable():
         self.branchtable[0x50] = self.call
         self.branchtable[0x11] = self.ret
         self.branchtable[0xA0] = self.add
+        self.branchtable[0xA7] = self.cmp
+        self.branchtable[0x54] = self.jmp
+        self.branchtable[0x55] = self.jeq
+        self.branchtable[0x56] = self.jne
  
         # use reference to cpu class to make updates
         self.cpu = cpu
@@ -57,6 +62,15 @@ class Branchtable():
         r_a = args[0]
         r_b = args[1]
         self.cpu.alu(op, r_a, r_b)
+
+    def cmp(self, *args):
+        '''
+        Compare values passed in registers
+        '''
+        op = 'CMP'
+        r_a = args[0]
+        r_b = args[1]
+        self.cpu.alu(op, r_a, r_b)
     
     def pop(self, *args):
         '''
@@ -65,9 +79,9 @@ class Branchtable():
         '''
         r = args[0]
 
-        if self.cpu.sp != 0xF4:
-            self.cpu.reg[r] = self.cpu.ram_read(self.cpu.sp)
-            self.cpu.sp += 1
+        if self.cpu.reg[SP] != 0xF4:
+            self.cpu.reg[r] = self.cpu.ram_read(self.cpu.reg[SP])
+            self.cpu.reg[SP] += 1
         else:
             raise Exception('Empty stack')
 
@@ -77,13 +91,14 @@ class Branchtable():
         Decrements the stack pointer
         '''
         r = args[0]
-        self.cpu.sp -= 1
-        self.cpu.ram_write(self.cpu.sp, self.cpu.reg[r])
+        self.cpu.reg[SP] -= 1
+        self.cpu.ram_write(self.cpu.reg[SP], self.cpu.reg[r])
 
     def call(self, *args):
         '''
         Loads next instruction onto stack, then sets the 
         program counter to value stored in reg
+        uses reg 4 as push and pop require registers
         '''
         r = args[0]
         self.cpu.reg[4] = self.cpu.pc + 2
@@ -93,10 +108,49 @@ class Branchtable():
     def ret(self, *args):
         '''
         sets the program counter to previous location
-        first loading into reg 4 and from there to pc
+        uses reg 4 as push and pop require registers
         '''
         self.pop(4)
         self.cpu.pc = self.cpu.reg[4]
+
+    def jmp(self, *args):
+        '''
+        jump to an address at the given register by setting
+        the pc to that memory address
+        '''
+        r = args[0]
+        self.cpu.pc = self.cpu.reg[r]
+
+    def jeq(self, *args):
+        '''
+        checks if the flag set by compare
+        is set to "equal", then 
+        we jump to the address provided in the
+        register
+        '''
+        r = args[0]
+
+        # check for equality flag
+        if self.cpu.fl & 0x01 == 1:
+            self.cpu.pc = self.cpu.reg[r]
+        # if not, we need to increment program counter by 2
+        else:
+            self.cpu.pc += 2
+
+    def jne(self, *args):
+        '''
+        check if the flag set by compare
+        in the equal slot is set to 0(false)
+        if so, jump to address stored in register
+        '''
+        r = args[0]
+
+        # check for falseness
+        if not self.cpu.fl & 0x01 == 1:
+            self.cpu.pc = self.cpu.reg[r]
+        # if not, we need to increment program counter by 2
+        else:
+            self.cpu.pc += 2
 
     def contains(self, instruction):
         if instruction in self.branchtable:

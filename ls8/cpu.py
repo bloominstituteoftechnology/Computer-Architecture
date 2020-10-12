@@ -2,11 +2,12 @@
 
 import sys
 from table import Branchtable
+from alu import ALU
 
 class CPU:
     """Main CPU class."""
 
-    def __init__(self, program):
+    def __init__(self):
         """Construct a new CPU."""
         # Clear Registers
         self.reg = [0] * 8
@@ -30,17 +31,16 @@ class CPU:
         # set halt flag
         self.halt = False
 
-        # load program into memory
-        self.load(program)
-
         # initialize branchtable
         self.branchtable = Branchtable(self)
+
+        # initialize ALU
+        self.alu_ops = ALU(self)
 
     def load(self, program):
         """Load a program into memory."""
 
         address = 0
-        data = []
 
         # parse program all lines in the file
         with open(program, 'r') as f:
@@ -52,32 +52,22 @@ class CPU:
                 line = line.strip('\n') 
 
                 # check for empty lines
-                if line:
-                    data.append(int(line, 2))        
-
-        for instruction in data:
-            self.ram_write(address, instruction)
-            address += 1
-
+                if line:      
+                    self.ram_write(address, int(line, 2))
+                    address += 1
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
-
-        if op == "ADD":
-            self.reg[reg_a] += self.reg[reg_b]
-        elif op == "SUB":
-            self.reg[reg_a] -= self.reg[reg_b]
-        elif op == "MUL":
-            self.reg[reg_a] *= self.reg[reg_b]
-        elif op == "DIV":
-            if reg_b == 0:
-                raise Exception("Can't divide by zero")
-                # halt program
-                self.halt = True
-            
-            self.reg[reg_a] /= self.reg[reg_b]
+        
+        # check for valid operation
+        if self.alu_ops.contains(op):
+            operation = self.alu_ops.operation(op)
         else:
             raise Exception("Unsupported ALU operation")
+
+        # perform operation
+        operation(reg_a, reg_b)
+
 
     def trace(self):
         """
