@@ -122,7 +122,7 @@ class CPU:
                 self.pc += 2
             elif ir == MUL:
                 regA = operand_a
-                rebB = operand_b
+                regB = operand_b
                 self.register[regA] = self.register[regA] * self.register[regB]
                 self.pc += 3
             else:
