@@ -5,6 +5,7 @@ import sys
 HLT = 0b00000001
 PRN = 0b01000111
 LDI = 0b10000010
+MUL = 0b10100010
 class CPU:
     """Main CPU class."""
 
@@ -31,18 +32,18 @@ class CPU:
                     line = line.strip()
 
                     #accounting for any comments or blank lines
-                    if line == '' or line[0] == '#'
-                    continue
+                    if line == '' or line[0] == '#':
+                        continue
 
                     try:
                         str_value = line.split("#")[0]
-                        value = int(str_value, 10)
+                        value = int(str_value, 2)
 
                     except ValueError:
                         print(f"Invalid number: {str_value}")
                         sys.exit()
                     
-                    ram[address] = value
+                    self.ram[address] = value
                     address += 1
         except FileNotFoundError:
             print(f"File not found!: {sys.argv[1]}")
@@ -119,6 +120,11 @@ class CPU:
                 reg_num = operand_a
                 print(self.register[reg_num])
                 self.pc += 2
+            elif ir == MUL:
+                regA = operand_a
+                rebB = operand_b
+                self.register[regA] = self.register[regA] * self.register[regB]
+                self.pc += 3
             else:
                 print("Unknown instruction")
                 sys.exit(0)
