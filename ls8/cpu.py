@@ -7,7 +7,20 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.ram = [0] * 256
+        self.register = [0] * 8
+        self.pc = 0
+        
+    #mar is sort of like a key value in the ram
+
+    def ram_read(self, mar):
+        return self.ram[mar]
+
+    def ram_write(self, mar, mdr):
+        self.ram[mar] = mdr
+    
+
+        
 
     def load(self):
         """Load a program into memory."""
@@ -35,7 +48,7 @@ class CPU:
         """ALU operations."""
 
         if op == "ADD":
-            self.reg[reg_a] += self.reg[reg_b]
+            self.register[reg_a] += self.register[reg_b]
         #elif op == "SUB": etc
         else:
             raise Exception("Unsupported ALU operation")
@@ -56,10 +69,105 @@ class CPU:
         ), end='')
 
         for i in range(8):
-            print(" %02X" % self.reg[i], end='')
+            print(" %02X" % self.register[i], end='')
 
         print()
 
     def run(self):
         """Run the CPU."""
-        pass
+        running = True
+        ir = self.ram[self.pc]
+        operand_a = self.ram_read(self.pc + 1)
+        operand_b = self.ram_read(self.pc + 2)
+        
+
+        while running:
+            if ir == 0b10000010:
+                self.register[operand_a] = operand_b
+                self.pc += 3
+                #LDI function
+                
+            elif ir == 0b01000111:
+                print(self.register[operand_a])
+                self.pc += 2
+                #PRN function
+
+            elif ir == 0b00000001:
+                self.pc = 0
+                running = False
+                #Halt function
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+"""
+ program = [
+            # From print8.ls8
+            0b10000010, # LDI R0,8
+            0b00000000,
+            0b00001000,
+            0b01000111, # PRN R0
+            0b00000000,
+            0b00000001, # HLT
+        ]
+
+"""
+
+
+
+
+
+
+
+
+
+"""
+while not halted:
+    instruction = memory[pc]
+    if instruction == PRINT_BEEJ:
+        print("Beej!")
+        pc += 1
+    elif instruction == HALT:
+        halted = True
+        pc += 1
+
+    elif instruction == SAVE_REG:
+        reg_num = memory[pc + 1]
+        value = memory[pc + 2]
+        register[reg_num] = value
+
+        pc += 3
+    elif instruction == PRINT_REG:
+        reg_num = memory[pc + 1]
+        print(register[reg_num])
+        pc += 2
+    else:
+        print(f"unknown instruction {instruction} at address {pc}")
+        sys.exit(1)
+
+
+
+
+"""

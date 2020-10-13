@@ -1,0 +1,126 @@
+Training Kit 
+
+Number bases and conversions video- 
+
+Decimal has 10 digits (base 10)
+
+Binary has 2 (base 2).
+-A binary digit is a bit
+-A byte is made of 8 bits
+-255 is the largest number you can store in a byte
+
+Hexadecimal has 16 (base 16)
+0 - 9 ; A - F
+
+|         128
+||        64
+|||       32
+||||      16
+|||||     8
+||||||    4
+|||||||   2
+||||||||  1
+ 
+01010110 -> 2 + 4 + 16 + 64 
+
+67 decimal-> 64 + 2 + 1 ->       1000011
+
+33 decimal -> 32 + 1 ->             100001
+
+
+Hexadecimal conversions to binary
+
+10100011 -> 8 bits -> 1 byte  ->  Lets split this into 2 nibbles (4 bit chunks)
+
+1010 0011  == A3 hex 
+  A    3
+
+A is 10
+B is 11
+C is 12?
+
+
+C7 hex is what in binary?
+
+C       7
+
+1100 + 0111 --> 11000111 binary 
+
+ 
+Training kit Content (After videos) -
+
+what a CPU word is
+how RAM works
+how different parts of the CPU communicate
+what a CPU instruction is
+what a CPU register is
+what the CPU clock represents
+what the system bus is and what size it is
+how the CPU provides concurrency
+
+
+CPU Word - Size of a piece of data with which the CPU can interact with 
+
+RAM (Random Access Memory) - 
+
+
+
+
+
+MONDAY LECTURE
+--------------
+
+We will create an emulator this week that emulates a CPU 
+
+Assembly language is the lowest ... 
+
+Number bases
+------------
+
+Base 2 - binary
+Base 8 - octal
+Base 10 - decimal    ; 0 - 9 system 
+Base 16 - Hexadecimal; 0 - 9 ... A - F
+Base 64 - base 64
+ 
+Base 10:
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12  ->  1 * 10 + 2 * 1 = 12
+
+1s = 10^0
+10s = 10^1
+100s = 10^2
+1000s = 10^3
+
+Binary language -
+0s and 1s
+
+1s = 2^0
+2s = 2^1
+4s = 2^2
+8s = 2^3
+16s = 2^4
+
+The number base is important when you write the number down.  
+
+0b binary
+0x hex
+0o octal
+
+x = 0b110 -> 6 in decimal
+
+0x87 --> What is that in binary? 
+
+1 hex digit === 4 binary digits; you need to have 4 there 
+
