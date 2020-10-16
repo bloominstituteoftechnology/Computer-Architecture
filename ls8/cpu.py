@@ -1,7 +1,6 @@
 """CPU functionality."""
 
 import sys
-import re
 
 CMP = 0b10100111
 JMP = 0b01010100 
@@ -15,29 +14,19 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        self.instruction_list = {}  #A dict to hold current instructions
         self.list = [0] * 25 # list of 25 zeros
         self.pc = 0
         self.ram = [0] * 256
         self.reg = [0] * 8
+        self.flag = 0b00000000
 
+    def ram_read(self, address):
+        return self.ram[address]
 
-        self.E = None #Equal To
-        self.L = None #Less than
-        self.G = None # Greater than
-
-
-        self.instruction_list[CMP] = self.cmp_inst
-        self.instruction_list[JMP] = self.jmp_inst
-        self.instruction_list[JEQ] = self.jeq_inst
-
-    def ram_read(self, adress):
-        if adress < len(self.ram):
-            return self.ram[adress]
-
-    def ram_write(self, adress, value):
-        if adress < len(self.ram):
-            self.ram[adress] = value
+    def ram_write(self, address, value):
+        self.ram[address] = value
+        return self.ram[address]
+      
 
     def load(self):
         """Load a program into memory."""
@@ -57,9 +46,9 @@ class CPU:
                 self.ram[address] = v
                 adress += 1
 
-        except FileNotFoundError:
-            print(f"Couldn't find file {sys.argv[1]}")
-            sys.exit(1)
+            # except FileNotFoundError:
+            #     print(f"Couldn't find file {sys.argv[1]}")
+            #     sys.exit(1)
 
         # For now, we've just hardcoded a program:
 
@@ -106,53 +95,42 @@ class CPU:
 
         print()
 
-    def jmp_inst(self):
-        a = self.ram_read(self.pc + 1)
-        self.pc = self.reg[a]
-
-    def jeq_inst(self):
-        if self.E == 1:
-            self.jmp_inst()
-        else:
-            self.pc += 2
-    
-    def cmp_inst(self):
-        a = self.ram_read(self.pc + 1)
-        b = self.ram_read(self.pc + 2)
-
-        if self.reg[a] == self.reg[b]:
-            self.E = 1
-        else:
-            self.E = 0
-        
-        if self.reg[a] < self.reg[b]:
-            self.L = 1
-        else:
-            self.L = 0
-            
-        if self.reg[a] > self.reg[b]:
-            self.G = 1
-        else:
-            self.G = 0
-
-        self.pc += 3
-    
-    def jne_inst(self):
-        if self.E == 0:
-            self.jmp_inst()
-        else:
-            self.pc += 2
-
     def run(self):
-        """Run the CPU."""
         while True:
             IR = self.ram_read(self.pc)
 
-            if IR in self.instruction_list:
-                self.instruction_list[IR]()
+            a = self.ram_read(self.pc + 1)
+            b = self.ram_read(self.pc + 2)
 
-            else:
-                print(f"Errow with instruction at: {IR}", IR)
+            if IR == CMP:
+                if self.reg[a] == self.reg[b]:
+                    self.flag = 0b00000001
+                else:
+                    self.flag = 0b00000000
+                if self.reg[a] < self.reg[b]:
+                    self.flag = 0b00000100
+                else:
+                    self.flag = 0b00000000
+                if self.reg[a] > self.reg[b]:
+                    self.flag = 0b00000010
+                else:
+                    self.flag = 0b00000000
+                self.pc += 3
+            elif IR == JMP:
+                self.pc == self.reg[a]
+            
+            elif IR == JNE:
+                if self.flag != 0b00000001:
+                    self.pc = self.reg[a]
+                else:
+                    self.pc += 2
+
+            elif IR == JEQ:
+                if self.flag == 0b00000001:
+                    self.pc = self.reg[a]
+                else:
+                    self.pc += 2
+        
         
 
 
