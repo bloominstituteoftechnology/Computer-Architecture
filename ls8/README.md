@@ -60,7 +60,13 @@ but you'll have to implement those three above instructions first!
 ## Step 0: IMPORTANT: inventory what is here!
 
 * Make a list of files here.
+    cpu.py
+    ls8.py
 * Write a short 3-10-word description of what each file does.
+
+  - CPU contains the CPU Class & all related functions and methods
+  - LS8 imports, loads, and runs the CPU
+
 * Note what has been implemented, and what hasn't.
 * Read this whole file.
 * Skim the spec.
@@ -180,7 +186,7 @@ print(sys.argv)
 
 Note that `sys.argv[0]` is the name of the running program itself.
 
-If the user runs `python3 ls8.py examples/mult.ls8`, the values in `sys.argv`
+If the user runs `py ls8.py examples/mult.ls8`, the values in `sys.argv`
 will be:
 
 ```python
