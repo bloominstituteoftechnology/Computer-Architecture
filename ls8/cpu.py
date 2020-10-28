@@ -32,6 +32,11 @@ class CPU:
             self.ram[address] = instruction
             address += 1
 
+    def ram_read(self,val):
+        print(self.ram[val])
+    
+    def ram_write(self, val, address):
+        self.ram[address] = val
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -82,4 +87,4 @@ class CPU:
             elif instruction ==1:
                 self.running = False
             else:
-                sys.exit(1)
+                self.running = False
