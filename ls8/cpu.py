@@ -7,7 +7,9 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.ram = [0] * 8
+        self.running = True
+        self.registers = {}
 
     def load(self):
         """Load a program into memory."""
@@ -62,4 +64,22 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        
+        print(self.ram)
+        pc = 0
+        while self.running:
+            instruction = self.ram[pc]
+            if instruction == 130: #op code 130 is LDI
+                index = self.ram[pc +1]
+                val = self.ram[pc+2]
+                self.registers[index] = val
+                pc += 3
+            elif instruction == 71:
+                reg_choice = self.ram[pc+1] #gives a number
+                val = self.registers[reg_choice]
+                print(val)
+                pc +=1
+            elif instruction ==1:
+                self.running = False
+            else:
+                sys.exit(1)
