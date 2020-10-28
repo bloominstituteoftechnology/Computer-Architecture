@@ -8,6 +8,9 @@ PRN = 0b01000111
 MUL = 0b10100010
 PUSH = 0b1000101
 POP = 0b1000110
+CALL = 0b01010000
+RET = 0b00010001
+ADD  = 0b10100000
 SP = 7
 
 class CPU:
@@ -120,6 +123,9 @@ class CPU:
            elif commondToExecute == MUL:
                self.alu('MUL', opr_a, opr_b)
                self.pc +=3
+           elif commondToExecute == ADD:
+               self.alu('ADD', opr_a, opr_b)
+               self.pc +=3
            elif commondToExecute == PUSH:
                #decrement stack pointer
                self.reg[SP] -=1
@@ -134,6 +140,21 @@ class CPU:
                 # increment the stack pointer
                 self.reg[SP] +=1
                 self.pc +=2
+           elif commondToExecute == CALL:
+                #store address of the next instruction onto the stack
+                self.reg[SP] -=1
+                addressOfNextInstruction = self.pc+2
+                self.ram_write(addressOfNextInstruction, self.reg[SP])
+                #jump to the address of the given register
+                regToGetAdressFrom = opr_a
+                AddressToJumpTo = self.reg[opr_a]
+                self.pc = AddressToJumpTo
+           elif commondToExecute == RET:
+                #pop the top most value from the stack
+                AdressToReturnTo = self.ram_read(self.reg[SP])
+                #set the pc to the same value
+                self.pc = AdressToReturnTo
+                self.reg[SP] +=1
            else:
               print("IDK this instruction Existing")
               sys.exit(1)
