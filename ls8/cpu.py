@@ -8,10 +8,9 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        self.load()
-        self.alu()
-        self.trace()
-        self.run()
+        self.registers = [0] * 8
+        self.ram = [0] * 256
+
 
     def load(self):
         """Load a program into memory."""
