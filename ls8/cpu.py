@@ -75,3 +75,16 @@ class CPU:
     def run(self):
         """Run the CPU."""
         pass
+
+    def ram_read(self, mar):
+        if mar >= 0 and mar < len(self.ram):
+            return self.ram[mar]
+        else:
+            print(f"Error: Attempted to read from memory address: {mar}, which is outside of the memory bounds.")
+            return -1
+    
+    def ram_write(self, mar, mdr):
+        if mar >= 0 and mar < len(self.ram):
+            self.ram[mar] = mdr & 0xFF
+        else:
+            print(f"Error: Attempted to write to memory address: {mar}, which is outside of the memory bounds.")
