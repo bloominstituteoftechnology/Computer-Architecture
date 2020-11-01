@@ -1,6 +1,8 @@
 """CPU functionality."""
-
+import os
 import sys
+
+from examples import *
 
 class CPU:
     """Main CPU class."""
@@ -47,6 +49,38 @@ class CPU:
         else:
             raise Exception("Unsupported ALU operation")
 
+
+    def load_memory(self): 
+        if len(sys.argv) != 2:
+            print("Usage cpu.py filename.ls8")
+            sys.exit(1)
+
+        try:
+            address = 0
+            with open(sys.argv[1]) as f:
+                for line in f:
+                    split_line = line.split('#')
+                    cleaned = split_line[0].strip()
+
+                    if cleaned == '':
+                        continue
+                    try:
+                        cleaned = int(cleaned, 2)
+                    except ValueError:
+                        print(f'{cleaned} is not a valid value')
+                        sys.exit(1) 
+
+                    self.ram_write(address, cleaned)
+                    address +=1
+
+        except FileNotFoundError:
+            print(f'{filename} does not exist')
+            sys.exit(2)
+
+        # print("Usage: enter in a filename....")
+
+
+
     def trace(self):
         """
         Handy function to print out the CPU state. You might want to call this
@@ -88,3 +122,7 @@ class CPU:
                 self.running = False
             else:
                 self.running = False
+
+
+# c = CPU()
+# c.load_memory(sys.argv[1])
