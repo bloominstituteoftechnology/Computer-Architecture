@@ -61,5 +61,5 @@ class CPU:
         print()
 
     def run(self):
-        """Run the CPU."""
+        "I DON'T FEEL LIKE IT"
         pass
