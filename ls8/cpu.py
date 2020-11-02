@@ -92,7 +92,18 @@ class CPU:
             #Increment the program counter
             self.pc += (1 + operand_count)
 
-            
+            # Execute instruction
+            if self.ir == int('00000001', 2): # HLT
+                running - False
+            elif self.ir == int('10000010', 2): # LDI
+                self.reg[operand_a] = operand_b
+            elif self.ir == int('01000111', 2): # PRN
+                print(self.reg[operand_a])
+            else:
+                print(f"Error: Could not execute instruction: {bin(self.ir)[2:].zfill(8)}")
+                sys.exit(1)
+
+
 
     def ram_read(self, mar):
         if mar >= 0 and mar < len(self.ram):
