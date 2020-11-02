@@ -21,6 +21,25 @@ class CPU:
         self.mdr = 0 # Memory Data Register: holds the value to write or the value just read
         self.fl = 0 # Flag Register: holds the current flags status
 
+        # Initialize the Stack Pointer
+        # SP points at the value at the op of the stack (most recently pushed), or at address F4 if the stack is empty
+        self.reg[7] = 0xF4 # 244 # int('F4', 16)
+
+
+    def ram_read(self, mar):
+        if mar >= 0 and mar < len(self.ram):
+            return self.ram[mar]
+        else:
+            print(f"Error: Attempted to read from memory address: {mar}, which is outside of the memory bounds.")
+            return -1
+    
+    def ram_write(self, mar, mdr):
+        if mar >= 0 and mar < len(self.ram):
+            self.ram[mar] = mdr & 0xFF
+        else:
+            print(f"Error: Attempted to write to memory address: {mar}, which is outside of the memory bounds.")
+
+
     def load(self):
         """Load a program into memory."""
 
@@ -105,15 +124,3 @@ class CPU:
 
 
 
-    def ram_read(self, mar):
-        if mar >= 0 and mar < len(self.ram):
-            return self.ram[mar]
-        else:
-            print(f"Error: Attempted to read from memory address: {mar}, which is outside of the memory bounds.")
-            return -1
-    
-    def ram_write(self, mar, mdr):
-        if mar >= 0 and mar < len(self.ram):
-            self.ram[mar] = mdr & 0xFF
-        else:
-            print(f"Error: Attempted to write to memory address: {mar}, which is outside of the memory bounds.")
