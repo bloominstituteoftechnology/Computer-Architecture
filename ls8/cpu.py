@@ -4,14 +4,38 @@ import sys
 
 from examples import *
 
+LDI = 0b10000010
+PRN = 0b01000111
+HLT = 0b00000001
+ADD = 0b10100000
+MUL = 0b10100010
+PUSH = 0b01000101
+POP = 0b01000110
+
+
+
 class CPU:
     """Main CPU class."""
 
     def __init__(self):
         """Construct a new CPU."""
-        self.ram = [0] * 8
-        self.running = True
-        self.registers = {}
+        self.ram = [0] * 256
+        self.running = False
+        self.registers = [0] * 8
+        self.pc = 0
+        self.sp = 7
+
+        self.branchtable = {}
+        self.branchtable[LDI] = self.ldi
+        self.branchtable[PRN] = self.prn
+        self.branchtable[HLT] = self.hlt
+        self.branchtable[ADD] = self.add
+        self.branchtable[MUL] = self.mul
+        self.branchtable[PUSH] = self.push
+        self.branchtable[POP] = self.pop
+
+
+
 
     def load(self):
         """Load a program into memory."""
@@ -44,11 +68,19 @@ class CPU:
         """ALU operations."""
 
         if op == "ADD":
-            self.reg[reg_a] += self.reg[reg_b]
+            self.registers[reg_a] += self.registers[reg_b]
         #elif op == "SUB": etc
+        elif op == "MUL":
+            self.registers[reg_a] *= self.registers[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
+
+    def operation(self, op):
+        op_a = self.ram[self.pc + 1]
+        op_b = self.ram[self.pc + 2]
+        self.alu(op, op_a, op_b)
+        self.pc +=3
 
     def load_memory(self): 
         if len(sys.argv) != 2:
@@ -74,12 +106,59 @@ class CPU:
                     address +=1
 
         except FileNotFoundError:
-            print(f'{filename} does not exist')
+            print(f'{sys.argv[1]} does not exist')
             sys.exit(2)
 
         # print("Usage: enter in a filename....")
 
+    # commands in branch table
+    def ldi(self):
+        # gets the address for registry
+        operand_a = self.ram[self.pc + 1]
+        # gets the value for the registry
+        operand_b = self.ram[self.pc + 2]
+        # Assign value to Reg Key
+        self.registers[operand_a] = operand_b
+        # Update PC
+        self.pc += 3
 
+    def prn(self):
+        # get the address we want to print
+        operand_a = self.ram[self.pc + 1]
+        # Print Reg
+        print(self.registers[operand_a])
+        # Update PC
+        self.pc += 2
+
+    def hlt(self):
+        # Exit Loop
+        self.running = False
+        # Update PC
+        self.pc += 1
+
+    def add(self):
+        self.op_helper("ADD")
+
+    def mul(self):
+        self.op_helper("MUL")
+
+    def push(self):
+        given_register = self.ram[self.pc + 1]
+        value_in_register = self.registers[given_register]
+        # Decrement the stack pointer
+        self.registers[self.sp] -= 1
+        # Write the value of the given register to memory at SP location
+        self.ram[self.registers[self.sp]] = value_in_register
+        self.pc += 2
+
+    def pop(self):
+        given_register = self.ram[self.pc + 1]
+        # write the value in memory at the top of stack to the given register
+        value_from_memory = self.ram[self.registers[self.sp]]
+        self.registers[given_register] = value_from_memory
+        # increment the stack pointer
+        self.registers[self.sp] += 1
+        self.pc += 2
 
     def trace(self):
         """

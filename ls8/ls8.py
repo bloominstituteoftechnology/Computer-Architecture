@@ -8,4 +8,5 @@ from cpu import *
 cpu = CPU()
 
 cpu.load()
+# cpu.load_memory()
 cpu.run()
