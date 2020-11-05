@@ -11,6 +11,8 @@ ADD = 0b10100000
 MUL = 0b10100010
 PUSH = 0b01000101
 POP = 0b01000110
+CALL = 0b01010000
+RET = 0b00010001
 
 
 
@@ -33,30 +35,13 @@ class CPU:
         self.branchtable[MUL] = self.mul
         self.branchtable[PUSH] = self.push
         self.branchtable[POP] = self.pop
+        self.branchtable[CALL] = self.call 
+        self.branchtable[RET] = self.ret
 
 
 
 
-    def load(self):
-        """Load a program into memory."""
 
-        address = 0
-
-        # For now, we've just hardcoded a program:
-
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
-
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
 
     def ram_read(self,val):
         print(self.ram[val])
@@ -84,7 +69,7 @@ class CPU:
 
     def load_memory(self): 
         if len(sys.argv) != 2:
-            print("Usage cpu.py filename.ls8")
+            print("Usage ls8.py filename.ls8")
             sys.exit(1)
 
         try:
@@ -102,7 +87,7 @@ class CPU:
                         print(f'{cleaned} is not a valid value')
                         sys.exit(1) 
 
-                    self.ram_write(address, cleaned)
+                    self.ram_write(cleaned, address)
                     address +=1
 
         except FileNotFoundError:
@@ -137,10 +122,10 @@ class CPU:
         self.pc += 1
 
     def add(self):
-        self.op_helper("ADD")
+        self.operation("ADD")
 
     def mul(self):
-        self.op_helper("MUL")
+        self.operation("MUL")
 
     def push(self):
         given_register = self.ram[self.pc + 1]
@@ -159,6 +144,23 @@ class CPU:
         # increment the stack pointer
         self.registers[self.sp] += 1
         self.pc += 2
+
+    def call(self):
+        # Get the given register in the operand
+        given_register = self.ram[self.pc + 1]
+        # Store the return address (PC + 2) onto the stack
+        # decrement the stack pointer
+        self.registers[self.sp] -= 1
+        # write the return address
+        self.ram[self.registers[self.sp]] = self.pc + 2
+        # set pc to the value inside the given_register
+        self.pc = self.registers[given_register]
+
+    def ret(self):
+        # set the pc to the value at the top of the stack
+        self.pc = self.ram[self.registers[self.sp]]
+        # pop from stack
+        self.registers[self.sp] += 1
 
     def trace(self):
         """
@@ -183,24 +185,19 @@ class CPU:
     def run(self):
         """Run the CPU."""
         
-        print(self.ram)
-        pc = 0
+        self.running = True
+
         while self.running:
-            instruction = self.ram[pc]
-            if instruction == 130: #op code 130 is LDI
-                index = self.ram[pc +1]
-                val = self.ram[pc+2]
-                self.registers[index] = val
-                pc += 3
-            elif instruction == 71:
-                reg_choice = self.ram[pc+1] #gives a number
-                val = self.registers[reg_choice]
-                print(val)
-                pc +=1
-            elif instruction ==1:
-                self.running = False
-            else:
-                self.running = False
+            IR = self.pc
+            
+            instance = self.ram[IR]
+
+            try:
+                self.branchtable[instance]()
+
+            except KeyError:
+                print(f'KeyError at {self.registers[self.ram[instance]]}')
+                sys.exit(1)
 
 
 # c = CPU()
