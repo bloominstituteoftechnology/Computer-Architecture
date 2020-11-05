@@ -155,6 +155,10 @@ class CPU:
             print(self.eg[operand_a])
             self.pc += 2
 
+        elif self.ir == MUL:
+            self.reg[operand_a] *= self.reg[operand_b]
+            self.pc += 3
+
         else:
             print(f"Error: Could not execute intsruction: {self.ir}")
             sys.exit(1)
