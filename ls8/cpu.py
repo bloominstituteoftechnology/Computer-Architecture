@@ -6,10 +6,13 @@ HLT = 0b00000001
 LDI = 0b10000010
 PRN = 0b01000111
 MUL = 0b10100010
-PUSH = 0b01000101
 
+PUSH = 0b01000101
 POP = 0b01000110
 
+CALL = 0b01010000
+RET = 0b00010001
+ADD = 0b10100000
 
 
 class CPU:
@@ -26,7 +29,7 @@ class CPU:
         self.flag = 0 #flag register hold flag status
         self.halted = False
         self.running = True
-        # Initialize the Stack Pointer
+
         # SPpoints at the value at the top of the stack (most recently pushed), or at address F4 ifempty.
         self.reg[7] = 0xF4  # 244 # int('F4', 16)
         self.ir = 0
@@ -38,8 +41,11 @@ class CPU:
         self.branchtable[MUL] = self.execute_MUL
         self.branchtable[PUSH] = self.execute_PUSH
         self.branchtable[POP] = self.execute_POP
+        self.branchtable[CALL] = self.execute_CALL
+        self.branchtable[ADD] = self.execute_ADD
+        self.branchtable[RET] = self.excute_RET
 
-        # Property wrapper for SP (Stack Pointer)
+        # Property wrapper
 
     @property
     def sp(self):
@@ -162,5 +168,16 @@ class CPU:
         self.reg[dest_reg_num] = self.mdr
         self.sp += 1
 
+    def execute_CALL(self, dest_reg_num, b=None):
+        self.sp -=1
+        self.ram_write(self.sp, self.pc + self.instruction_size())
+        self.pc = self.reg[dest_reg_num]
 
+    def excute_RET(self, a=None, b=None):
+        self.mdr = self.ram_read(self.sp)
+        self.pc = self.mdr
+        self.sp += 1
+
+    def execute_ADD(self, reg_num, reg_num1):
+        self.reg[reg_num] += self.reg[reg_num1]
 
