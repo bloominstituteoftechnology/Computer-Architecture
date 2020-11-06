@@ -147,12 +147,12 @@ class CPU:
             if not self.instruction_sets_pc:
                 self.pc += self.instruction_size
 
-    # def execute_instruction(self, operand_a, operand_b):
-    #     if self.ir in self.branchtable:
-    #         self.branchtable[self.ir](operand_a, operand_b)
-    #     else:
-    #         print(f"Error: Could not find instruction: {self.ir} in branch table.")
-    #         sys.exit(1)
+    def execute_instruction(self, operand_a, operand_b):
+        if self.ir in self.branchtable:
+            self.branchtable[self.ir](operand_a, operand_b)
+        else:
+            print(f"Error: Could not find instruction: {self.ir} in branch table.")
+            sys.exit(1)
     
     # Define operations to be loaded into the branch table
     def execute_HLT(self):
