@@ -4,12 +4,16 @@ import sys
 
 #save a number
 LDI = 0b10000010
-#print a number
+#print 8
 PRN = 0b01000111
 #stop program
 HLT = 0b00000001
-#multiply
+#multiply 8 and 9
 MUL = 0b10100010
+
+PUSH = 0b01000101
+
+POP = 0b01000110
 
 
 
@@ -21,6 +25,8 @@ class CPU:
         self.pc = 0
         self.reg = [0]*8
         self.ram = [0]*256
+        self.sp = 6
+        self.reg[self.sp] = 244
 
     def ram_read(self, address):
         return self.ram[address]
@@ -79,7 +85,6 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        self.trace()
         running = True
         while running:
             
@@ -91,17 +96,26 @@ class CPU:
                 running = False
             elif IR == PRN:
                 print(self.reg[operand_a])
-                self.trace()
                 self.pc +=2
             elif IR == LDI:
                 self.reg[operand_a]=operand_b
-                print(operand_a, operand_b)
-                self.trace()
                 self.pc += 3
             elif IR == MUL:
                 self.alu("MUL", operand_a, operand_b)
                 self.pc +=3
+            elif IR == PUSH:
+                # self.reg[self.sp]-=1
+                # self.ram_write(self.reg[self.sp], self.reg[operand_a])
+                # self.pc +=2
+                self.reg[self.sp]-=1
+                reg_address = self.ram[self.pc+1]
+                self.ram[self.reg[self.sp]] = self.reg[reg_address]
+                self.pc+=2
+            elif IR == POP:
+                reg_address = self.ram[self.pc+1]
+                self.reg[reg_address] = self.ram[self.reg[self.sp]]
+                self.reg[self.sp]+=1
+                self.pc+=2
             else:
                 print(f"unrecognized command {IR}")
-                self.trace()
                 running = False
