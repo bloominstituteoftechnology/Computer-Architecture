@@ -2,19 +2,24 @@
 
 import sys
 
-#save a number
+# save a number
 LDI = 0b10000010
-#print 8
+# print 8
 PRN = 0b01000111
-#stop program
+# stop program
 HLT = 0b00000001
-#multiply 8 and 9
+# multiply 8 and 9
 MUL = 0b10100010
 
 PUSH = 0b01000101
 
 POP = 0b01000110
 
+CALL = 0b01010000
+
+RET = 0b00010001
+
+ADD = 0b10100000
 
 
 class CPU:
@@ -38,7 +43,7 @@ class CPU:
         """Load a program into memory."""
 
         address = 0
-        program = []
+        # program = []
 
         with open(sys.argv[1]) as file:
             for line in file:
@@ -47,11 +52,8 @@ class CPU:
                 if command == "":
                     continue
                 command_num = int(command, 2)
-                program.append(command_num)
-
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+                self.ram[address] = command_num
+                address += 1
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -59,7 +61,7 @@ class CPU:
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
         elif op == "MUL":
-            self.reg[reg_a] = self.reg[reg_a]* self.reg[reg_b]
+            self.reg[reg_a] = self.reg[reg_a] * self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -87,7 +89,7 @@ class CPU:
         """Run the CPU."""
         running = True
         while running:
-            
+
             IR = self.ram_read(self.pc)
             operand_a = self.ram_read(self.pc+1)
             operand_b = self.ram_read(self.pc+2)
@@ -96,26 +98,37 @@ class CPU:
                 running = False
             elif IR == PRN:
                 print(self.reg[operand_a])
-                self.pc +=2
+                self.pc += 2
             elif IR == LDI:
-                self.reg[operand_a]=operand_b
+                self.reg[operand_a] = operand_b
                 self.pc += 3
             elif IR == MUL:
                 self.alu("MUL", operand_a, operand_b)
-                self.pc +=3
+                self.pc += 3
             elif IR == PUSH:
                 # self.reg[self.sp]-=1
                 # self.ram_write(self.reg[self.sp], self.reg[operand_a])
                 # self.pc +=2
-                self.reg[self.sp]-=1
+                self.reg[self.sp] -= 1
                 reg_address = self.ram[self.pc+1]
                 self.ram[self.reg[self.sp]] = self.reg[reg_address]
-                self.pc+=2
+                self.pc += 2
             elif IR == POP:
                 reg_address = self.ram[self.pc+1]
                 self.reg[reg_address] = self.ram[self.reg[self.sp]]
-                self.reg[self.sp]+=1
-                self.pc+=2
+                self.reg[self.sp] += 1
+                self.pc += 2
+            elif IR == ADD:
+                self.alu("ADD", operand_a, operand_b)
+                self.pc += 3
+            elif IR == CALL:
+                self.reg[self.sp] -= 1
+                self.ram[self.reg[self.sp]] = self.pc + 2
+                reg_num = self.ram[self.pc + 1]
+                self.pc = self.reg[reg_num]
+            elif IR == RET:
+                self.pc = self.ram[self.reg[self.sp]]
+                self.reg[self.sp] += 1
             else:
                 print(f"unrecognized command {IR}")
                 running = False
