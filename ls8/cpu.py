@@ -91,7 +91,7 @@ class CPU:
                     num = line.split("#")[0].strip() #10000010
                     try:
                         instruction = int(num, 2)
-                        self.ram[address] = instructionaddress += 1
+                        self.ram[address] = instruction
                         address += 1
                     except:
                         continue
