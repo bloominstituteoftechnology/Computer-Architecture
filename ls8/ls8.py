@@ -22,8 +22,8 @@ if len(sys.argv) != 2:
     sys.exit(1)
 
 else:
-    # cd .. /S7-Computer-Architecture/M1-4/Computer-Architecture/ls8
-    # python3 ls8.py print8.ls8
+    # cd .. /S7-Computer-Architecture/Sprint-Challenge/Sprint-Challenge--Computer-Architecture
+    # python3 ls8.py sctest.ls8
     file_name = sys.argv[1]
 
 
