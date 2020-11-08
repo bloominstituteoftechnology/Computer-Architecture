@@ -59,11 +59,25 @@ class CPU:
     def sp(self, a):
         self.reg[7] = a & 0xFF
 
+# Computed Properties
+
+    @property
+    def operand_a(self):
+        return self.ram_read(self.pc + 1)
+
+    @property
+    def operand_b(self):
+        return self.ram_read(self.pc + 2)
+
+    @property    
     def instruction_size(self):
         return ((self.ir >> 6) & 0b11) + 1
 
+    @property
     def instruction_sets_pc(self):
         return ((self.ir >> 4) & 0b0001) == 1
+
+# CPU Methods
 
     def ram_read(self, mar):
         if mar >= 0 and mar < len(self.ram):
@@ -88,7 +102,7 @@ class CPU:
         try:
             with open(file_path) as f:
                 for line in f:
-                    num = line.split("#")[0].strip() #10000010
+                    num = line.split("#")[0].strip() # "10000010"
                     try:
                         instruction = int(num, 2)
                         self.ram[address] = instruction
@@ -135,7 +149,7 @@ class CPU:
     def run(self):
         """Run the CPU."""
         
-        while not self.halted
+        while not self.halted:
             self.ir = self.ram_read(self.pc)
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
@@ -157,37 +171,37 @@ class CPU:
     def execute_HLT(self, a=None, b=None):
         self.halted = True
 
-    def execute_LDI(self, reg_num, val):
-        self.reg[reg_num] = val
+    def execute_LDI(self):
+        self.reg[self.operand_a] = self.operand_b
 
-    def execute_PRN(self, reg_num, b=None):
-        print(self.reg[reg_num])
+    def execute_PRN(self):
+        print(self.reg[self.operand_a])
 
-    def execute_MUL(self, reg_num, reg_num2):
-        self.reg[reg_num] *= self.reg[reg_num2]
+    def execute_MUL(self):
+        self.reg[self.operand_a] *= self.reg[self.operand_b]
 
-    def execute_PUSH(self, reg_num, b=None):
+    def execute_PUSH(self):
         self.sp -= 1
-        self.mdr = self.reg[reg_num]
+        self.mdr = self.reg[self.operand_a]
         self.ram_write(self.sp, self.mdr)
 
-    def execute_POP(self, dest_reg_num, b=None):
+    def execute_POP(self):
         self.mdr = self.ram_read(self.sp)
-        self.reg[dest_reg_num] = self.mdr
+        self.reg[self.operand_a] = self.mdr
         self.sp += 1
 
-    def execute_CALL(self, dest_reg_num, b=None):
+    def execute_CALL(self):
         self.sp -= 1
         self.ram_write(self.sp, self.pc + self.instruction_size())
-        self.pc = self.reg[dest_reg_num]
+        self.pc = self.reg[self.operand_a]
 
-    def execute_RET(self, a=None, b=None):
+    def execute_RET(self):
         self.mdr = self.ram_read(self.sp)
         self.pc = self.mdr
         self.sp += 1
 
-    def execute_ADD(self, reg_num, reg_num2):
-        self.reg[reg_num] += self.reg[reg_num2]
+    def execute_ADD(self):
+        self.reg[self.operand_a] += self.reg[operand_b]
 
 
 
