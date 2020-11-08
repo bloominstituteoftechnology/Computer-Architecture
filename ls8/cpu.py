@@ -9,6 +9,9 @@ PRN = 0b01000111
 MUL = 0b10100010
 PUSH = 0b01000101
 POP = 0b01000110
+CALL = 0b01010000
+RET = 0b00010001
+ADD = 0b10100000
 
 class CPU:
     """Main CPU class."""
@@ -42,6 +45,9 @@ class CPU:
         self.branchtable[MUL] = self.execute_MUL
         self.branchtable[PUSH] = self.execute_PUSH
         self.branchtable[POP] = self.execute_POP
+        self.branchtable[CALL] = self.execute_CALL
+        self.branchtable[RET] = self.execute_RET
+        self.branchtable[ADD] = self.execute_ADD
 
 
     # Property wrapper for stack pointers
@@ -169,6 +175,19 @@ class CPU:
         self.mdr = self.ram_read(self.sp)
         self.reg[dest_reg_num] = self.mdr
         self.sp += 1
+
+    def execute_CALL(self, dest_reg_num, b=None):
+        self.sp -= 1
+        self.ram_write(self.sp, self.pc + self.instruction_size())
+        self.pc = self.reg[dest_reg_num]
+
+    def execute_RET(self, a=None, b=None):
+        self.mdr = self.ram_read(self.sp)
+        self.pc = self.mdr
+        self.sp += 1
+
+    def execute_ADD(self, reg_num, reg_num2):
+        self.reg[reg_num] += self.reg[reg_num2]
 
 
 
