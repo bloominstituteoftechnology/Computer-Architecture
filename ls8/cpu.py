@@ -21,6 +21,11 @@ RET = 0b00010001
 
 ADD = 0b10100000
 
+CMP = 0b10100111
+JEQ = 0b01010101
+JNE = 0b01010110
+JMP = 0b01010100
+
 
 class CPU:
     """Main CPU class."""
@@ -32,6 +37,7 @@ class CPU:
         self.ram = [0]*256
         self.sp = 6
         self.reg[self.sp] = 244
+        self.fl = 0b00000000
 
     def ram_read(self, address):
         return self.ram[address]
@@ -62,6 +68,13 @@ class CPU:
             self.reg[reg_a] += self.reg[reg_b]
         elif op == "MUL":
             self.reg[reg_a] = self.reg[reg_a] * self.reg[reg_b]
+        elif op == "CMP":
+            if self.reg[reg_a] < self.reg[reg_b]:
+                self.fl = 0b00000100
+            elif self.reg[reg_a] > self.reg[reg_b]:
+                self.fl = 0b00000010
+            else:
+                self.fl = 0b00000001
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -71,9 +84,9 @@ class CPU:
         from run() if you need help debugging.
         """
 
-        print(f"TRACE: %02X | %02X %02X %02X |" % (
+        print(f"TRACE: %02X | %02X %02X %02X %02X |" % (
             self.pc,
-            # self.fl,
+            self.fl,
             # self.ie,
             self.ram_read(self.pc),
             self.ram_read(self.pc + 1),
@@ -106,9 +119,6 @@ class CPU:
                 self.alu("MUL", operand_a, operand_b)
                 self.pc += 3
             elif IR == PUSH:
-                # self.reg[self.sp]-=1
-                # self.ram_write(self.reg[self.sp], self.reg[operand_a])
-                # self.pc +=2
                 self.reg[self.sp] -= 1
                 reg_address = self.ram[self.pc+1]
                 self.ram[self.reg[self.sp]] = self.reg[reg_address]
@@ -129,6 +139,21 @@ class CPU:
             elif IR == RET:
                 self.pc = self.ram[self.reg[self.sp]]
                 self.reg[self.sp] += 1
+            elif IR == JEQ:
+                if self.fl == 0b1:
+                    self.pc = self.reg[operand_a]
+                else:
+                    self.pc += 2
+            elif IR == JNE:
+                if self.fl != 0b1:
+                    self.pc = self.reg[operand_a]
+                else:
+                    self.pc += 2
+            elif IR == JMP:
+                self.pc = self.reg[operand_a]
+            elif IR == CMP:
+                self.alu("CMP", operand_a, operand_b)
+                self.pc+=3
             else:
                 print(f"unrecognized command {IR}")
                 running = False
