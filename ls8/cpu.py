@@ -13,26 +13,37 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        self.ram = {}
+        self.ram = [0] * 256
         self.registers = [0] * 8
         
+    def ram_read(self, address):
+        return self.ram[address]
+
+    def ram_write(self, address, value):
+        self.ram[address] = value
 
     def load(self):
         """Load a program into memory."""
 
-        file_name = sys.argv[1]
-
         program = []
 
-        f = open(file_name, "r")
+        if len(sys.argv) != 2:
+            print("Wrong number of arguments, please pass file name")
+            sys.exit(1)
 
-        for line in f:
+        with open(sys.argv[1]) as f:
+            for line in f: 
+                # Split the line on the comment character (#)
+                line_split = line.split('#')
+                # Extract the command from the split line
+                # It will be the first value in our split line
+                command = line_split[0].strip()
+                if command == '':
+                    continue
+                
+                program.append(command)
 
-            program.append(line[:8])
-
-        f.close()
-
-        print("Program from Load: ", program)
+        # print("Program from Load: ", program)
 
         address = 0
 
@@ -50,7 +61,8 @@ class CPU:
 
         for instruction in program:
             
-            self.ram[address] = instruction
+            self.ram_write(address, instruction)
+            
             address += 1
 
 
@@ -89,7 +101,14 @@ class CPU:
         
         running = True
 
+        # Program Counter
         pc = 0
+
+        # Stack Pointer
+        sp = 7
+
+        # registers[sp] == the current top of our stack
+        self.registers[sp] = 256
 
 
         while running:
@@ -98,19 +117,19 @@ class CPU:
 
             if instruction == '10000010':
                 
-                reg_location = self.ram[pc + 1]
+                reg_location = '0b' + self.ram[pc + 1]
 
-                num = self.ram[pc + 2]
+                value_to_store = self.ram[pc + 2]
 
-                self.registers[int(reg_location)] = num
+                self.registers[int(reg_location,2)] = value_to_store
 
                 pc += 3
 
             elif instruction == '01000111':
 
-                reg_location = self.ram[pc + 1]
+                reg_location = '0b' + self.ram[pc + 1]
 
-                print(self.registers[int(reg_location)])
+                print(int('0b'+self.registers[int(reg_location,2)],2))
 
                 pc += 2
 
@@ -122,18 +141,75 @@ class CPU:
             
             elif instruction == '10100010':
 
-                print("BICHO")
+               
+                reg_location_1 = '0b' + self.ram[pc + 1]
 
-                reg_location_1 = self.ram[pc + 1]
+                reg_location_2 = '0b' + self.ram[pc + 2]
 
-                reg_location_2 = self.ram[pc + 2]
+                num_8 = self.registers[int(reg_location_1, 2)]
 
-                ## Multiply Numbers Here ##
+                num_9 = self.registers[int(reg_location_2, 2)]
+
+                result = int(num_8, 2) * int(num_9, 2)
+                
+                self.registers[int(reg_location_1,2)] = bin(result)[2:]
 
                 pc += 3
-        
+
+            elif instruction == '01000101':
+                
+                # Push
+                
+                # Read the given register address
+                reg_location = '0b' + self.ram[pc + 1]
+
+                value_to_push = self.registers[int(reg_location, 2)]
+
+                # # Move the stack pointer down
+                self.registers[sp] -= 1
+
+                # # Write the value to push, into the top of stack
+                self.ram_write(self.registers[sp], value_to_push)  
+
+                pc += 2
+
+            elif instruction == '01000110':
+            
+                # Pop
+                
+                # Read the given register address
+                reg_address = '0b' + self.ram_read((pc + 1))
+                
+                # Read the value at the top of the stack
+                # store that into the register given
+                self.registers[int(reg_address, 2)] = self.ram_read(self.registers[sp])
+                
+                # move the stack pointer back up
+                self.registers[sp] += 1
+                
+                pc += 2
+
+            
+        #     elif command == CALL:
+        #         # Push the return address onto the stack
+        #         # Move the SP down
+        #         registers[SP] -= 1
+        #         # Write the value of the next line to return to in the code
+        #         memory[registers[SP]] = pc + 2
+        #         # Set the PC to whatever is given to us in the register
+        #         reg_num = memory[pc + 1]
+        #         print(memory[-10:])
+        #         pc = registers[reg_num]
+        # ​
+        #     elif command == RET:
+        #         # Pop the top of the stack and set the PC to the value of what was popped
+        #         pc = memory[registers[SP]]
+        #         registers[SP] += 1
+        #         # Pop
+        #         pass
+
             else: 
                 
-                print(f"Unknown Instruction: {instruction}")
+                print(f"Unknown Instruction: {instruction} - PC: {pc}")
 
                 sys.exit(1) 
