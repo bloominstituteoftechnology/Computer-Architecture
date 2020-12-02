@@ -2,6 +2,10 @@
 
 import sys
 
+HLT = 0b00000001		
+LDI = 0b10000010
+PRN = 0b01000111
+
 class CPU:
     """Main CPU class."""
 
@@ -99,17 +103,17 @@ class CPU:
         while self.running:
             command_to_execute = self.ram_read(self.pc)
 
-            if command_to_execute == 0b10000010: # LDI
+            if command_to_execute == LDI:
                 operation_1 = self.ram_read(self.pc + 1)
                 operation_2 = self.ram_read(self.pc + 2)
 
                 self.reg[operation_1] = operation_2
                 self.pc += 3
-            if command_to_execute == 0b01000111: # PRN
+            if command_to_execute == PRN:
                 operation_1 = self.ram_read(self.pc + 1)
                 print(self.reg[operation_1])
                 self.pc += 2
-            if command_to_execute == 0b00000001: # HLT
+            if command_to_execute == HLT:
                 self.running = False
                 self.pc += 1
             
