@@ -10,6 +10,8 @@ class CPU:
         #Add list properties to the `CPU` class to hold 256 bytes of memory 
         self.ram = [0] * 256
         # and 8 general-purpose registers.
+        self.reg = [0] * 8
+        self.reg[7] = 0xF4
         #R0
         #R1
         #R2
@@ -18,8 +20,6 @@ class CPU:
         #R5 reserved as the interrupt mask (IM)
         #R6 reserved as the interrupt status (IS)
         #R7 reserved as the stack pointer (SP)
-        self.reg = [0] * 8
-        self.reg[7] = 0xF4
 
         #Internal Registers
         #PC: Program Counter, address of the currently executing instruction
@@ -32,6 +32,8 @@ class CPU:
         self.mdr = 0
         #FL: Flags, see below
         self.fl = 0
+        # Running
+        self.running = True
 
     #`ram_read()` should accept the address to read and return the value stored there.
     def ram_read(self, address):
@@ -40,7 +42,7 @@ class CPU:
     #`ram_write()` should accept a value to write, and the address to write it to.
     def ram_write(self, address, val):
         self.ram[address] = val
-        
+
     def load(self):
         """Load a program into memory."""
 
@@ -94,4 +96,21 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        while self.running:
+            command_to_execute = self.ram_read(self.pc)
+
+            if command_to_execute == 0b10000010: # LDI
+                operation_1 = self.ram_read(self.pc + 1)
+                operation_2 = self.ram_read(self.pc + 2)
+
+                self.reg[operation_1] = operation_2
+                self.pc += 3
+            if command_to_execute == 0b01000111: # PRN
+                operation_1 = self.ram_read(self.pc + 1)
+                print(self.reg[operation_1])
+                self.pc += 2
+            if command_to_execute == 0b00000001: # HLT
+                self.running = False
+                self.pc += 1
+            
+
