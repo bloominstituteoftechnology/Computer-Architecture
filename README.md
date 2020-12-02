@@ -8,7 +8,10 @@
 
 ### Day 1: Get `print8.ls8` running
 
-- [ ] Inventory what is here
+- [ X ] Inventory what is here
+  - cpu.py - Defines a CPU class this is where the program is ran and commands listed out
+  - ls8.py - Uses a  CPU instance to run  a program
+  - ls8-spec.md - A list of the program specs
 - [ ] Implement the `CPU` constructor
 - [ ] Add RAM functions `ram_read()` and `ram_write()`
 - [ ] Implement the core of `run()`
