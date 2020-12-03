@@ -2,12 +2,50 @@
 
 import sys
 
+HLT = 0b00000001
+LDI = 0b10000010
+PRN = 0b01000111
+MUL = 0b10100010
+ADD = 0b10100000
+PUSH = 0b01000101
+POP = 0b01000110
+CMP = 0b10100111
+CALL = 0b01010000
+RET  = 0b00010001
+JEQ = 0b01010101
+JNE = 0b01010110
+JMP = 0b01010100
+SHL = 0b10101100
+SHR = 0b10101101
+MOD = 0b10100100
+NOT = 0b01101001
+OR = 0b10101010
+AND = 0b10101000
+XOR = 0b10101011
+
 class CPU:
     """Main CPU class."""
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.ram = [0] * 256
+        self.reg = [0] * 8
+        self.reg[7] = 0xF4
+        self.reg[6] = 0 # flags reg
+        self.pc = 0
+        self.branchtable = {
+            HLT: self.hlt,
+            LDI: self.ldi,
+            PRN: self.prn,
+            PUSH: self.push,
+            POP: self.pop, 
+            CALL: self.call,
+            RET: self.ret,
+            JEQ: self.jeq,
+            JNE: self.jne,
+            JMP: self.jmp
+        }
+
 
     def load(self):
         """Load a program into memory."""
@@ -40,6 +78,15 @@ class CPU:
         else:
             raise Exception("Unsupported ALU operation")
 
+
+    def ram_read(self, address):
+        return self.ram[address]
+
+
+    def ram_write(self, address, data):
+        self.ram[address] = data
+
+
     def trace(self):
         """
         Handy function to print out the CPU state. You might want to call this
@@ -60,6 +107,41 @@ class CPU:
 
         print()
 
+
     def run(self):
         """Run the CPU."""
-        pass
+        IR = []
+        self.running = True 
+        while self.running:
+            IR = self.ram[self.pc] # instruction register
+            num_args = IR >> 6
+            is_alu_op = (IR >> 5) & 0b001
+            operand_a = self.ram_read(self.pc+1) 
+            operand_b = self.ram_read(self.pc+2)
+            is_alu_op = (IR >> 5) & 0b001 == 1
+            if is_alu_op:
+                self.alu(IR, operand_a, operand_b)
+            else:
+                self.branchtable[IR](operand_a, operand_b)
+            # check if command sets PC directly
+            sets_pc = (IR >> 4) & 0b0001 == 1
+            if not sets_pc:
+                # increment pc here
+                self.pc += 1 + num_args
+
+
+    def hlt(self, operand_a, operand_b):
+        self.running = False
+
+    
+    def ldi(self, operand_a, operand_b):
+        self.reg[operand_a] = operand_b
+
+
+    def prn(self, operand_a, operand_b):
+        print(self.reg[operand_a])
+
+if __name__ == '__main__':
+    cpu = CPU()
+    cpu.load()
+    cpu.run()
