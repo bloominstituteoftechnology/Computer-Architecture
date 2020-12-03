@@ -19,6 +19,10 @@ class CPU:
         self.pc = 0
         # Set flags to 0
         self.fl = 0
+        # Memory Address Register, holds the memory address we're reading or writing
+        self.mar = 0
+        #Memory Data Register, holds the value to write or the value just read
+        self.mdr = 0
 
     def load(self):
         """Load a program into memory."""
@@ -51,8 +55,11 @@ class CPU:
         else:
             raise Exception("Unsupported ALU operation")
 
-    def ram_read(self, pc):
-        return pc
+    def ram_read(self, mar):
+        return self.ram[mar]
+
+    def ram_write(self, mar, mdr):
+        self.ram[mar] = mdr
 
     def trace(self):
         """
@@ -76,4 +83,14 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
+        running = True
+
+        while running:
+            command_to_execute = self.ram[self.pc]
+            
+            
+
         self.trace()
+
+cpu = CPU()
+cpu.run()
