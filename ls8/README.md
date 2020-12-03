@@ -60,10 +60,22 @@ but you'll have to implement those three above instructions first!
 ## Step 0: IMPORTANT: inventory what is here!
 
 * Make a list of files here.
+cpu.py
+ls8.py
+
 * Write a short 3-10-word description of what each file does.
+cpu.py = simple emulator which takes instructions from memory and performs operations.
+ls8.py = executes cpu.py
+
 * Note what has been implemented, and what hasn't.
+Implemented: instructions in memory, ADD operation, TRACE function. 
+Todo: constructor, RAM functions, CPU run method, HLT, LDI, PRN etc.
+
 * Read this whole file.
+Done
+
 * Skim the spec.
+Done
 
 ## Step 1: Add the constructor to `cpu.py`
 
@@ -153,6 +165,10 @@ the LS-8 spec.
 
 *At this point, you should be able to run the program and have it print `8` to
 the console!*
+
+
+_____________________________________________
+Day 2
 
 ## Step 7: Un-hardcode the machine code
 
