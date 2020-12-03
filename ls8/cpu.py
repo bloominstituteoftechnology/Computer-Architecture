@@ -21,7 +21,7 @@ class CPU:
         self.fl = 0
         # Memory Address Register, holds the memory address we're reading or writing
         self.mar = 0
-        #Memory Data Register, holds the value to write or the value just read
+        # #Memory Data Register, holds the value to write or the value just read
         self.mdr = 0
 
     def load(self):
@@ -83,12 +83,32 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
+        # Load tasks into RAM
+        self.load()
+
         running = True
+        ldi = 0b10000010
+        prn = 0b01000111
+        hlt = 0b00000001
 
         while running:
-            command_to_execute = self.ram[self.pc]
+            print(self.pc)
+            command_to_execute = self.ram_read(self.pc)
             
-            
+            if command_to_execute == ldi:
+                print("LDI executed")
+                self.reg[self.pc + 1] = self.pc + 2
+                self.pc += 3
+            elif command_to_execute == prn:
+                print("Print executed")
+                print(self.reg[self.pc + 1])
+                self.pc += 2
+            elif command_to_execute == hlt:
+                print("Halt executed")
+                running = False
+            else:
+                print(f"Unkown command: {command_to_execute}")
+                self.pc += 1
 
         self.trace()
 
