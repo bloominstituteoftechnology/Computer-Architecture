@@ -78,20 +78,25 @@ class CPU:
         """Run the CPU."""
         while self.running == True:
             instruction = self.ram_read(self.pc)
+            #print('instruction', "{0:b}".format(instruction))
 
              
             if instruction == self.PRN:
-                val_to_print = self.reg[self.pc + 1]
-                print(val_to_print)
-                self.pc += 1
-            elif instruction == self.LDI:
-                reg_to_store = self.reg[self.pc + 1]
-                val_to_store = self.reg[self.pc + 2]
-                self.reg[reg_to_store] = val_to_store
+                val_to_print = self.ram[self.pc + 1]
+                print(self.reg[val_to_print])
                 self.pc += 2
+                print('prn ran')
+            elif instruction == self.LDI:
+                reg_to_store = self.ram[self.pc + 1]
+                val_to_store = self.ram[self.pc + 2]
+                self.reg[reg_to_store] = val_to_store
+                self.pc += 3
+                print('ldi ran')
             elif instruction == self.HLT:
+                print('hlt ran')
                 self.running = False
             else:
-                print(f"Instruction Unknown {instruction}")
+                unknown_instruction = "{0:b}".format(instruction)
+                print(f"Instruction Unknown {unknown_instruction}")
                 sys.exit(1)
                 
