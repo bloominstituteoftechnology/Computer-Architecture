@@ -1,3 +1,5 @@
+# cpu.py
+
 """CPU functionality."""
 
 import sys
@@ -6,8 +8,17 @@ class CPU:
     """Main CPU class."""
 
     def __init__(self):
-        """Construct a new CPU."""
-        pass
+        # Set RAM
+        self.ram = [0] * 256
+        # Create registers: R0 - R6 empty
+        self.reg = [0] * 8
+        # R7 set to 0xF4
+        self.reg[7] = 0xF4
+
+        # Set program counter to 0
+        self.pc = 0
+        # Set flags to 0
+        self.fl = 0
 
     def load(self):
         """Load a program into memory."""
@@ -40,6 +51,9 @@ class CPU:
         else:
             raise Exception("Unsupported ALU operation")
 
+    def ram_read(self, pc):
+        return pc
+
     def trace(self):
         """
         Handy function to print out the CPU state. You might want to call this
@@ -62,4 +76,4 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        self.trace()
