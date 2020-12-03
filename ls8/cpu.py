@@ -2,12 +2,24 @@
 
 import sys
 
+HLT = 0b000001
+LDI = 0b000010
+PRN = 0b000111
+
 class CPU:
     """Main CPU class."""
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.ram = [0] * 256
+        self.reg = [0] * 8
+        self.pc = 0
+
+    def ram_read(self, addr):
+        return self.ram[addr]
+
+    def ram_write(self, val, addr):
+        self.ram[addr] += val
 
     def load(self):
         """Load a program into memory."""
@@ -61,5 +73,25 @@ class CPU:
         print()
 
     def run(self):
-        """Run the CPU."""
-        pass
+        while True:
+            ir = self.ram_read(self.pc)
+            
+            self.pc += 1
+            instruction = ir & 0b00111111
+            operand_count = ir >> 6
+            op_position = self.pc
+            operands = (self.ram_read(op_position + i) for i in range(operand_count))
+            self.pc += operand_count
+            
+            if instruction == HLT:
+                break
+            elif instruction == LDI:
+                a = next(operands)
+                b = next(operands)
+                self.reg[a] = b
+            elif instruction == PRN:
+                print(self.reg[next(operands)])
+            else:
+                self.trace()
+                raise f"UNRECOGNIZED INSTRUCTION: {instruction:b}"
+            
