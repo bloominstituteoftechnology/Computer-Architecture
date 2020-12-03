@@ -8,8 +8,11 @@ class CPU:
     def __init__(self):
         """Construct a new CPU."""
         self.ram = {}
-        self.registers = [0] * 8
+        self.reg = [0] * 8
         self.pc = 0
+        self.LDI = 130
+        self.PRN = 71
+        self.HLT = 1
 
     def ram_read(self, MAR):
         return self.ram[MAR]
@@ -70,5 +73,26 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        IR = self.pc
-        pass
+        running = True
+
+        while running:
+            IR = self.ram_read(self.pc)
+            if IR == self.LDI:
+                operand_a = self.ram_read(self.pc + 1)
+                operand_b = self.ram_read(self.pc + 2)
+                self.reg[operand_a] = operand_b
+                self.pc += 2
+            elif IR == self.PRN:
+                operand_a = self.ram_read(self.pc + 1)
+                print(self.reg[operand_a])
+                self.pc += 1
+            elif IR == self.HLT:
+                running = False
+            else:
+                print(f"Unknown instruction {IR}")
+                sys.exit(1)
+            
+            self.pc += 1
+
+
+        
