@@ -2,9 +2,9 @@
 
 import sys
 
-LDI = 130
-PRN = 71
-HLT = 1
+LDI = 0b10000010
+PRN = 0b01000111
+HLT = 0b00000001
 
 class CPU:
     """Main CPU class."""
@@ -13,8 +13,7 @@ class CPU:
         """Construct a new CPU."""
         self.ram = [None] * 256
         self.reg = [0] * 8
-        self.pc = 0
-        
+        self.pc = 0        
 
     def ram_read(self, MAR):
         return self.ram[MAR]
@@ -78,14 +77,14 @@ class CPU:
         running = True
 
         while running:
-            IR = self.ram_read(self.pc)
-            if IR == LDI:
-                operand_a = self.ram_read(self.pc + 1)
-                operand_b = self.ram_read(self.pc + 2)
+            IR = self.ram[self.pc]
+            operand_a = self.ram_read(self.pc + 1)
+            operand_b = self.ram_read(self.pc + 2)
+
+            if IR == LDI:                
                 self.reg[operand_a] = operand_b
                 self.pc += 2
             elif IR == PRN:
-                operand_a = self.ram_read(self.pc + 1)
                 print(self.reg[operand_a])
                 self.pc += 1
             elif IR == HLT:
