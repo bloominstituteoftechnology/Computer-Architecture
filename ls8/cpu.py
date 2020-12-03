@@ -2,17 +2,19 @@
 
 import sys
 
+LDI = 130
+PRN = 71
+HLT = 1
+
 class CPU:
     """Main CPU class."""
 
     def __init__(self):
         """Construct a new CPU."""
-        self.ram = {}
+        self.ram = [None] * 256
         self.reg = [0] * 8
         self.pc = 0
-        self.LDI = 130
-        self.PRN = 71
-        self.HLT = 1
+        
 
     def ram_read(self, MAR):
         return self.ram[MAR]
@@ -77,16 +79,16 @@ class CPU:
 
         while running:
             IR = self.ram_read(self.pc)
-            if IR == self.LDI:
+            if IR == LDI:
                 operand_a = self.ram_read(self.pc + 1)
                 operand_b = self.ram_read(self.pc + 2)
                 self.reg[operand_a] = operand_b
                 self.pc += 2
-            elif IR == self.PRN:
+            elif IR == PRN:
                 operand_a = self.ram_read(self.pc + 1)
                 print(self.reg[operand_a])
                 self.pc += 1
-            elif IR == self.HLT:
+            elif IR == HLT:
                 running = False
             else:
                 print(f"Unknown instruction {IR}")
