@@ -65,6 +65,9 @@ but you'll have to implement those three above instructions first!
 * Read this whole file.
 * Skim the spec.
 
+- cpu.py: Brains for the machine where the functions will be called after we implement them.
+- ls8.py: The executable when we are ready to run.
+
 ## Step 1: Add the constructor to `cpu.py`
 
 Add list properties to the `CPU` class to hold 256 bytes of memory and 8
