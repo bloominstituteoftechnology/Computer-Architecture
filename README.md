@@ -12,7 +12,7 @@
       - cpu.py: defines CPU class (has commands listed out)
       - ls8.py: uses a CPU instance to run a program
 - [x] Implement the `CPU` constructor
-- [ ] Add RAM functions `ram_read()` and `ram_write()`
+- [x] Add RAM functions `ram_read()` and `ram_write()`
 - [ ] Implement the core of `run()`
 - [ ] Implement the `HLT` instruction handler
 - [ ] Add the `LDI` instruction
