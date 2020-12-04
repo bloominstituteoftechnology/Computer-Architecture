@@ -12,8 +12,8 @@ class CPU:
     def __init__(self):
         """Construct a new CPU."""
         self.ram = [0] * 256
-        self.registers = [0] * 8
-        self.registers[7] = 0xF4
+        self.reg = [0] * 8
+        self.reg[7] = 0xF4
         self.pc = 0
         self.ir = 0
         self.mar = 0
@@ -86,10 +86,10 @@ class CPU:
             self.halted = True
             self.pc += 1
         elif instruction == PRN:
-            print(self.registers[operand_a])
+            print(self.reg[operand_a])
             self.pc += 2
         elif instruction == LDI:
-            self.registers[operand_a] = operand_b
+            self.reg[operand_a] = operand_b
             self.pc += 3
         else:
             print("INVALID INSTRUCTION.")
