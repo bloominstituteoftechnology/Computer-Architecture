@@ -84,15 +84,21 @@ class CPU:
     def execute_instruction(self, instruction, operand_a, operand_b):
         if instruction == HLT:
             self.halted = True
-            self.pc += 1
+            self.pc += self.number_of_operands(instruction)
         elif instruction == PRN:
             print(self.reg[operand_a])
-            self.pc += 2
+            self.pc += self.number_of_operands(instruction)
         elif instruction == LDI:
             self.reg[operand_a] = operand_b
-            self.pc += 3
+            self.pc += self.number_of_operands(instruction)
         else:
             print("INVALID INSTRUCTION.")
+    
+    def number_of_operands(self, instruction):
+        # Instruction layout: 'AABCDDDD'
+        # * AA = Number of operands for this opcode, 0-2
+        # INSTRUCTION = 0b10000010 # >> 6 --> 0b10 & 0b11 --> 0b10
+        return ((instruction >> 6) & 0b11) + 1
 
     def ram_read(self, MAR): # Memory Address Register
         return self.ram[MAR]
