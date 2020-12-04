@@ -14,11 +14,9 @@ if len(sys.argv) > 1:
                 # there was a comment or blank line
                 continue
             program.append(int(ir_str, 2))
+    cpu = CPU()
+    cpu.load(program)
+    cpu.run()
 else:
     print("Required argument: program file name")
         
-
-cpu = CPU()
-
-cpu.load(program)
-cpu.run()
