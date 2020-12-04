@@ -112,33 +112,33 @@ class CPU:
         mul = 0b10100010
 
         while running:
-            print(self.pc)
+            # print(self.pc)
             command_to_execute = self.ram_read(self.pc)
             op_a = self.ram_read(self.pc + 1)
             op_b = self.ram_read(self.pc + 2)
             
             if command_to_execute == ldi:
                 print("LDI executed")
-                # self.reg[self.pc + 1] = self.pc + 2
                 self.reg[op_a] = self.pc + 2
-                self.pc += 3
+                number_of_times_to_increment_pc = ((command_to_execute >> 6) & 0b11) + 1
+                self.pc += number_of_times_to_increment_pc
             elif command_to_execute == prn:
                 print("Print executed")
-
-                # print(self.reg[self.pc + 1])
                 print(self.reg[op_a])
-                self.pc += 2
-            elif command_to_execute == hlt:
-                print("Halt executed")
-                running = False
+                number_of_times_to_increment_pc = ((command_to_execute >> 6) & 0b11) + 1
+                self.pc += number_of_times_to_increment_pc
             elif command_to_execute == mul:
                 print("Mult executed")
                 print(op_a, op_b)
                 self.reg[op_a] *= self.reg[op_b]
-                self.pc += 3
+                number_of_times_to_increment_pc = ((command_to_execute >> 6) & 0b11) + 1
+                self.pc += number_of_times_to_increment_pc
+            elif command_to_execute == hlt:
+                print("Halt executed")
+                running = False
             else:
                 print(f"Unkown command: {command_to_execute}")
-                self.pc += 1
+                number_of_times_to_increment_pc = ((command_to_execute >> 6) & 0b11) + 1
+                self.pc += number_of_times_to_increment_pc
 
         self.trace()
-
