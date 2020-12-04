@@ -74,13 +74,25 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        # IR (Instruction Register) = value at memory address in PC (Program Counter)
-        ir = self.ram_read(self.pc)
-        operand_a = self.ram_read(self.pc + 1)
-        operand_b = self.ram_read(self.pc + 2)
+        while not self.halted:
+            # IR (Instruction Register) = value at memory address in PC (Program Counter)
+            ir = self.ram_read(self.pc)
+            operand_a = self.ram_read(self.pc + 1)
+            operand_b = self.ram_read(self.pc + 2)
+            self.execute_instruction(ir, operand_a, operand_b)
 
-        # switch in python?
-
+    def execute_instruction(self, instruction, operand_a, operand_b):
+        if instruction == HLT:
+            self.halted = True
+            self.pc += 1
+        elif instruction == PRN:
+            print(self.registers[operand_a])
+            self.pc += 2
+        elif instruction == LDI:
+            self.registers[operand_a] = operand_b
+            self.pc += 3
+        else:
+            print("INVALID INSTRUCTION.")
 
     def ram_read(self, MAR): # Memory Address Register
         return self.ram[MAR]
