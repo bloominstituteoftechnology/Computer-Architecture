@@ -70,6 +70,13 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
+        # IR (Instruction Register) = value at memory address in PC (Program Counter)
+        ir = self.ram_read(self.pc)
+        operand_a = self.ram_read(self.pc + 1)
+        operand_b = self.ram_read(self.pc + 2)
+
+        # switch in python?
+
 
     def ram_read(self, MAR): # Memory Address Register
         return self.ram[MAR]
