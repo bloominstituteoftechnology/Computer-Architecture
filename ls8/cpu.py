@@ -120,25 +120,21 @@ class CPU:
             if command_to_execute == ldi:
                 print("LDI executed")
                 self.reg[op_a] = self.pc + 2
-                number_of_times_to_increment_pc = ((command_to_execute >> 6) & 0b11) + 1
-                self.pc += number_of_times_to_increment_pc
+                self.pc += ((command_to_execute >> 6) & 0b11) + 1
             elif command_to_execute == prn:
                 print("Print executed")
                 print(self.reg[op_a])
-                number_of_times_to_increment_pc = ((command_to_execute >> 6) & 0b11) + 1
-                self.pc += number_of_times_to_increment_pc
+                self.pc += ((command_to_execute >> 6) & 0b11) + 1
             elif command_to_execute == mul:
                 print("Mult executed")
                 print(op_a, op_b)
                 self.reg[op_a] *= self.reg[op_b]
-                number_of_times_to_increment_pc = ((command_to_execute >> 6) & 0b11) + 1
-                self.pc += number_of_times_to_increment_pc
+                self.pc += ((command_to_execute >> 6) & 0b11) + 1
             elif command_to_execute == hlt:
                 print("Halt executed")
                 running = False
             else:
                 print(f"Unkown command: {command_to_execute}")
-                number_of_times_to_increment_pc = ((command_to_execute >> 6) & 0b11) + 1
-                self.pc += number_of_times_to_increment_pc
+                self.pc += ((command_to_execute >> 6) & 0b11) + 1
 
         self.trace()
