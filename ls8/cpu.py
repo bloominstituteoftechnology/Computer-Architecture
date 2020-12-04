@@ -8,12 +8,14 @@ class CPU:
     def __init__(self):
         """Construct a new CPU."""
         self.ram = [0] * 256
-        self.reg = [0] * 8
+        self.registers = [0] * 8
+        self.registers[7] = 0xF4
         self.pc = 0
         self.ir = 0
         self.mar = 0
         self.mdr = 0
         self.fl = 0
+        self.halted = False
 
     def load(self):
         """Load a program into memory."""
