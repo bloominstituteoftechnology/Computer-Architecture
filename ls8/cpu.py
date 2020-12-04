@@ -3,6 +3,7 @@
 """CPU functionality."""
 
 import sys
+import os
 
 class CPU:
     """Main CPU class."""
@@ -24,22 +25,42 @@ class CPU:
         # #Memory Data Register, holds the value to write or the value just read
         self.mdr = 0
 
-    def load(self):
+    def load(self, file_name):
         """Load a program into memory."""
 
         address = 0
 
         # For now, we've just hardcoded a program:
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+        # program = [
+        #     # From print8.ls8
+        #     0b10000010, # LDI R0,8
+        #     0b00000000,
+        #     0b00001000,
+        #     0b01000111, # PRN R0
+        #     0b00000000,
+        #     0b00000001, # HLT
+        # ]
+
+        program = []
+
+        input_text = os.path.join(os.path.dirname(__file__), f"examples/{file_name}")
+
+        try:
+            with open(input_text) as my_file:
+                for line in my_file:
+                    comment_split = line.split('#')
+                    possible_binary_number = comment_split[0]
+
+                    try:
+                        x = int(possible_binary_number, 2)
+                        program.append(x)
+                        print("{:08b}: {:d}".format(x, x))
+                    except:
+                        print(f"Failed to cast {possible_binary_number} to an int")
+                        continue
+        except:
+            print(f"File: {file_name} not found...")
 
         for instruction in program:
             self.ram[address] = instruction
@@ -84,7 +105,7 @@ class CPU:
     def run(self):
         """Run the CPU."""
         # Load tasks into RAM
-        self.load()
+        # self.load()
 
         running = True
         ldi = 0b10000010
@@ -112,5 +133,3 @@ class CPU:
 
         self.trace()
 
-cpu = CPU()
-cpu.run()
