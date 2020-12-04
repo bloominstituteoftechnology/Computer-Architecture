@@ -21,22 +21,22 @@ class CPU:
         self.fl = 0
         self.halted = False
 
-    def load(self):
+    def load(self, filename):
         """Load a program into memory."""
 
         address = 0
+        program = []
 
-        # For now, we've just hardcoded a program:
+        with open(filename) as f:
+            for line in f:
+                comment_split = line.split("#")
+                maybe_binary_number = comment_split[0]
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+                try:
+                    x = int(maybe_binary_number, 2)
+                    program.append(x)
+                except:
+                    continue
 
         for instruction in program:
             self.ram[address] = instruction
