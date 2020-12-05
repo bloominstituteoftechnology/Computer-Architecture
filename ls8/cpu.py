@@ -78,6 +78,10 @@ class CPU:
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
+        if op == MULT:
+            print('regs', reg_a, reg_b)
+            self.reg[reg_a] = self.reg[reg_a] * self.reg[reg_b]
+            
         #elif op == "SUB": etc
         else:
             raise Exception("Unsupported ALU operation")
@@ -151,7 +155,9 @@ class CPU:
             print('ldi ran')
 
         elif instruction == MULT:
-            self.reg[operand_a] = self.reg[operand_a] * self.reg[operand_b]
+            """ self.reg[operand_a] = self.reg[operand_a] * self.reg[operand_b]
+            
+            print('mult ran') """
+            self.alu(instruction, operand_a, operand_b)
             self.pc += 3
             print('mult ran')
-            
