@@ -22,21 +22,31 @@ class CPU:
 
         address = 0
 
+        load_path = 'C:/Users/vrram/flexed/CS/Architecture/Computer-Architecture/ls8/examples.mult.ls8' 
+
+        try:
+            with open(load_path, 'r') as load_file:
+                for line in load_file:
+                    print(line)
+        except FileNotFoundError:
+            print("file not found...")
+
+
         # For now, we've just hardcoded a program:
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+        # program = [
+        #     # From print8.ls8
+        #     0b10000010, # LDI R0,8
+        #     0b00000000,
+        #     0b00001000,
+        #     0b01000111, # PRN R0
+        #     0b00000000,
+        #     0b00000001, # HLT
+        # ]
 
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+        # for instruction in program:
+        #     self.ram[address] = instruction
+        #     address += 1
 
 
     def alu(self, op, reg_a, reg_b):
@@ -76,11 +86,12 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        while not self.halted:
-            instruction_to_execute = self.ram_read(self.pc)
-            operand_a = self.ram_read(self.pc + 1)
-            operand_b = self.ram_read(self.pc + 2)
-            self.execute_instruction(instruction_to_execute, operand_a, operand_b)
+        pass
+        # while not self.halted:
+        #     instruction_to_execute = self.ram_read(self.pc)
+        #     operand_a = self.ram_read(self.pc + 1)
+        #     operand_b = self.ram_read(self.pc + 2)
+        #     self.execute_instruction(instruction_to_execute, operand_a, operand_b)
 
     def execute_instruction(self, instruction, operand_a, operand_b):
         if instruction == HLT:
