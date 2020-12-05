@@ -1,0 +1,16 @@
+00000001  # print tim
+00000001  # print tim
+01000011  # print num
+00101010  # the number 42
+10000100 # save
+01100011  # 99
+00000010  # into R2
+10000100 # save
+00000001 # the number 1
+00000011 # into R3
+10100110 # ADD (R2 += R3)       <-- PC
+00000010 # R2
+00000011 # R3
+01000101  # print reg
+00000010  # R2 again - should be 100 now! 
+00000010  # but this time it's the command halt

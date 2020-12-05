@@ -5,9 +5,12 @@ import sys
 class CPU:
     """Main CPU class."""
 
-    def __init__(self):
-        """Construct a new CPU."""
-        pass
+    # def __init__(self, ram, reg, pc, ram_read):
+    #     """Construct a new CPU."""
+    #     self.ram = ram
+    #     self.reg = reg
+    #     self.pc = pc
+    #     self.ram_read= ram_read
 
     def load(self):
         """Load a program into memory."""
