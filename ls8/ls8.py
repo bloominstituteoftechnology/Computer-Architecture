@@ -5,7 +5,9 @@
 import sys
 from cpu import *
 
+console_args = sys.argv[1]
+
 cpu = CPU()
 
-cpu.load()
+cpu.load(console_args)
 cpu.run()

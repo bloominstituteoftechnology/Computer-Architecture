@@ -5,6 +5,7 @@ import sys
 HLT = 0b00000001
 LDI = 0b10000010
 PRN = 0b01000111
+MULT = 0b10100010
 
 class CPU:
     """Main CPU class."""
@@ -29,8 +30,29 @@ class CPU:
     def ram_write(self, address, val):
         self.ram[address] = val
 
-    def load(self):
+    def load(self, args):
         """Load a program into memory."""
+
+        program_code = []
+        
+        try:
+            with open(f"ls8/examples/{args}") as ls8_file:
+                for line in ls8_file:
+                    line_split = line.split("#")
+                    possible_binary_number = line_split[0]
+                    try:
+                        new_binary_number = int(possible_binary_number, 2)
+                        program_code.append(new_binary_number)
+                    except:
+                        print(f"Unable to cast '{possible_binary_number}' to an integer")
+                        continue
+        except FileNotFoundError:
+            print("File Not Found")
+            
+        print("program code!!!!!!!!!!!", program_code)
+        
+
+        
 
         address = 0
 
@@ -46,7 +68,7 @@ class CPU:
             0b00000001, # HLT
         ]
 
-        for instruction in program:
+        for instruction in program_code:
             self.ram[address] = instruction
             address += 1
 
@@ -127,4 +149,9 @@ class CPU:
             self.reg[operand_a] = operand_b
             self.pc += 3
             print('ldi ran')
+
+        elif instruction == MULT:
+            self.reg[operand_a] = self.reg[operand_a] * self.reg[operand_b]
+            self.pc += 3
+            print('mult ran')
             
