@@ -5,6 +5,7 @@ import sys
 HLT = 0b00000001
 LDI = 0b10000010
 PRN = 0b01000111
+MUL = 0b10100010
 
 class CPU:
     """Main CPU class."""
@@ -17,26 +18,32 @@ class CPU:
         self.ram = [0] * 256
         self.halted = False
 
-    def load(self):
+    def load(self, filename):
         """Load a program into memory."""
 
         address = 0
 
         # For now, we've just hardcoded a program:
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+        try:
+        with open(sys.argv[1]) as my_file:
+        for line in my_file:
+            comment_split = line.split("#")
+            maybe_binary_number = comment_split[0].strip()
 
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+            try:
+                x = int(maybe_binary_number, 2)
+                print("{:08b}: {:d}".format(x, x))
+            except:
+                print(f"failed to cast {maybe_binary_number} to an int")
+                continue
+
+        except FileNotFoundError:
+            print("file not found...")
+
+                for instruction in program:
+                    self.ram[address] = instruction
+                    address += 1
 
 
     def alu(self, op, reg_a, reg_b):
@@ -91,6 +98,9 @@ class CPU:
             self.pc += 2
         elif instruction == LDI:
             self.reg[operand_a] = operand_b
+            self.pc += 3
+        elif instruction == MUL:
+            self.reg[operand_a] = self.reg[operand_a] * self.reg[operand_b]
             self.pc += 3
         else:
             print("idk what to do.")
