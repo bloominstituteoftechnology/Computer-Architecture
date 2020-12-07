@@ -70,4 +70,22 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        halted = False
+
+        while not halted:
+            instruction = self.ram_read(self.pc)
+
+            if instruction == HLT:
+                halted = True
+
+            elif instruction = LDI:
+                new_register = self.ram[self.pc + 1]
+                new_value = self.ram[self.pc + 2]
+
+                self.reg[new_register] = new_value
+                self.pc += 3
+
+            elif instruction == PRN:
+                new_register = self.ram[self.pc +1]
+                print(self.reg[new_register])
+                self.pc += 2
