@@ -1,10 +1,16 @@
 """CPU functionality."""
 
 import sys
+import traceback
 
 HLT = 0b0001
 LDI = 0b0010
+PUSH = 0b0101
+POP = 0b0110
 PRN = 0b0111
+
+CALL = 0b0000
+RET = 0b0001
 
 ALU_ADD = 0b0000
 ALU_SUB = 0b0001
@@ -29,6 +35,7 @@ class CPU:
         self.ram = [0] * 256
         self.reg = [0] * 8
         self.pc = 0
+        self.sp = 0xf4
 
     def ram_read(self, addr):
         return self.ram[addr]
@@ -102,32 +109,60 @@ class CPU:
         print()
 
     def run(self):
-        while True:
-            ir = self.ram_read(self.pc)
-            
-            self.pc += 1
-            
-            instruction = ir & 0b1111
-            is_alu = (ir >> 5) & 1
-            sets_pc = (ir >> 4) & 1
-            operand_count = ir >> 6
+        try:
+            while True:
+                ir = self.ram_read(self.pc)
+                
+                self.pc += 1
+                
+                instruction = ir & 0b1111
+                is_alu = (ir >> 5) & 1
+                sets_pc = (ir >> 4) & 1
+                operand_count = ir >> 6
 
-            op_position = self.pc
-            operands = (self.ram_read(op_position + i) for i in range(operand_count))
-            self.pc += operand_count
-            
-            if is_alu:
-                self.alu(instruction, next(operands), next(operands))
-            else:
-                if instruction == HLT:
+                op_position = self.pc
+                operands = (self.ram_read(op_position + i) for i in range(operand_count))
+                self.pc += operand_count
+                
+                if is_alu:
+                    self.alu(instruction, next(operands), next(operands))
+                elif sets_pc:
+                    if instruction == CALL:
+                        self.sp -= 1
+                        self.ram[self.sp] = self.pc
+                        self.pc = self.reg[next(operands)]
+                    elif instruction == RET:
+                        self.pc = self.ram[self.sp]
+                        self.sp += 1
+                    else:
+                        raise Exception(f"UNRECOGNIZED INSTRUCTION: {instruction:b}")
+                elif instruction == HLT:
                     break
-                elif instruction == LDI:
-                    a = next(operands)
-                    b = next(operands)
-                    self.reg[a] = b
-                elif instruction == PRN:
-                    print(self.reg[next(operands)])
                 else:
-                    self.trace()
-                    raise Exception(f"UNRECOGNIZED INSTRUCTION: {instruction:b}")
-            
+                    def ldi():
+                        a = next(operands)
+                        b = next(operands)
+                        self.reg[a] = b
+                    def prn(): print(self.reg[next(operands)])
+                    def push():
+                        self.sp -= 1
+                        self.ram[self.sp] = self.reg[next(operands)]
+                    def pop():
+                        self.reg[next(operands)] = self.ram[self.sp]
+                        self.sp += 1
+                    
+                    INSTRUCTIONS = {
+                        LDI: ldi,
+                        PRN: prn,
+                        PUSH: push,
+                        POP: pop,
+                    }
+
+                    if instruction in INSTRUCTIONS:
+                        INSTRUCTIONS[instruction]()
+                    else:
+                        raise Exception(f"UNRECOGNIZED INSTRUCTION: {instruction:b}")
+        except Exception as e:
+            print(f"ERROR OCCURED: {e}")
+            traceback.print_exc()
+            self.trace()
