@@ -1,13 +1,12 @@
-"""CPU functionality."""
-
 import sys
 
 
 # Operators in machine code
 
-HLT = 0b000000101
-LDI = 0b10000010
-PRN = 0b01000111
+HLT = 0b00000001 # Halt 
+LDI = 0b10000010 # Load Immediate
+PRN = 0b01000111 # Print
+MUL = 0b10100010 # Multiply
 
 
 class CPU:
@@ -21,32 +20,52 @@ class CPU:
 
         # Create 8 registers
 
-        self.reg = [0] * 8
+        self.registers = [0] * 8
+        self.registers[7] = 0xF4
 
         # Set the program counter to 0
 
         self.pc = 0
+        self.halted = False
 
-    def load(self):
+    def load(self, filename):
         """Load a program into memory."""
 
         address = 0
 
-        # For now, we've just hardcoded a program:
+#        # For now, we've just hardcoded a program:
+#
+#        program = [
+#            # From print8.ls8
+#            0b10000010, # LDI R0,8
+#            0b00000000,
+#            0b00001000,
+#            0b01000111, # PRN R0
+#            0b00000000,
+#            0b00000001, # HLT
+#        ]
+#
+#        for instruction in program:
+#            self.ram[address] = instruction
+#            address += 1
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+        # Loading a program from a file
 
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+        try:
+            with open(filename) as my_file:
+                for line in my_file:
+                    comment_split = line.split("#")
+                    maybe_binary_number = comment_split[0]
+        
+                    try:
+                        x = int(maybe_binary_number, 2)
+                        print("{:08b}: {:d}".format(x, x))
+                    except:
+                        print(f"failed to cast {maybe_binary_number} to an int")
+                        continue
+
+        except FileNotFoundError:
+            print("file not found...")
 
 
     def alu(self, op, reg_a, reg_b):
@@ -64,9 +83,9 @@ class CPU:
         """
         return self.ram[address]
 
-    def ram_write(self, address, value):
+    def ram_write(self, value, address):
         """
-        Writes a value to RAM at the designate address
+        Writes a value to RAM at the designated address
         """
         self.ram[address] = value
 
@@ -93,19 +112,25 @@ class CPU:
     def run(self):
         """Run the CPU."""
 
-        while True:
-            instruction = self.ram[self.pc]
+        while not self.halted:
+            instruction_to_execute = self.ram_read(self.pc)
+            operand_a = self.ram_read(self.pc + 1)
+            operand_b = self.ram_read(self.pc + 2)
+            self.execute_instruction(instruction_to_execute, operand_a, operand_b)
 
-            if instruction == HLT:
-                sys.exit(1)
-
-            elif instruction == LDI:
-                reg_slot = self.ram_read(self.pc + 1)
-                int_value = self.ram_read(self.pc + 2)
-                self.reg[reg_slot] = int_value
-                self.pc += 3
-
-            elif instruction == PRN:
-                reg_slot = self.ram_read(self.pc + 1)
-                print(int(self.reg[reg_slot]))
-                self.pc += 2
+    def execute_instruction(self, instruction, operand_a, operand_b):
+        if instruction == HLT:
+            self.halted = True
+            self.pc += 1
+        elif instruction == PRN:
+            print(self.reg[operand_a])
+            self.pc += 2
+        elif instruction == LDI:
+            self.registers[operand_a] = operand_b
+            self.pc += 3
+        elif instruction == MUL:
+            self.registers[operand_a] = self.reg[operand_a] * self.reg[operand_b]
+            self.pc += 3 
+        else:
+            print("idk what to do.")
+            pass
