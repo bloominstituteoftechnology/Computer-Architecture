@@ -19,20 +19,37 @@ class CPU:
         address = 0
 
         # For now, we've just hardcoded a program:
+        try:
+            if len(sys.argv) < 2:
+                print(f'Error from {sys.argv[0]}): missing file name argument')
+                sys.exit(1)
 
-        program = [
-            # From print8.ls8
-            0b10000010,  # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111,  # PRN R0
-            0b00000000,
-            0b00000001,  # HLT
-        ]
+            with open(sys.argv[1]) as f:
+                for line in f:
+                    split_line = line.split("#")[0]
+                    stripped_line = split_line.strip()
+                    # print(int(stripped_line, 2))
+                    if stripped_line != "":
+                        command = int(stripped_line, 2)
+                        print(command)
+                        self.ram[address] = command
+                        address += 1
+        except FileNotFoundError:
+            print(f'Error from {sys.argv[0]}: {sys.argv[1]} not found')
+            print("(Did you double check the file name?)")
+        # program = [
+        #     # From print8.ls8
+        #     0b10000010,  # LDI R0,8
+        #     0b00000000,
+        #     0b00001000,
+        #     0b01000111,  # PRN R0
+        #     0b00000000,
+        #     0b00000001,  # HLT
+        # ]
 
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+        # for instruction in program:
+        #     self.ram[address] = instruction
+        #     address += 1
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -43,6 +60,11 @@ class CPU:
         elif op == "SUB":
             self.reg[reg_a] -= self.reg[reg_b]
             self.pc += 2
+        elif op == 'MUL':
+            print("multiply")
+            result = self.reg[reg_a] * self.reg[reg_b]
+            self.pc += 2
+            return result
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -67,9 +89,10 @@ class CPU:
         print()
 
     def run(self):
-        ldi = 0b10000010
-        prn = 0b01000111
-        hlt = 0b00000001
+        ldi = 130
+        prn = 71
+        mul = 162
+        hlt = 1
         """Run the CPU."""
         self.running = True
         # IR = {}
@@ -84,14 +107,16 @@ class CPU:
                 self.pc += 3
                 print("first loop")
             elif instruction == prn:
-                print(self.reg[operand_a])
+                print("Printing", self.reg[operand_a])
                 self.pc += 2
             elif instruction == hlt:
-                print("halt, who goes there?")
+                print("Halt")
                 self.running = False
+            elif instruction == mul:
+                print("alu", self.alu("MUL", operand_a, operand_b))
             else:
-                print("Could not find that particular instruction.{a}.".format(
-                    a=instruction))
+                print(
+                    f'Could not find that particular instruction.{instruction}')
                 return
 
     def ram_read(self, mar):

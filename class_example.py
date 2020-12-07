@@ -73,5 +73,72 @@ print(saved_number)
 elif command == HALT:
     running = False
 ​
-​
+​number
 pc += 1  # so we don't get sucked into an infinite loop!
+
+# masking
+# >> and use & with ob1 to essentially delete any higher bits
+ob1010
+&   ob0000
+------
+
+0b1010
+&   0b0011    zeros where you don't care, ones where you do
+------
+0b0010
+
+shift to the right, then masking
+v
+
+10100000 >> 5
+101
+00000101
+
+00000101
+&00000001
+--------
+00000001
+
+
+#  LOADING STUFF
+# file i/o in python
+try:
+    if len(sys.argv) < 2:
+        print(f'error from {sys.argv[0]}: {sys.argv[1]} not found')
+        sys.exit(1)
+
+    # add a counter that loads memory at that index
+    ram_index = 0
+
+    with open(file_name, sys.argv[1]) as f:
+        for line in f:
+            print(line.split("#")[0])
+            print(split_line.strip())
+            # how to only get the numbers
+            if stripped_split_line != "":
+                print(stripped_split_line)
+                command = int(stripped_split_line, 2)
+                # loead command into memory
+                memory[ram_index] = command
+                ram_index += 1
+
+except FileNotFoundError:
+    print(f"could not find that file {sys.argv[1]}")
+
+file = open("print8.ls8", 'r')
+lines = file.read()
+
+print(lines)
+# make sure you close files
+file.close()
+
+# read in filename from command line
+
+memory = [0] * 256
+
+
+elif command = ADD:
+    reg1_address = memory[pc + 1]
+    reg2_address = memory[pc + 2]
+
+    registers[reg1_address] += registers[reg2_address]
