@@ -1,6 +1,7 @@
 """CPU functionality."""
 
 import sys
+import os.path
 
 class CPU:
     """Main CPU class."""
@@ -17,26 +18,41 @@ class CPU:
     def ram_write(self, address, data):
         self.ram[address] = data
 
-    def load(self):
+    def load(self, file_name):
         """Load a program into memory."""
 
         address = 0
 
-        # For now, we've just hardcoded a program:
+        file_path = os.path.join(os.path.dirname(__file__), file_name)
+        try:
+            with open(file_path) as f:
+                for line in f:
+                    num = line.split("#")[0].strip() # "10000010"
+                    try:
+                        instruction = int(num, 2)
+                        self.ram[address] = instruction
+                        address += 1
+                    except:
+                        continue
+        except:
+            print(f'Could not find file named: {file_name}')
+            sys.exit(1)
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
-
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+        # # For now, we've just hardcoded a program:
+        #
+        # program = [
+        #     # From print8.ls8
+        #     0b10000010, # LDI R0,8
+        #     0b00000000,
+        #     0b00001000,
+        #     0b01000111, # PRN R0
+        #     0b00000000,
+        #     0b00000001, # HLT
+        # ]
+        #
+        # for instruction in program:
+        #     self.ram[address] = instruction
+        #     address += 1
 
 
     def alu(self, op, reg_a, reg_b):
