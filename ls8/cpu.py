@@ -50,31 +50,62 @@ class CPU:
     def load(self):
         """Load a program into memory."""
 
-        address = 0
-
-        # For now, we've just hardcoded a program:
-
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
-
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+        if (len(sys.argv)) != 2:
+            print('remember to pass the second file name')
+            print('usage: python fileio.py <second_filename.py>')
+            sys.exit()
+        try: 
+            with open(sys.argv[1]) as f:
+                address = 0
+                for line in f:
+                    possible_binary = line[:line.find('#')]
+                    # if no comment on line
+                    if possible_binary == '':
+                        continue # passes rest of loop
+                    denary_int = int(possible_binary, 2)
+                    self.ram[address] = denary_int
+                    address += 1
+        except FileNotFoundError:
+            print(f'Error from {sys.argv[0]}: {sys.argv[1]} not found ')
+            sys.exit()
 
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
-
-        if op == "ADD":
+        if op == ADD: # add
             self.reg[reg_a] += self.reg[reg_b]
-        #elif op == "SUB": etc
+        elif op == MUL: # multiply 
+            self.reg[reg_a] *= self.reg[reg_b]
+        elif op == CMP: # compare 
+            # less than
+            if self.reg[reg_a] < self.reg[reg_b]:
+                self.reg[6] = 0b00000100
+            # greater than 
+            elif self.reg[reg_a] > self.reg[reg_b]:
+                self.reg[6] = 0b00000010
+            # equal to
+            else:
+                self.reg[6] = 0b00000001
+        elif op == SHL: # shift left
+            decimal = self.reg[reg_a] << self.reg[reg_b]
+            self.reg[reg_a] = f"{decimal:#010b}"
+        elif op == SHR:   # shift right
+            decimal = self.reg[reg_a] >> self.reg[reg_b]
+            self.reg[reg_a] = f"{decimal:#010b}"
+        elif op == MOD: # modulo, get remainder
+            # cannot divide by 0
+            if self.reg[reg_b] == 0:
+                # halt
+                self.hlt(reg_a, reg_b)
+            self.reg[reg_a] = self.reg[reg_a] % self.reg[reg_b]
+        elif op == NOT: # store bitwise not
+            self.reg[reg_a] = ~self.reg[reg_a]
+        elif op == OR: # store bitwise or
+            self.reg[reg_a] = self.reg[reg_a] | self.reg[reg_b]
+        elif op == AND: # store bitwise and
+            self.reg[reg_a] = self.reg[reg_a] & self.reg[reg_b]
+        elif op == XOR: # store bitwise xor
+            self.reg[reg_a] = self.reg[reg_a] ^ self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
