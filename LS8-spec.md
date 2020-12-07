@@ -109,7 +109,7 @@ See `IRET`, below, for returning from an interrupt.
 * 1: Keyboard interrupt. This interrupt triggers when a key is pressed.
   The value of the key pressed is stored in address `0xF4`.
 
-## Power on State [ ]
+## Power on State [x]
 
 When the LS-8 is booted, the following steps occur:
 
@@ -120,7 +120,7 @@ When the LS-8 is booted, the following steps occur:
 
 Subsequently, the program can be loaded into RAM starting at address `0x00`.
 
-## Execution Sequence [ ]
+## Execution Sequence [x]
 
 1. The instruction pointed to by the `PC` is fetched from RAM, decoded, and
    executed.
@@ -161,7 +161,7 @@ allows you to know how far to advance the `PC` with each instruction.
 It might also be useful to check the other bits in an emulator implementation, but
 there are other ways to code it that don't do these checks.
 
-## Instruction Set [ ]
+## Instruction Set
 
 Glossary:
 
@@ -277,7 +277,7 @@ Machine code:
 A3 0a 0b
 ```
 
-### HLT
+### HLT[x]
 
 `HLT`
 
@@ -450,7 +450,7 @@ Machine code:
 83 0a 0b
 ```
 
-### LDI
+### LDI[x]
 
 `LDI register immediate`
 
@@ -482,7 +482,7 @@ Machine code:
 A4 0a 0b
 ```
 
-### MUL
+### MUL [x]
 
 *This is an instruction handled by the ALU.*
 
@@ -573,7 +573,7 @@ Machine code:
 48 0r
 ```
 
-### PRN
+### PRN [x]
 
 `PRN register` pseudo-instruction
 
