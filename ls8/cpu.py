@@ -12,8 +12,8 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        self.reg = [0] * 8
-        self.reg[7] = 0xF4
+        self.registers = [0] * 8
+        self.registers[7] = 0xF4
         self.pc = 0
         self.ram = [0] * 256
         self.halted = False
@@ -22,26 +22,27 @@ class CPU:
         """Load a program into memory."""
 
         address = 0
+        # open the file
+        with open(filename) as my_file:
+            # go through each line to parse and get
+            # the instruction
+            for line in my_file:
+                # try and get the instruction/operand in the line
+                comment_split = line.split("#")
+                maybe_binary_number = comment_split[0]
+                try:
+                    x = int(maybe_binary_number, 2)
+                    self.ram_write(x, address)
+                    address += 1
+                except:
+                    continue
 
-        # For now, we've just hardcoded a program:
-
-        with open(sys.argv[1]) as my_file:
-        for line in my_file:
-            comment_split = line.split("#")
-            maybe_binary_number = comment_split[0].strip()
-
-            try:
-                x = int(maybe_binary_number, 2)
-                print("{:08b}: {:d}".format(x, x))
-            except:
-                print(f"failed to cast {maybe_binary_number} to an int")
-                continue
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
 
-        if op == "MUL":
-            self.reg[reg_a] *= self.reg[reg_b]
+        if op == MUL:
+            self.registers[reg_a] *= self.registers[reg_b]
             self.pc += 3
         else:
             raise Exception("Unsupported ALU operation")
@@ -85,15 +86,13 @@ class CPU:
             self.halted = True
             self.pc += 1
         elif instruction == PRN:
-            print(self.reg[operand_a])
+            print(self.registers[operand_a])
             self.pc += 2
         elif instruction == LDI:
-            self.reg[operand_a] = operand_b
+            self.registers[operand_a] = operand_b
             self.pc += 3
         elif instruction == MUL:
             self.alu(instruction, operand_a, operand_b)
-            self.pc += 3
         else:
             print("idk what to do.")
             pass
-
