@@ -17,20 +17,22 @@ class CPU:
         self.ram = [0] * 256
         self.halted = False
 
-    def load(self):
+    def load(self, run_file):
         """Load a program into memory."""
 
-        address = 0
-
-        load_path = 'C:/Users/vrram/flexed/CS/Architecture/Computer-Architecture/ls8/examples.mult.ls8' 
-
         try:
-            with open(load_path, 'r') as load_file:
-                for line in load_file:
-                    print(line)
-        except FileNotFoundError:
-            print("file not found...")
+            address = 0
+            with open(run_file) as file:
+                for line in file:
+                    split_line = line.split("#")[0]
+                    # remove white spaces
+                    command = split_line.strip()
 
+                    # skip empty lines
+                    if command == "":
+                        continue
+
+                    print(instuction)
 
         # For now, we've just hardcoded a program:
 
@@ -106,3 +108,15 @@ class CPU:
         else:
             print('idk what to do.')
             pass
+
+    if len(sys.argv) < 2:
+        print("Please pass in a second filename: python3 in_out.py second_filename.py")
+        sys.exit()
+
+    file_name = sys.argv[1]
+    # load_memory(file_name)
+
+    cpu = CPU()
+
+    cpu.load(file_name)
+    cpu.run()
