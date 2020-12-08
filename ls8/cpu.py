@@ -25,7 +25,6 @@ class CPU:
 
         # For now, we've just hardcoded a program:
 
-        try:
         with open(sys.argv[1]) as my_file:
         for line in my_file:
             comment_split = line.split("#")
@@ -38,20 +37,12 @@ class CPU:
                 print(f"failed to cast {maybe_binary_number} to an int")
                 continue
 
-        except FileNotFoundError:
-            print("file not found...")
-
-                for instruction in program:
-                    self.ram[address] = instruction
-                    address += 1
-
-
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
 
-        if op == "ADD":
-            self.reg[reg_a] += self.reg[reg_b]
-        #elif op == "SUB": etc
+        if op == "MUL":
+            self.reg[reg_a] *= self.reg[reg_b]
+            self.pc += 3
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -100,7 +91,7 @@ class CPU:
             self.reg[operand_a] = operand_b
             self.pc += 3
         elif instruction == MUL:
-            self.reg[operand_a] = self.reg[operand_a] * self.reg[operand_b]
+            self.alu(instruction, operand_a, operand_b)
             self.pc += 3
         else:
             print("idk what to do.")
