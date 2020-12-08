@@ -1,104 +1,86 @@
 import sys
 
+# Operation Codes = Op Codes
+HLT = 0b00000001
+PRN = 0b01000111
+LDI = 0b10000010
+PUSH = 0b01000101
+POP = 0b01000110
 
-# Operators in machine code
+# PC
+CALL = 0b01010000 # location in memory where a coroutine starts
+RET = 0b00010001
+JMP = 0b01010100
+JEQ = 0b01010101
+JNE = 0b01010110
 
-HLT = 0b00000001 # Halt 
-LDI = 0b10000010 # Load Immediate
-PRN = 0b01000111 # Print
-MUL = 0b10100010 # Multiply
+# ALU
+MUL = 0b10100010
+ADD = 0b10100000
+CMP = 0b10100111
 
 
+# Main CPU class
 class CPU:
-    """Main CPU class."""
-
     def __init__(self):
-        """Construct a new CPU."""
-        # Create 256 bytes of RAM
-
         self.ram = [0] * 256
+        self.reg = [0] * 8
+        self.pc = 0 
+        self.sp = 7
+        self.fl = 0
 
-        # Create 8 registers
+        self.dispatchable = {
+            MUL: self.mul,
+            ADD: self.add,
+            CMP: self.cmp,
+            PRN: self.prn,
+            LDI: self.ldi,
+            PUSH: self.push,
+            POP: self.pop,
+            CALL: self.call, 
+            RET: self.ret,
+            JMP: self.jmp,
+            JEQ: self.jeq,
+            JNE: self.jne
+        }
 
-        self.registers = [0] * 8
-        self.registers[7] = 0xF4
-
-        # Set the program counter to 0
-
-        self.pc = 0
-        self.halted = False
-
-    def load(self, filename):
-        """Load a program into memory."""
-
+   
+    def load(self, file_name):
         address = 0
+        with open(file_name, 'r') as file:  
+            for line in file:
+                print(line)
+                if line.startswith('#') or line.startswith('\n'):
+                    continue
+                else:
+                    instruction = line.split(' ')[0]
+                    self.ram[address] = int(instruction, 2)
+                    address += 1
+                
+                
+    
+    def ram_read(self, mar):
+        return self.ram[mar]
 
-#        # For now, we've just hardcoded a program:
-#
-#        program = [
-#            # From print8.ls8
-#            0b10000010, # LDI R0,8
-#            0b00000000,
-#            0b00001000,
-#            0b01000111, # PRN R0
-#            0b00000000,
-#            0b00000001, # HLT
-#        ]
-#
-#        for instruction in program:
-#            self.ram[address] = instruction
-#            address += 1
-
-        # Loading a program from a file
-
-        try:
-            with open(filename) as my_file:
-                for line in my_file:
-                    comment_split = line.split("#")
-                    maybe_binary_number = comment_split[0]
-        
-                    try:
-                        x = int(maybe_binary_number, 2)
-                        print("{:08b}: {:d}".format(x, x))
-                    except:
-                        print(f"failed to cast {maybe_binary_number} to an int")
-                        continue
-
-        except FileNotFoundError:
-            print("file not found...")
-
+    def ram_write(self, mar, mdr):
+        self.ram[mar] = mdr
 
     def alu(self, op, reg_a, reg_b):
-        """ALU operations."""
-
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
-        #elif op == "SUB": etc
+        # Day 2
+        elif op == "MUL":
+            self.reg[reg_a] *= self.reg[reg_b]
+        elif op == "CMP":
+            self.fl = 1 if self.reg[reg_a] == self.reg[reg_b] else 0
         else:
             raise Exception("Unsupported ALU operation")
 
-    def ram_read(self, address):
-        """
-        Reads the value at the designated address of RAM
-        """
-        return self.ram[address]
-
-    def ram_write(self, value, address):
-        """
-        Writes a value to RAM at the designated address
-        """
-        self.ram[address] = value
-
+    # Handy function to print out the CPU state.
+    # You might want to call this from run() if you need help debugging.
     def trace(self):
-        """
-        Handy function to print out the CPU state. You might want to call this
-        from run() if you need help debugging.
-        """
-
         print(f"TRACE: %02X | %02X %02X %02X |" % (
             self.pc,
-            #self.fl,
-            #self.ie,
             self.ram_read(self.pc),
             self.ram_read(self.pc + 1),
             self.ram_read(self.pc + 2)
@@ -109,28 +91,71 @@ class CPU:
 
         print()
 
-    def run(self):
-        """Run the CPU."""
+    def mul(self, reg_a, reg_b):
+        self.alu("MUL", reg_a, reg_b)  
+        self.pc += 3 
 
-        while not self.halted:
-            instruction_to_execute = self.ram_read(self.pc)
-            operand_a = self.ram_read(self.pc + 1)
-            operand_b = self.ram_read(self.pc + 2)
-            self.execute_instruction(instruction_to_execute, operand_a, operand_b)
+    def add(self, reg_a, reg_b):
+        self.alu("ADD", reg_a, reg_b)
+        self.pc += 3
 
-    def execute_instruction(self, instruction, operand_a, operand_b):
-        if instruction == HLT:
-            self.halted = True
-            self.pc += 1
-        elif instruction == PRN:
-            print(self.reg[operand_a])
-            self.pc += 2
-        elif instruction == LDI:
-            self.registers[operand_a] = operand_b
-            self.pc += 3
-        elif instruction == MUL:
-            self.registers[operand_a] = self.reg[operand_a] * self.reg[operand_b]
-            self.pc += 3 
+    def cmp(self, reg_a, reg_b):
+        self.alu("CMP", reg_a, reg_b)
+        self.pc += 3
+
+    def prn(self, reg_a, reg_b):
+        print(self.reg[reg_a])
+        self.pc += 2
+
+    def ldi(self, reg_a, reg_b):
+        self.reg[reg_a] = reg_b
+        self.pc += 3
+
+    def push(self, reg_a, reg_b):
+        self.sp -= 1
+        self.ram_write(self.sp, self.reg[reg_a])
+        self.pc += 2
+
+    def pop(self, reg_a, reg_b):
+        self.reg[reg_a] = self.ram_read(self.sp)
+        self.sp += 1
+        self.pc += 2
+
+   
+    def call(self, reg_a, reg_b):
+       
+        self.sp -= 1       
+        self.ram_write(self.sp, self.pc + 2)       
+        self.pc = self.reg[reg_a]
+
+    def ret(self, reg_a, reg_b):
+        self.pc = self.ram_read(self.sp)
+        self.sp += 1
+
+    def jmp(self, reg_a, reg_b):
+        self.pc = self.reg[reg_a]
+
+    def jeq(self, reg_a, reg_b):
+        if self.fl:
+            self.jmp(reg_a, reg_b)
         else:
-            print("idk what to do.")
-            pass
+            self.pc += 2
+
+    def jne(self, reg_a, reg_b):
+        if not self.fl:
+            self.jmp(reg_a, reg_b)
+        else:
+            self.pc += 2
+
+    
+    def run(self):
+        running = True
+
+        while running:
+            ir = self.ram_read(self.pc)
+            reg_a = self.ram_read(self.pc + 1)
+            reg_b = self.ram_read(self.pc + 2)          
+            if ir == HLT:
+                running = False
+            else:
+                self.dispatchable[ir](reg_a, reg_b)
