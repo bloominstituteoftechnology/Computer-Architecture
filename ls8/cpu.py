@@ -41,9 +41,9 @@ class CPU:
             POP: self.pop, 
             CALL: self.call,
             RET: self.ret,
-            JEQ: self.jeq,
-            JNE: self.jne,
-            JMP: self.jmp
+            #JEQ: self.jeq,
+            #JNE: self.jne,
+            #JMP: self.jmp
         }
 
 
@@ -171,6 +171,62 @@ class CPU:
 
     def prn(self, operand_a, operand_b):
         print(self.reg[operand_a])
+    
+
+    def jmp(self, operand_a, operand_b):
+
+        reg_idx = self.reg[operand_a]
+
+        self.pc = reg_idx
+
+
+    def push(self, operand_a, operand_b):
+        # decrement the SP.
+        self.reg[7] -= 1
+        # copy the value in the given register to the address pointed to by SP
+        value = self.reg[operand_a]
+        # copy to the address at stack pointer
+        SP = self.reg[7]
+        self.ram[SP] = value
+
+
+    def pop(self, operand_a, operand_b):
+        # get SP
+        SP = self.reg[7]
+        # get address pointed to by SP
+        value = self.ram[SP]
+        # Copy the value from the address pointed to by SP to the given register.
+        self.reg[operand_a] = value
+        # increment SP
+        self.reg[7] += 1
+
+    def call(self, operand_a, operand_b):
+        # PUSH
+        return_address = self.pc + 2
+        # decrement the SP, stored in R7 
+        self.reg[7] -= 1
+        # store the value at the SP address
+        SP = self.reg[7]
+        # the return address is 8 as we can see by looking ahead by 2
+        self.ram[SP] = return_address
+        # ram (command) at 7 contains 1
+        reg_idx = self.ram[self.pc+1]
+        # reg 1 contains 24
+        subroutine_address = self.reg[reg_idx]
+        # pc is at 24
+        self.pc = subroutine_address 
+
+
+    def ret(self, operand_a, operand_b):
+        # Return from subroutine.
+        # Pop value from top of stack 
+        SP = self.reg[7]
+        return_address = self.ram[SP]
+        #store it in the PC
+        self.pc = return_address
+        # increment stack
+        self.reg[7] += 1
+
 
 if __name__ == '__main__':
     cpu = CPU()
