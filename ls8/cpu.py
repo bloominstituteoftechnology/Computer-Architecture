@@ -3,20 +3,72 @@
 import sys
 import os.path
 
+
+HLT  = 0b00000001 # halt code
+LDI  = 0b10000010 # load integer
+PRN  = 0b01000111 # print
+MUL  = 0b10100010 # multiply
+PUSH = 0b01000101 # push stack
+POP  = 0b01000110 # pop stack
+
+
+
 class CPU:
     """Main CPU class."""
 
     def __init__(self):
         """Construct a new CPU."""
-        self.ram = [0] * 256
-        self.reg = [0] * 8
-        self.pc = 0
+        self.ram = [0] * 256 # ram
+        self.reg = [0] * 8 # registers
+        self.pc = 0 # counter
+        self.ir = 0 # instruction register
+        self.mar = 0 # memory address register
+        self.mdr = 0 # memory data register
+        self.fl = 0 # flag register
+        self.halted = False
 
-    def ram_read(self, address):
-        return self.ram[address]
+        # initialize stack pointer
+        self.reg[7] = 0xF4
 
-    def ram_write(self, address, data):
-        self.ram[address] = data
+        # setup branch table
+
+        self.branchtable = {}
+        self.branchtable[HLT] = self.execute_HLT
+        self.branchtable[LDI] = self.execute_LDI
+        self.branchtable[PRN] = self.execute_PRN
+        self.branchtable[MUL] = self.execute_MUL
+        self.branchtable[PUSH] = self.execute_PUSH
+        self.branchtable[POP] = self.execute_POP
+
+    # stack pointer
+
+    @property
+    def pointer(self):
+        return self.reg[7]
+
+    @pointer.setter
+    def pointer(self, a):
+        self.reg[7] = a & 0xFF
+
+    def instruction_size(self):
+        return ((self.ir >> 6) & 0b11) + 1
+
+    def instruction_sets_pc(self):
+        return ((self.ir >> 4) & 0b0001) == 1
+
+    def ram_read(self, mar):
+        if mar >= 0 and mar < len(self.ram):
+            return self.ram[mar]
+        else:
+            print(f"Error: Attempted to read memory out of bounds.")
+            return -1
+
+    def ram_write(self, mar, mdr):
+        if mar >= 0 and mar < len(self.ram):
+            self.ram[mar] = mdr & 0xFF
+        else:
+            print("Error Attempted to write memory out of bounds.")
+
 
     def load(self, file_name):
         """Load a program into memory."""
@@ -37,23 +89,6 @@ class CPU:
         except:
             print(f'Could not find file named: {file_name}')
             sys.exit(1)
-
-        # # For now, we've just hardcoded a program:
-        #
-        # program = [
-        #     # From print8.ls8
-        #     0b10000010, # LDI R0,8
-        #     0b00000000,
-        #     0b00001000,
-        #     0b01000111, # PRN R0
-        #     0b00000000,
-        #     0b00000001, # HLT
-        # ]
-        #
-        # for instruction in program:
-        #     self.ram[address] = instruction
-        #     address += 1
-
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -90,36 +125,43 @@ class CPU:
     def run(self):
         """Run the CPU."""
 
-        HLT = 0b00000001
-        LDI = 0b10000010
-        PRN = 0b01000111
-        MUL = 0b10100010
+        while not self.halted:
+            self.ir = self.ram_read(self.pc)
+            operand_a = self.ram_read(self.pc + 1)
+            operand_b = self.ram_read(self.pc + 2)
 
+            if not self.instruction_sets_pc():
+                self.pc += self.instruction_size()
 
-        halted = False
+            self.execute_instruction(operand_a, operand_b)
 
-        while not halted:
-            instruction = self.ram_read(self.pc)
+    def execute_instruction(self, operand_a, operand_b):
+        if self.ir in self.branchtable:
+            self.branchtable[self.ir](operand_a, operand_b)
+        else:
+            print(f"Error: Instruction not found.")
+            sys.exit(1)
 
-            if instruction == HLT:
-                halted = True
+    # refactored commands
 
-            elif instruction == LDI:
-                new_register = self.ram[self.pc + 1]
-                new_value = self.ram[self.pc + 2]
+    def execute_HLT(self, operand_a, operand_b):
+        self.halted = True
 
-                self.reg[new_register] = new_value
-                self.pc += 3
+    def execute_LDI(self, operand_a, operand_b):
+        self.reg[operand_a] = operand_b
 
-            elif instruction == PRN:
-                new_register = self.ram[self.pc +1]
-                print(self.reg[new_register])
-                self.pc += 2
+    def execute_PRN(self, operand_a, operand_b):
+        print(self.reg[operand_a])
 
-            elif instruction == MUL:
-                self.pc += 1
-                num_1 = self.ram_read(self.pc)
-                self.pc += 1
-                num_2 = self.ram_read(self.pc)
-                self.alu("MUL", num_1, num_2)
-                self.pc += 1
+    def execute_MUL(self, operand_a, operand_b):
+        self.reg[operand_a] *= self.reg[operand_b]
+
+    def execute_PUSH(self, operand_a, operand_b):
+        self.pointer -= 1
+        value_in_register = self.reg[operand_a]
+        self.ram[self.pointer] = value_in_register
+
+    def execute_POP(self, operand_a, operand_b):
+        top_of_stack = self.ram[self.pointer]
+        self.reg[operand_a] = top_of_stack
+        self.pointer += 1
