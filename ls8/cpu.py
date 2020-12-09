@@ -104,7 +104,9 @@ class CPU:
         """
         Handy function to print out the CPU state. You might want to call this
         from run() if you need help debugging.
+
         """
+        
         print(f"TRACE: %02X | %02X %02X %02X |" % (
             self.pc,
             #self.fl,
