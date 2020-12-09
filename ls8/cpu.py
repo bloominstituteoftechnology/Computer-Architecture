@@ -2,6 +2,11 @@
 
 import sys
 
+HLT = 0b00000001
+LDI = 0b10000010
+PRN = 0b01000111
+MUL = 0b10100010
+
 class CPU:
     """Main CPU class."""
 
@@ -11,34 +16,47 @@ class CPU:
         self.reg = [0b00000000] * 8
         self.pc = 0
 
-    def load(self):
+    def load(self, filename):
         """Load a program into memory."""
 
         address = 0
 
+        with open(filename) as my_file:
+            for line in my_file:
+                comment_split = line.split("#")
+                maybe_binary_num = comment_split[0]
+
+                try:
+                    x = int(maybe_binary_num, 2)
+                    self.ram_write(x, address)
+                    address += 1
+                except:
+                    # print("not a binary number")
+                    continue
+
         # For now, we've just hardcoded a program:
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+        # program = [
+        #     # From print8.ls8
+        #     0b10000010, # LDI R0,8
+        #     0b00000000,
+        #     0b00001000,
+        #     0b01000111, # PRN R0
+        #     0b00000000,
+        #     0b00000001, # HLT
+        # ]
 
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+        # for instruction in program:
+        #     self.ram[address] = instruction
+        #     address += 1
 
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
 
-        if op == "ADD":
-            self.reg[reg_a] += self.reg[reg_b]
-        #elif op == "SUB": etc
+        if op == MUL:
+            self.reg[reg_a] *= self.reg[reg_b]
+            self.pc += 3
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -64,10 +82,6 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        HLT = 0b00000001
-        LDI = 0b10000010
-        PRN = 0b01000111
-
         halted = False
 
         while not halted:
@@ -77,7 +91,7 @@ class CPU:
                 halted = True
 
             elif instruction == LDI:
-                reg_num = self.ram[self.pc + 1]
+                reg_num = self.ram_read(self.pc + 1)
                 value = self.ram[self.pc + 2]
 
                 self.reg[reg_num] = value
@@ -87,6 +101,11 @@ class CPU:
                 reg_num = self.ram[self.pc + 1]
                 print(self.reg[reg_num])
                 self.pc += 2
+
+            elif instruction == MUL:
+                operand_a = self.ram_read(self.pc + 1)
+                operand_b = self.ram_read(self.pc + 2)
+                self.alu(instruction, operand_a, operand_b)
 
     def ram_read(self, address):
         return self.ram[address]
