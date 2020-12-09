@@ -66,7 +66,7 @@ Memory map:
     bottom of RAM
 ```
 
-## Stack
+## Stack[x]
 
 The SP points at the value at the top of the stack (most recently pushed), or at
 address `F4` if the stack is empty.
@@ -541,7 +541,7 @@ Machine code:
 AA 0a 0b
 ```
 
-### POP
+### POP[x]
 
 `POP register`
 
@@ -589,7 +589,7 @@ Machine code:
 47 0r
 ```
 
-### PUSH
+### PUSH[x]
 
 `PUSH register`
 
