@@ -5,6 +5,7 @@ import sys
 HLT = 0b00000001		
 LDI = 0b10000010
 PRN = 0b01000111
+MULT = 0b10100010
 
 class CPU:
     """Main CPU class."""
@@ -111,6 +112,9 @@ class CPU:
         elif instruction == HLT:
             self.running = False
             self.pc += 1
+        elif instruction == MULT:
+            self.reg[operation_1] *= self.reg[operation_2]
+            self.pc += 3
         else:
             print("I don't know what to do.")
             pass
