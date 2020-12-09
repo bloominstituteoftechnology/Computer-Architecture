@@ -6,6 +6,8 @@ HLT = 0b00000001
 LDI = 0b10000010
 PRN = 0b01000111
 MUL = 0b10100010
+PUSH = 0b01000101
+POP = 0b01000110
 
 class CPU:
     """Main CPU class."""
@@ -14,6 +16,7 @@ class CPU:
         """Construct a new CPU."""
         self.ram = [0b00000000] * 256
         self.reg = [0b00000000] * 8
+        self.reg[7] = 0xF4
         self.pc = 0
 
     def load(self, filename):
@@ -107,8 +110,35 @@ class CPU:
                 operand_b = self.ram_read(self.pc + 2)
                 self.alu(instruction, operand_a, operand_b)
 
+            elif instruction == POP:
+                operand = self.ram_read(self.pc + 1)
+                self.pop(operand)
+                self.pc += 2
+
+            elif instruction == PUSH:
+                operand = self.ram_read(self.pc + 1)
+                self.push(operand)
+                self.pc += 2
+
     def ram_read(self, address):
         return self.ram[address]
 
     def ram_write(self, value, address):
         self.ram[address] = value
+
+    def add_sp(self):
+        self.reg[7] += 1
+
+    def sub_sp(self):
+        self.reg[7] -= 1
+
+    def get_sp(self):
+        return self.reg[7]
+
+    def pop(self, operand):
+        self.reg[operand] = self.ram[self.get_sp()]
+        self.add_sp()
+
+    def push(self, operand):
+        self.sub_sp()
+        self.ram[self.get_sp()] = self.reg[operand]
