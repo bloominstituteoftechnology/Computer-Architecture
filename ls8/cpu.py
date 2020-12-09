@@ -11,7 +11,16 @@ class CPU:
         self.ram = [0] * 256
         self.reg = [0] * 8
         self.pc = 0
+        self.reg[7] = 0xf4
         self.running = False
+        self.branchTable = {
+            130: self.ldi,
+            71: self.prn,
+            162: self.mult,
+            1: self.halt,
+            69: self.pushy,
+            70: self.poppy
+        }
 
     def load(self):
         """Load a program into memory."""
@@ -88,36 +97,76 @@ class CPU:
 
         print()
 
+    def ldi(self, op_a, op_b):
+        self.reg[op_a] = op_b
+        self.pc += 3
+
+    def prn(self, op_a, op_b):
+        print("Printing", self.reg[op_a])
+        self.pc += 2
+
+    def halt(self, op_a, op_b):
+        print("Halt")
+        self.running = False
+
+    def mult(self, op_a, op_b):
+        print("alu", self.alu("MUL", op_a, op_b))
+
+    def pushy(self, op_a, op_b):
+        self.reg[7] -= 1
+        register_address = self.ram[self.pc + 1]
+        value = self.reg[register_address]
+        self.ram[self.reg[7]] = value
+        self.pc += 2
+
+    def poppy(self, op_a, op_b):
+        value = self.ram[self.reg[7]]
+        register_address = self.ram[self.pc + 1]
+        self.reg[register_address] = value
+        self.reg[7] += 1
+        self.pc += 2
+
     def run(self):
-        ldi = 130
-        prn = 71
-        mul = 162
-        hlt = 1
-        """Run the CPU."""
         self.running = True
-        # IR = {}
-        # IR[self.pc] = self.reg[self.pc]
 
         while self.running:
             instruction = self.ram_read(self.pc)
             operand_a = self.ram_read(self.pc+1)
             operand_b = self.ram_read(self.pc+2)
-            if instruction == ldi:
-                self.reg[operand_a] = operand_b
-                self.pc += 3
-                print("first loop")
-            elif instruction == prn:
-                print("Printing", self.reg[operand_a])
-                self.pc += 2
-            elif instruction == hlt:
-                print("Halt")
-                self.running = False
-            elif instruction == mul:
-                print("alu", self.alu("MUL", operand_a, operand_b))
-            else:
+            try:
+                self.branchTable[instruction](operand_a, operand_b)
+
+            except Exception:
                 print(
                     f'Could not find that particular instruction.{instruction}')
-                return
+
+    # def run(self):
+    #     ldi = 130
+    #     prn = 71
+    #     mul = 162
+    #     hlt = 1
+    #     """Run the CPU."""
+    #     self.running = True
+
+    #     while self.running:
+    #         instruction = self.ram_read(self.pc)
+    #         operand_a = self.ram_read(self.pc+1)
+    #         operand_b = self.ram_read(self.pc+2)
+    #         if instruction == ldi:
+    #             self.reg[operand_a] = operand_b
+    #             self.pc += 3
+    #             print("first loop")
+    #         elif instruction == prn:
+    #             print("Printing", self.reg[operand_a])
+    #             self.pc += 2
+    #         elif instruction == hlt:
+    #             print("Halt")
+    #             self.running = False
+    #         elif instruction == mul:
+    #             print("alu", self.alu("MUL", operand_a, operand_b))
+    #         else:
+    #             print(
+    #                 f'Could not find that particular instruction.{instruction}')
 
     def ram_read(self, mar):
         return self.ram[mar]
