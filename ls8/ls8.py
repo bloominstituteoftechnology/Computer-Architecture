@@ -5,7 +5,17 @@
 import sys
 from cpu import *
 
-cpu = CPU()
+# From class
+""" if(len(sys.argv) != 2):
+    print('Please pass two arguments')
+else:
+    console_args = sys.argv[1]
+    cpu = CPU()
+    cpu.load(console_args)
+    cpu.run() """
+##############
 
-cpu.load()
+console_args = sys.argv[1]
+cpu = CPU()
+cpu.load(console_args)
 cpu.run()
