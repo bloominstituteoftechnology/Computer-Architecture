@@ -10,15 +10,13 @@ POP = 0b01000110
 PUSH = 0b01000101
 SP = 7
 
-
-
 class CPU:
     """Main CPU class."""
 
     def __init__(self):
         """Construct a new CPU."""
         self.registers = [0] * 8
-        self.registers[SP] = 0xF4
+        self.registers[7] = 0xF4
         self.pc = 0
         self.ram = [0] * 256
         self.halted = False
@@ -68,7 +66,7 @@ class CPU:
         ), end='')
 
         for i in range(8):
-            print(" %02X" % self.registers[i], end='')
+            print(" %02X" % self.reg[i], end='')
 
         print()
 
@@ -98,14 +96,16 @@ class CPU:
             self.pc += 3
         elif instruction == MUL:
             self.alu(instruction, operand_a, operand_b)
-        elif instruction == POP:
-            value = self.ram[self.registers[SP]]
-            self.registers[operand_a] = value
-            self.registers[SP] += 1
         elif instruction == PUSH:
-            self.reg[SP] -= 1
-            value = self.registers[operand_a]
-            self.ram[self.registers[SP]] = value
+            # decrement the stack pointer
+            self.registers[SP] -=1
+            # store the operand in the stack
+            self.ram_write(self.registers[operand_a], self.registers[SP])
+            self.pc += 2
+        elif instruction == POP:
+            self.registers[operand_a] = self.ram_read(self.registers[SP])
+            self.registers[SP] += 1
+            self.pc += 2
         else:
             print("idk what to do.")
             pass
