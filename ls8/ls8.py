@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
 
-"""Main."""
-
-#!/usr/bin/env python3
-
 """Main. Initializing the CPU object."""
 
 import sys
