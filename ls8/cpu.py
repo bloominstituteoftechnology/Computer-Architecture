@@ -11,14 +11,22 @@ import sys
  Add the LDI instruction
  Add the PRN instruction
  """
+
+HLT = 0b00000001
+LDI = 0b10000010
+PRN = 0b01000111
+
+
 class CPU:
     """Main CPU class."""
 
     def __init__(self):
         """Construct a new CPU."""
-        self.ram = [0] * 15
-        self.pc = 0
         self.registers = [0] * 8
+        self.registers[7] = 0XF4
+        self.ram = [0] * 256
+        self.pc = 0
+        self.halted = False
 
     def load(self):
         """Load a program into memory."""
@@ -41,11 +49,11 @@ class CPU:
             self.ram[address] = instruction
             address += 1
 
-    def ram_read(self, pc):
-        pass
+    def ram_read(self, address):
+        return self.ram[address]
 
-    def ram_write(self, pc):
-        pass
+    def ram_write(self, address, value):
+        self.ram[address] = value
 
     # def alu(self, op, reg_a, reg_b):
     #     """ALU operations."""
@@ -78,43 +86,54 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        running = True
-        register_count = -1
-        for register in self.registers:
-            register_count += 1
-            if register_count <= 6:
-                self.registers[register_count] = 0
-            else:
-                self.registers[register_count] = '0xF4'
 
-        self.ram = [0] * 15
-        self.pc = 0
-        self.load()
+        while not self.halted:
+            command_to_execute = self.ram_read(self.pc)
+            operand_a = self.ram_read(self.pc + 1)
+            operand_b = self.ram_read(self.pc + 2)
+            self.execute_instruction(command_to_execute, operand_a, operand_b)
 
-        while running:
-            command_to_execute = self.ram[self.pc]
 
-            # LDI instruction
-            if command_to_execute == 130:
-                spot_to_store = self.ram[self.pc + 1]
-                value_to_store = self.ram[self.pc + 2]
+    def execute_instruction(self, instruction, operand_a, operand_b):
+        if instruction == HLT:
+            self.halted = True
+        elif instruction == PRN:
+            print(self.registers[operand_a])
+            self.pc += 2
+        elif instruction == LDI:
+            self.registers[operand_a] = operand_b
+            self.pc += 3
+        else:
+            print("ERROR")
 
-                self.registers[spot_to_store] = value_to_store
 
-                self.pc += 3
 
-            # PRN instruction
-            elif command_to_execute == 71:
-                selected_register = self.ram[self.pc + 1]
-                print(self.registers[selected_register])
-                self.pc += 2
 
-            # HLT instruction
-            elif command_to_execute == 1:
-                running = False
 
-            # EXCEPTION
-            else:
-                print("ERROR INCORRECT COMMAND")
+
+
+
+            # # LDI instruction
+            # if command_to_execute == 130:
+            #     spot_to_store = self.ram[self.pc + 1]
+            #     value_to_store = self.ram[self.pc + 2]
+
+            #     self.registers[spot_to_store] = value_to_store
+
+            #     self.pc += 3
+
+            # # PRN instruction
+            # elif command_to_execute == 71:
+            #     selected_register = self.ram[self.pc + 1]
+            #     print(self.registers[selected_register])
+            #     self.pc += 2
+
+            # # HLT instruction
+            # elif command_to_execute == 1:
+            #     running = False
+
+            # # EXCEPTION
+            # else:
+            #     print("ERROR INCORRECT COMMAND")
 
         
