@@ -21,6 +21,12 @@ RET = 0b0001
 INT = 0b0010
 IRET = 0b0011
 JMP = 0b0100
+JEQ = 0b0101
+JNE = 0b0110
+JGT = 0b0111
+JLT = 0b1000
+JLE = 0b1001
+JGE = 0b1010
 
 ALU_ADD = 0b0000
 ALU_SUB = 0b0001
@@ -88,7 +94,15 @@ class CPU:
                 raise "Can't divide by 0"
             self.reg[reg_a] //= self.reg[reg_b]
         # def mod(a, b): self.reg[a] %= self.reg[b]
-            
+        def cmp():
+            a = self.reg[reg_a]
+            b = self.reg[reg_b]
+            if a == b:
+                self.fl = 0b1
+            elif a > b:
+                self.fl = 0b10
+            else:
+                self.fl = 0b100
 
         ALU_INSTRUCTIONS = {
             ALU_ADD: add,
@@ -98,7 +112,7 @@ class CPU:
             # ALU_MOD: lambda a, b: self.reg[a] % self.reg[b],
             # ALU_INC: lambda a: self.reg[a] + 1,
             # ALU_DEC: lambda a: self.reg[a] - 1,
-            # ALU_CMP: lambda a, b: self.reg[a] == self.reg[b],
+            ALU_CMP: cmp,
             # ALU_AND: lambda _: ,
             # ALU_NOT: lambda _: ,
             # ALU_OR: lambda _: ,
@@ -189,11 +203,29 @@ class CPU:
                         self.fl = self.pop()
                         self.pc = self.pop()
                         self.reg[IM] = ~0
-
+                    def jeq():
+                        if self.fl & 1: self.pc = self.reg[next(operands)]
+                    def jne():
+                        if not self.fl & 1: self.pc = self.reg[next(operands)]
+                    def jgt():
+                        if self.fl & 0b10: self.pc = self.reg[next(operands)]
+                    def jge():
+                        if self.fl & 0b11: self.pc = self.reg[next(operands)]
+                    def jlt():
+                        if self.fl & 0b100: self.pc = self.reg[next(operands)]
+                    def jle():
+                        if self.fl & 0b101: self.pc = self.reg[next(operands)]
+                        
                     INSTRUCTIONS = {
                         CALL: call,
                         RET: ret,
                         JMP: jmp,
+                        JEQ: jeq,
+                        JNE: jne,
+                        JGT: jgt,
+                        JLT: jlt,
+                        JLE: jle,
+                        JGE: jge,
                         INT: int_,
                         IRET: iret
                     }
@@ -209,8 +241,12 @@ class CPU:
                         a = next(operands)
                         b = next(operands)
                         self.reg[a] = b
-                    def prn(): print(self.reg[next(operands)])
-                    def pra(): print(chr(self.reg[next(operands)]))
+                    def prn():
+                        print(self.reg[next(operands)], end="")
+                        sys.stdout.flush()
+                    def pra():
+                        print(chr(self.reg[next(operands)]), end="")
+                        sys.stdout.flush()
                     def push(): self.push(self.reg[next(operands)])
                     def pop(): self.reg[next(operands)] = self.pop()
                     def st():
