@@ -110,7 +110,7 @@ class CPU:
             self.pc += 2
         elif instruction == CALL:
             self.registers[SP] -= 1
-            self.ram_write([operand_b], self.registers[SP])
+            self.ram_write(operand_b, self.registers[SP])
             self.pc = self.registers[operand_a]
         elif instruction == RET:
             self.registers[SP] += 1
