@@ -103,6 +103,8 @@ class CPU:
         mul  = 0b10100010
         push = 0b01000101
         pop  = 0b01000110
+        call = 0b01010000
+        ret  = 0b00010001
 
         while running:
             # print(self.pc)
@@ -139,6 +141,15 @@ class CPU:
                 self.reg[self.sp] += 1
                 print(f"Popping: {self.reg[register_to_pop_value_in]}")
                 self.pc += (command_to_execute >> 6) + 1
+            elif command_to_execute == call:
+                self.reg[self.sp] -= 1
+                address_of_next_instruction = self.pc + 2
+                self.ram[self.reg[self.sp]] = address_of_next_instruction
+                register_to_get_address_from = self.ram[self.pc + 1]
+                self.pc = self.reg[register_to_get_address_from]
+            elif command_to_execute == ret:
+                self.pc = self.ram[self.reg[self.sp]]
+                self.reg[self.sp] += 1
             else:
                 print(f"Unkown command: {command_to_execute}")
                 self.pc += (command_to_execute >> 6) + 1
