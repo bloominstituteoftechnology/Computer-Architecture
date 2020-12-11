@@ -17,9 +17,12 @@ class CPU:
             130: self.ldi,
             71: self.prn,
             162: self.mult,
+            160: self.add,
             1: self.halt,
             69: self.pushy,
-            70: self.poppy
+            70: self.poppy,
+            80: self.cal,
+            17: self.retrn
         }
 
     def load(self):
@@ -60,12 +63,14 @@ class CPU:
         #     self.ram[address] = instruction
         #     address += 1
 
-    def alu(self, op, reg_a, reg_b):
+    def alu(self, op):
         """ALU operations."""
-
+        reg_a = self.ram_read(self.pc+1)
+        reg_b = self.ram_read(self.pc+2)
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
-            self.pc += 2
+            self.pc += 3
+
         elif op == "SUB":
             self.reg[reg_a] -= self.reg[reg_b]
             self.pc += 2
@@ -97,48 +102,68 @@ class CPU:
 
         print()
 
-    def ldi(self, op_a, op_b):
-        self.reg[op_a] = op_b
+    def ldi(self):
+        self.reg[self.ram[self.pc+1]] = self.ram[self.pc+2]
         self.pc += 3
 
-    def prn(self, op_a, op_b):
-        print("Printing", self.reg[op_a])
+    def prn(self):
+        print("Printing", self.reg[self.ram[self.pc+1]])
         self.pc += 2
 
-    def halt(self, op_a, op_b):
+    def halt(self):
         print("Halt")
         self.running = False
 
-    def mult(self, op_a, op_b):
-        print("alu", self.alu("MUL", op_a, op_b))
+    def mult(self):
+        print("alu", self.alu("MUL"))
 
-    def pushy(self, op_a, op_b):
+    def add(self):
+        print("alu add", self.alu("ADD"))
+
+    def pushy(self):
         self.reg[7] -= 1
         register_address = self.ram[self.pc + 1]
         value = self.reg[register_address]
         self.ram[self.reg[7]] = value
         self.pc += 2
 
-    def poppy(self, op_a, op_b):
+    def poppy(self):
         value = self.ram[self.reg[7]]
         register_address = self.ram[self.pc + 1]
         self.reg[register_address] = value
         self.reg[7] += 1
         self.pc += 2
 
+    def cal(self):
+        next_command_address = self.pc + 2
+        self.reg[7] -= 1
+        SP = self.reg[7]
+        self.ram[SP] = next_command_address
+        register_num_jump = self.ram[self.pc + 1]
+        address_to_jump_to = self.reg[register_num_jump]
+        self.pc = address_to_jump_to
+
+    def retrn(self):
+        SP = self.reg[7]
+        return_address = self.ram[SP]
+        self.reg[7] += 1
+        self.pc = return_address
+
     def run(self):
         self.running = True
 
         while self.running:
             instruction = self.ram_read(self.pc)
-            operand_a = self.ram_read(self.pc+1)
-            operand_b = self.ram_read(self.pc+2)
+            # print(instruction, "instruction")
+            # operand_a = self.ram_read(self.pc+1)
+            # operand_b = self.ram_read(self.pc+2)
             try:
-                self.branchTable[instruction](operand_a, operand_b)
+                self.branchTable[instruction]()
 
             except Exception:
                 print(
                     f'Could not find that particular instruction.{instruction}')
+                self.running = False
 
     # def run(self):
     #     ldi = 130
