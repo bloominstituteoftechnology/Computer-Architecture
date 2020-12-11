@@ -8,6 +8,8 @@ PRN = 0b01000111
 MUL = 0b10100010
 POP = 0b01000110
 PUSH = 0b01000101
+CALL = 0b01010000
+RET = 0b01010000
 SP = 7
 
 class CPU:
@@ -98,7 +100,7 @@ class CPU:
             self.alu(instruction, operand_a, operand_b)
         elif instruction == PUSH:
             # decrement the stack pointer
-            self.registers[SP] -=1
+            self.registers[SP] -= 1
             # store the operand in the stack
             self.ram_write(self.registers[operand_a], self.registers[SP])
             self.pc += 2
@@ -106,6 +108,14 @@ class CPU:
             self.registers[operand_a] = self.ram_read(self.registers[SP])
             self.registers[SP] += 1
             self.pc += 2
+        elif instruction == CALL:
+            self.registers[SP] -= 1
+            self.ram_read(self.registers[SP]) = self.registers[operand_b]
+            self.registers[operand_a] = self.ram_read(self.registers[SP])
+            self.pc -= 1
+        elif instruction == RET:
+            self.registers[SP] += 1
+            self.pc = self.ram_read(self.registers[SP])
         else:
             print("idk what to do.")
             pass
