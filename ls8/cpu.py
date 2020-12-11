@@ -8,6 +8,7 @@ PRN = 0b01000111
 MUL = 0b10100010
 PUSH = 0b01000101
 POP = 0b01000110
+CALL = 0b01010000
 
 SP = 7
 
@@ -105,6 +106,11 @@ class CPU:
         elif instruction == POP:
             self.registers[operand_a] = self.ram_read(self.registers[SP])
             self.pc += 2
+        elif instruction == CALL:
+            self.registers[SP] -= 1
+            address_of_next_instruction = self.pc + 2
+        elif instruction == RET:
+            pass
         else:
             print('idk what to do.')
             pass
