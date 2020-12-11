@@ -101,6 +101,7 @@ class CPU:
             raise Exception("Unsupported ALU operation")
 
     def trace(self):
+        
         """
         Handy function to print out the CPU state. You might want to call this
         from run() if you need help debugging.
