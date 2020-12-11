@@ -10,6 +10,7 @@ SP = 7
 
 HLT = 0b0001
 LDI = 0b0010
+LD = 0b0011
 ST = 0b0100
 PUSH = 0b0101
 POP = 0b0110
@@ -105,6 +106,8 @@ class CPU:
                 self.fl = 0b100
         def shl(): self.reg[reg_a] <<= self.reg[reg_b]
         def shr(): self.reg[reg_a] >>= self.reg[reg_b]
+        def inc(): self.reg[reg_a] += 1
+        def dec(): self.reg[reg_a] -= 1
 
         ALU_INSTRUCTIONS = {
             ALU_ADD: add,
@@ -112,8 +115,8 @@ class CPU:
             ALU_MUL: mul,
             ALU_DIV: div,
             # ALU_MOD: lambda a, b: self.reg[a] % self.reg[b],
-            # ALU_INC: lambda a: self.reg[a] + 1,
-            # ALU_DEC: lambda a: self.reg[a] - 1,
+            ALU_INC: inc,
+            ALU_DEC: dec,
             ALU_CMP: cmp,
             # ALU_AND: lambda _: ,
             # ALU_NOT: lambda _: ,
@@ -191,7 +194,7 @@ class CPU:
                 self.pc += operand_count
                 
                 if is_alu:
-                    self.alu(instruction, next(operands), next(operands))
+                    self.alu(instruction, next(operands), next(operands, 0))
                 elif sets_pc:
                     def call():
                         self.push(self.pc)
@@ -243,6 +246,10 @@ class CPU:
                         a = next(operands)
                         b = next(operands)
                         self.reg[a] = b
+                    def ld():
+                        a = next(operands)
+                        b = next(operands)
+                        self.reg[a] = self.ram[self.reg[b]]
                     def prn():
                         print(self.reg[next(operands)], end="")
                         sys.stdout.flush()
@@ -258,6 +265,7 @@ class CPU:
                     
                     INSTRUCTIONS = {
                         LDI: ldi,
+                        LD: ld,
                         PRN: prn,
                         PRA: pra,
                         PUSH: push,
