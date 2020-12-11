@@ -103,6 +103,8 @@ class CPU:
                 self.fl = 0b10
             else:
                 self.fl = 0b100
+        def shl(): self.reg[reg_a] <<= self.reg[reg_b]
+        def shr(): self.reg[reg_a] >>= self.reg[reg_b]
 
         ALU_INSTRUCTIONS = {
             ALU_ADD: add,
@@ -117,8 +119,8 @@ class CPU:
             # ALU_NOT: lambda _: ,
             # ALU_OR: lambda _: ,
             # ALU_XOR: lambda _: ,
-            # ALU_SHL: lambda _: ,
-            # ALU_SHR: lambda _: ,
+            ALU_SHL: shl,
+            ALU_SHR: shr,
         }
 
         if op in ALU_INSTRUCTIONS:
