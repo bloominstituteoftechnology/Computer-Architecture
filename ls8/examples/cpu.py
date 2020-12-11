@@ -1,6 +1,7 @@
 """CPU functionality."""
 
 import sys
+import os
 
 """
  Inventory what is here
@@ -15,6 +16,7 @@ import sys
 HLT = 0b00000001
 LDI = 0b10000010
 PRN = 0b01000111
+MUL = 0b10100010
 
 
 class CPU:
@@ -28,26 +30,30 @@ class CPU:
         self.pc = 0
         self.halted = False
 
-    def load(self):
+    def decimal_to_binary(self,x):
+        return int(bin(x)[:2])
+
+    def load(self, file_name):
         """Load a program into memory."""
+        current = 0
+        counter = 0
+        try:
+            with open(file_name) as my_file:
+                for line in my_file:
+                    comment_split = line.split("#")
+                    maybe_binary_number = comment_split[0]
 
-        address = 0
-
-        # For now, we've just hardcoded a program:
-
-        program = [ # LOOK IN THE SPECS
-            # From print8.ls8
-            0b10000010, # LDI R0,8 (--- one operand ---)
-            0b00000000, # this indicates the register to be saved to '0'
-            0b00001000, # ---- 8 ---- this indicates the value
-            0b01000111, # PRN R0
-            0b00000000, # index to print in register
-            0b00000001, # HLT
-        ]
-
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+                    try:
+                        x = int(maybe_binary_number, 2)
+                        self.ram[current] = x
+                        current += 1
+                    except: 
+                        print(f"failed to cast {maybe_binary_number} as an integer.")
+                        continue
+        except FileNotFoundError:
+            print(os.getcwd())
+            print("file not found")
+            sys.exit(1)                   
 
     def ram_read(self, address):
         return self.ram[address]
@@ -102,6 +108,9 @@ class CPU:
             self.pc += 2
         elif instruction == LDI:
             self.registers[operand_a] = operand_b
+            self.pc += 3
+        elif instruction == MUL:
+            self.registers[operand_a] = self.registers[operand_a] * self.registers[operand_b]
             self.pc += 3
         else:
             print("ERROR")
