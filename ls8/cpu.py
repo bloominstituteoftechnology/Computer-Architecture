@@ -9,6 +9,8 @@ MUL = 0b10100010
 PUSH = 0b01000101
 POP = 0b01000110
 
+SP = 7
+
 class CPU:
     """Main CPU class."""
 
@@ -19,7 +21,6 @@ class CPU:
         self.pc = 0
         self.ram = [0] * 256
         self.halted = False
-        self.sp = F4
 
     def load(self, filename):
         """Load a program into memory."""
@@ -76,6 +77,7 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
+
         while not self.halted:
             instruction_to_execute = self.ram_read(self.pc)
             operand_a = self.ram_read(self.pc + 1)
@@ -95,7 +97,14 @@ class CPU:
         elif instruction == MUL:
             self.alu(instruction, operand_a, operand_b)
         elif instruction == PUSH:
-            self.registers[]
+            # decrement the stack pointer
+            self.registers[SP] -= 1
+            # store the operand ine the stack
+            self.ram_write(self.registers[operand_a], self.registers[SP])
+            self.pc += 2
+        elif instruction == POP:
+            self.registers[operand_a] = self.ram_read(self.registers[SP])
+            self.pc += 2
         else:
             print('idk what to do.')
             pass
