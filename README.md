@@ -10,8 +10,8 @@
 
 - [x] Inventory what is here
 - [x] Implement the `CPU` constructor
-- [ ] Add RAM functions `ram_read()` and `ram_write()`
-- [ ] Implement the core of `run()`
+- [x] Add RAM functions `ram_read()` and `ram_write()`
+- [x] Implement the core of `run()`
 - [ ] Implement the `HLT` instruction handler
 - [ ] Add the `LDI` instruction
 - [ ] Add the `PRN` instruction
