@@ -92,4 +92,19 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        while self.running:
+            command_to_execute = self.ram_read(self.pc)
+
+            if command_to_execute == 0b10000010: # LDI
+                operation_1 = self.ram_read(self.pc + 1)
+                operation_2 = self.ram_read(self.pc + 2)
+
+                self.reg[operation_1] = operation_2
+                self.pc += 3
+            if command_to_execute == 0b01000111: # PRN
+                operation_1 = self.ram_read(self.pc + 1)
+                print(self.reg[operation_1])
+                self.pc += 2
+            if command_to_execute == 0b00000001: # HLT
+                self.running = False
+                self.pc += 1
