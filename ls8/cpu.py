@@ -11,6 +11,9 @@ POP = 0b01000110
 CALL = 0b01010000
 RET = 0b00010001
 CMP = 0b10100111
+JMP = 0b01010100
+JEQ = 0b01010101
+JNE = 0b01010110
 
 SP = 7
 
@@ -54,7 +57,13 @@ class CPU:
             raise Exception("Unsupported ALU operation")
         if op == CMP:
             if self.registers[reg_a] == self.registers[reg_b]:
-                self.fl = "E".
+                self.fl = 1
+            if self.registers[reg_a] < registers[reg_b]:
+                self.fl = 1
+            if self.registers[reg_a] > registers[reg_b]:
+                self.fl = 1
+            else:
+                self.fl = 0
 
     def trace(self):
         """
@@ -118,8 +127,18 @@ class CPU:
             pass
         elif instruction == RET:
             pass
+
+
         elif instruction == CMP:
             self.alu(instruction, operand_a, operand_b)
+        elif instruction == JMP:
+            self.pc = self.registers[operand_a]
+        elif instruction == JEQ:
+            pass
+        elif instruction == JNE:
+            pass
+
+
         else:
             print('idk what to do.')
             pass
