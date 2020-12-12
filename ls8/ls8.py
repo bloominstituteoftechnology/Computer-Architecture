@@ -9,5 +9,5 @@ if len(sys.argv) != 2:
     print("wrong number of arguments passed in")
 else:
     cpu = CPU()
-    cpu.load(sys.argv[1])
+    cpu.load(sys.argv[0])
     cpu.run()

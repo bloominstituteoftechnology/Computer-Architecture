@@ -9,6 +9,8 @@ MUL = 0b10100010
 PUSH = 0b01000101
 POP = 0b01000110
 CALL = 0b01010000
+RET = 0b00010001
+CMP = 0b10100111
 
 SP = 7
 
@@ -22,6 +24,7 @@ class CPU:
         self.pc = 0
         self.ram = [0] * 256
         self.halted = False
+        self.fl = 0
 
     def load(self, filename):
         """Load a program into memory."""
@@ -44,11 +47,14 @@ class CPU:
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
 
-        if op === MUL:
+        if op == MUL:
             self.registers[reg_a] *= self.registers[reg_b]
             self.pd += 3
         else:
             raise Exception("Unsupported ALU operation")
+        if op == CMP:
+            if self.registers[reg_a] == self.registers[reg_b]:
+                self.fl = "E"
 
     def trace(self):
         """
@@ -58,7 +64,7 @@ class CPU:
 
         print(f"TRACE: %02X | %02X %02X %02X |" % (
             self.pc,
-            #self.fl,
+            self.fl,
             #self.ie,
             self.ram_read(self.pc),
             self.ram_read(self.pc + 1),
@@ -107,10 +113,13 @@ class CPU:
             self.registers[operand_a] = self.ram_read(self.registers[SP])
             self.pc += 2
         elif instruction == CALL:
-            self.registers[SP] -= 1
-            address_of_next_instruction = self.pc + 2
+            # self.registers[SP] -= 1
+            # address_of_next_instruction = self.pc + 2
+            pass
         elif instruction == RET:
             pass
+        elif instruction == CMP:
+            self.alu(instruction, operand_a, operand_b)
         else:
             print('idk what to do.')
             pass
