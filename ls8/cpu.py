@@ -54,7 +54,7 @@ class CPU:
             raise Exception("Unsupported ALU operation")
         if op == CMP:
             if self.registers[reg_a] == self.registers[reg_b]:
-                self.fl = "E"
+                self.fl = "E".
 
     def trace(self):
         """
