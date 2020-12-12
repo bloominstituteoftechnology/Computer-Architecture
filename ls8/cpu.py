@@ -45,26 +45,22 @@ class CPU:
     def ram_write(self, value, address):
         self.ram[address] = value
 
-    def load(self):
+    def load(self, filename):
         """Load a program into memory."""
 
         address = 0
 
         # For now, we've just hardcoded a program:
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
-
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+        with open (filename) as file:
+            for line in file:
+                comment_split = line.split("#")
+                num = comment_split[0].strip()
+                if num == "":
+                    continue
+                value = int(num, 2)
+                self.ram_write(address, value)
+                address += 1
 
 
     def alu(self, op, reg_a, reg_b):
@@ -100,17 +96,21 @@ class CPU:
         """Run the CPU."""
         while self.running:
             command_to_execute = self.ram_read(self.pc)
+            operation_1 = self.ram_read(self.pc + 1)
+            operation_2 = self.ram_read(self.pc + 2)
 
-            if command_to_execute == LDI:
-                operation_1 = self.ram_read(self.pc + 1)
-                operation_2 = self.ram_read(self.pc + 2)
+            self.execute_instruction(command_to_execute, operation_1, operation_2)
 
-                self.reg[operation_1] = operation_2
-                self.pc += 3
-            if command_to_execute == PRN:
-                operation_1 = self.ram_read(self.pc + 1)
-                print(self.reg[operation_1])
-                self.pc += 2
-            if command_to_execute == HLT:
-                self.running = False
-                self.pc += 1
+    def execute_instruction(self, instruction, operation_1, operation_2): 
+        if instruction == LDI:
+            self.reg[operation_1] = operation_2
+            self.pc += 3
+        elif instruction == PRN:
+            print(self.reg[operation_1])
+            self.pc += 2
+        elif instruction == HLT:
+            self.running = False
+            self.pc += 1
+        else:
+            print("INVALID INSTRUCTION")
+            pass

@@ -5,17 +5,12 @@
 _Objective_: to gain a deeper understanding of how a CPU functions at a
 low level.
 
-We're going to write an emulator for the world-famous LambdaSchool-8 computer,
-otherwise known as LS-8! This is an 8-bit computer with 8-bit memory addressing,
-which is about as simple as it gets.
+We're going to write an emulator for the world-famous LambdaSchool-8 computer, otherwise known as LS-8! This is an 8-bit computer with 8-bit memory addressing, which is about as simple as it gets.
 
-An 8 bit CPU is one that only has 8 wires available for addresses (specifying
-where something is in memory), computations, and instructions. With 8 bits, our
-CPU has a total of 256 bytes of memory and can only compute values up to 255.
+An 8 bit CPU is one that only has 8 wires available for addresses (specifying where something is in memory), computations, and instructions. With 8 bits, our CPU has a total of 256 bytes of memory and can only compute values up to 255.
 The CPU could support 256 instructions, as well, but we won't need them.
 
-For starters, we'll execute code that stores the value 8 in a register,
-then prints it out:
+For starters, we'll execute code that stores the value 8 in a register, then prints it out:
 
 ```
 # print8.ls8: Print the number 8 on the screen
@@ -48,8 +43,7 @@ This code above requires the implementation of three instructions:
 
 See [the LS-8 spec](../LS8-spec.md) for more details.
 
-The above program is already hardcoded into the source file `cpu.py`. To run it,
-you will eventually:
+The above program is already hardcoded into the source file `cpu.py`. To run it, you will eventually:
 
 ```
 python3 ls8.py
@@ -67,8 +61,7 @@ but you'll have to implement those three above instructions first!
 
 ## Step 1: Add the constructor to `cpu.py`
 
-Add list properties to the `CPU` class to hold 256 bytes of memory and 8
-general-purpose registers.
+Add list properties to the `CPU` class to hold 256 bytes of memory and 8 general-purpose registers.
 
 > Hint: you can make a list of a certain number of zeros with this syntax:
 >
@@ -78,13 +71,11 @@ general-purpose registers.
 
 Also add properties for any internal registers you need, e.g. `PC`.
 
-Later on, you might do further initialization here, e.g. setting the initial
-value of the stack pointer.
+Later on, you might do further initialization here, e.g. setting the initial value of the stack pointer.
 
 ## Step 2: Add RAM functions
 
-In `CPU`, add method `ram_read()` and `ram_write()` that access the RAM inside
-the `CPU` object.
+In `CPU`, add method `ram_read()` and `ram_write()` that access the RAM inside the `CPU` object.
 
 `ram_read()` should accept the address to read and return the value stored
 there.
