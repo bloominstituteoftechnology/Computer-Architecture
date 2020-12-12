@@ -31,6 +31,14 @@ class CPU:
         # --> FL: FLAGS - see below
         self.fl = 0
 
+    # `RAM_READ()` - SHOULD ACCEPT THE ADDRESS TO READ AND RETURN THE VALUE STORED
+    def ram_read(self, address):
+        return self.ram[address]
+
+    # `RAM_WRITE()` - SHOULD ACCEPT A VALUE TO WRITE AND THE ADDRESS TO WRITE IT TO
+    def ram_write(self, value, address):
+        self.ram[address] = value
+
     def load(self):
         """Load a program into memory."""
 
