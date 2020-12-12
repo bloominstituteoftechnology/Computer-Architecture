@@ -134,9 +134,11 @@ class CPU:
         elif instruction == JMP:
             self.pc = self.registers[operand_a]
         elif instruction == JEQ:
-            pass
+            if self.fl = 1:
+                self.pc = self.registers[operand_a]
         elif instruction == JNE:
-            pass
+            if self.fl = 0:
+                self.pc = self.registers[operand_a]
 
 
         else:
