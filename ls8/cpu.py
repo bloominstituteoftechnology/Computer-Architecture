@@ -8,7 +8,28 @@ class CPU:
     def __init__(self):
         """Construct a new CPU."""
         self.ram = [0] * 256
+        # GENERAL-PURPSE REGISTERS:
         self.reg = [0] * 8
+        # --> R0
+        # --> R1
+        # --> R2
+        # --> R3
+        # --> R4
+        # --> R5: RESERVED FOR INTERRUPT MASK (IM)
+        # --> R6: RESERVED FOR INTERRUPT STATUS (IS)
+        # --> R7: RESERVED FOR STACK POINTER (SP)
+
+        # INTERNAL REGISERS:
+        # --> PROGRAM COUNTER (PC): ADDRESS OF THE CURRENTLY EXECUTING INSTRUCTION
+        self.pc = 0
+        # --> IR: INSTRUCTION REGISTER - CONTAINS A COPY OF THE CURRENTLY EXECUTING INSTRUCTION
+        self.ir = 0
+        # --> MAR: MEMORY ADDRESS REGISTER - HOLDS THE MEMORY ADDRESS CURRENTLY BEING READ OR WRITTEN
+        self.mar = 0
+        # --> MDR: MEMORY DATA REGISTER - HOLDS THE VALUE TO WRITE OR THE VALUE JUST READ
+        self.mdr = 0
+        # --> FL: FLAGS - see below
+        self.fl = 0
 
     def load(self):
         """Load a program into memory."""
