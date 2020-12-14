@@ -12,6 +12,11 @@ POP  = 0b01000110
 CALL = 0b01010000
 RET  = 0b00010001
 ADD  = 0b10100000
+CMP  = 0b10100111
+JMP  = 0b01010100
+JEQ  = 0b01010101
+JNE  = 0b01010110
+
 
 class CPU:
     """Main CPU class."""
@@ -48,6 +53,10 @@ class CPU:
         self.branchtable[CALL] = self.execute_CALL
         self.branchtable[RET] = self.execute_RET
         self.branchtable[ADD] = self.execute_ADD
+        self.branchtable[CMP] = self.execute_CMP
+        self.branchtable[JMP] = self.execute_JMP
+        self.branchtable[JEQ] = self.execute_JEQ
+        self.branchtable[JNE] = self.execute_JNE
 
     # Property wrapper for SP (Stack Pointer)
 
