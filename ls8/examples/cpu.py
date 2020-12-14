@@ -19,6 +19,13 @@ PRN = 0b01000111
 MUL = 0b10100010
 PUSH = 0b01000101
 POP = 0b01000110
+CALL = 0b01010000
+RET = 0b00010001
+ADD = 0b10100000
+CMP = 0b10100111
+JMP = 0b01010100
+JNE = 0b01010110
+JEQ = 0b01010101
 
 
 class CPU:
@@ -32,6 +39,8 @@ class CPU:
         self.pc = 0
         self.halted = False
         self.stack_point_register = 7
+        self.flags = [0] *  8
+        self.flags[-1] = 0
 
     def decimal_to_binary(self,x):
         return int(bin(x)[:2])
@@ -108,7 +117,6 @@ class CPU:
             operand_b = self.ram_read(self.pc + 2)
             self.execute_instruction(command_to_execute, operand_a, operand_b)
 
-        print(self.ram)
     def execute_instruction(self, instruction, operand_a, operand_b):
         if instruction == HLT:
             self.halted = True
@@ -131,6 +139,10 @@ class CPU:
 
             self.pc += 2
 
+        elif instruction == ADD:
+            self.registers[operand_a] += self.registers[operand_b]
+            self.pc += 3
+
         elif instruction == POP:
             register_to_pop_value_in = self.ram[self.pc + 1]
             self.registers[register_to_pop_value_in] = self.ram[self.registers[self.stack_point_register]]
@@ -138,15 +150,45 @@ class CPU:
             self.registers[self.stack_point_register] += 1
 
             self.pc += 2
+        
+        elif instruction == CALL:
+            self.registers[self.stack_point_register] -= 1
+            address_of_next_instruction = self.pc + 2
+            self.ram[self.registers[self.stack_point_register]] = address_of_next_instruction
+
+            register_to_get_address_from = self.ram[self.pc + 1]
+            self.pc = self.registers[register_to_get_address_from]
+
+        elif instruction == RET:
+            self.pc = self.ram[self.registers[self.stack_point_register]]
+            self.registers[self.stack_point_register] += 1
+
+        elif instruction == CMP:
+            if self.registers[operand_a] == self.registers[operand_b]:
+                # set the equal flag to 1
+                self.flags[-1] = 1
+            else:
+                self.flags[-1] = 0
+
+            self.pc += 3
+        
+        elif instruction == JMP:
+            self.pc = self.registers[operand_a]
+
+        elif instruction == JEQ:
+            if self.flags[-1] == 1:
+                self.pc = self.registers[operand_a]
+            else:
+                self.pc += 2
+
+        elif instruction == JNE:
+            if self.flags[-1] == 0:
+                self.pc = self.registers[operand_a]
+            else:
+                self.pc += 2
 
         else:
             print("ERROR")
-
-
-
-
-
-
 
 
             # # LDI instruction

@@ -18,7 +18,7 @@ from cpu import *
 cpu = CPU()
 
 # file_name_from_command_line = sys.argv[1]
-file_name_from_command_line = 'stack.ls8'
+file_name_from_command_line = 'sctest.ls8'
 print(file_name_from_command_line)
 
 
