@@ -10,26 +10,25 @@ SAVE = 4 # SAVE a val in reg
 PRINT_REGISTER = 5
 ADD = 6 #takes 2 reg A and B, adds both and stores in reg A
 PUSH = 7 # takes in a register and stores a val in that reg on top of a stack 
-POP = 8  # takes in a register and stores topmost element in the stack in it.  
+POP = 8  # takes in a register and stores topmost element in the stack in it.
+CALL =9
+RET = 10
+PRINT_SUBROUTINE = 11  
 
 def load_memory():
     program = [
         PRINT_HI,
         SAVE, # save val 65 in reg 2 
-        65,
+        7,
         2,
+        CALL,
+        2,
+        HALT,
+        PRINT_SUBROUTINE,
         SAVE,
-        20,
-        3,
-        PUSH,
-        2,
-        PUSH,
-        3,
-        POP,
-        4,
-        POP,
+        500,
         0,
-        HALT
+        RET
     ]
     space_for_stack = 128 - len(program)
     memory = program + [0] * space_for_stack
@@ -71,7 +70,6 @@ while running:
         sum_of_reg = registers[register_a]+registers[register_b]
         registers[register_a] = sum_of_reg
         program_counter +=3
-
     elif command_to_execute == HALT:
         running = False
         program_counter+=1
@@ -86,6 +84,22 @@ while running:
         registers[register_to_pop_value_in] = memory[registers[stack_pointer_register]]
         registers[stack_pointer_register]+=1 
         program_counter+=2
+    elif command_to_execute == PRINT_SUBROUTINE:
+        print('I am in a SubRoutine')
+        program_counter+=1
+    elif command_to_execute == CALL:
+        #Takes in a register and stores address of next instruction on top of stack
+        # it jumps to address stored in that register
+        registers[stack_pointer_register] -=1
+        address_of_next_inst = program_counter+2
+        memory[registers[stack_pointer_register]] = address_of_next_inst
+        register_to_get_addr_from = memory[program_counter+1]
+        program_counter = registers[register_to_get_addr_from]
+    elif command_to_execute == RET:
+        # pops top element of stack and sets PC to it 
+        # does not take any operand 
+        program_counter = memory[registers[stack_pointer_register]]
+        registers[stack_pointer_register]+=1 
     else:
         print("unknown instruction {command_to_execute}")
         sys.exit(1)
