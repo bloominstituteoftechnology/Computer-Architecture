@@ -205,3 +205,30 @@ class CPU:
 
     def execute_ADD(self):
         self.reg[self.operand_a] += self.reg[self.operand_b]
+
+    def execute_CMP(self):
+        if self.reg[self.operand_a] < self.reg[self.operand_b]:
+            self.fl = 0b00000100
+
+        elif self.reg[self.operand_a] > self.reg[self.operand_b]:
+            self.fl = 0b00000010
+
+        else:
+            self.fl = 0b00000001
+
+    def execute_JMP(self):
+        self.pc = self.reg[self.operand_a]
+
+    def execute_JEQ(self):
+        if self.fl = 0b00000001:
+            self.execute_JMP()
+            
+        else:
+            self.pc += self.instruction_size
+
+    def execute_JNE(self):
+        if self.fl != 0b00000001:
+            self.execute_JMP()
+
+        else:
+            self.pc += self.instruction_size
