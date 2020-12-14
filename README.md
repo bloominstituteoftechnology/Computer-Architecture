@@ -13,10 +13,10 @@
       - ls8.py: uses a CPU instance to run a program
 - [x] Implement the `CPU` constructor
 - [x] Add RAM functions `ram_read()` and `ram_write()`
-- [ ] Implement the core of `run()`
-- [ ] Implement the `HLT` instruction handler
-- [ ] Add the `LDI` instruction
-- [ ] Add the `PRN` instruction
+- [x] Implement the core of `run()`
+- [x] Implement the `HLT` instruction handler
+- [x] Add the `LDI` instruction
+- [x] Add the `PRN` instruction
 
 ### Day 2: Add the ability to load files dynamically, get `mult.ls8` running
 
