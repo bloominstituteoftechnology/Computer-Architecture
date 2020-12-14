@@ -10,7 +10,10 @@ PUSH = 0b01000101
 POP = 0b01000110
 CALL = 0b01010000
 RET = 0b00010001
-
+JMP = 0b01010100
+CMP = 0b10100111
+JEQ = 0b01010101
+JNE = 0b01010110
 SP = 7 
 
 class CPU:
@@ -21,6 +24,7 @@ class CPU:
         self.reg = [0] * 8
         self.reg[7] = 0xF4 #refer PowerON state in Spec
         self.running = True
+        self.fl = 0b00000000
 
     def ram_read(self,addr):
         return self.ram[addr]
@@ -37,7 +41,7 @@ class CPU:
             with open(filename) as f:
                 for line in f:
                     comment_split = line.split("#")
-                    maybe_binary_number = comment_split[0]
+                    maybe_binary_number = comment_split[0].strip()
                     try:
                         x = int(maybe_binary_number, 2)
                         self.ram_write(x, address)
@@ -120,9 +124,30 @@ class CPU:
                 addr_to_return = self.ram_read(self.reg[SP])
                 self.pc = addr_to_return
                 self.reg[SP]+=1
+            elif instruction_to_excecute == JMP:
+                self.pc = self.reg[operand_a]
+            elif instruction_to_excecute == CMP:
+                if self.reg[operand_a]>self.reg[operand_b]:
+                    self.fl = 0b00000010
+                elif self.reg[operand_a]<self.reg[operand_b]:
+                    self.fl = 0b00000100
+                else:
+                    self.fl = 0b00000001
+                self.pc += self.num_of_operands(instruction_to_excecute)
+            elif instruction_to_excecute == JNE:
+                if self.fl != 0b00000001:
+                    self.pc = self.reg[operand_a]
+                else:
+                    self.pc += self.num_of_operands(instruction_to_excecute)
+            elif instruction_to_excecute == JEQ:
+                if self.fl == 0b00000001:
+                    self.pc = self.reg[operand_a]
+                else:
+                    self.pc += self.num_of_operands(instruction_to_excecute)
             else:
                 print ("idk what to to")
                 sys.exit()
+
 
    
         
