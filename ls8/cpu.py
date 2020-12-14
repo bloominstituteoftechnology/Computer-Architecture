@@ -6,6 +6,10 @@ HLT = 0b00000001
 LDI = 0b10000010
 PRN = 0b01000111
 MUL = 0b10100010
+PUSH = 0b01000101
+POP = 0b01000110
+
+SP = 7 
 
 class CPU:
     def __init__(self):
@@ -94,6 +98,14 @@ class CPU:
                 self.pc += self.num_of_operands(instruction_to_excecute)
             elif instruction_to_excecute == MUL:
                 self.alu(instruction_to_excecute,operand_a,operand_b)
+                self.pc += self.num_of_operands(instruction_to_excecute)
+            elif instruction_to_excecute == PUSH:
+                self.reg[SP] -=1 # decrement the stack pointer
+                self.ram_write(self.reg[operand_a],self.reg[SP])
+                self.pc += self.num_of_operands(instruction_to_excecute)
+            elif instruction_to_excecute == POP:
+                self.reg[operand_a] = self.ram_read(self.reg[SP])
+                self.reg[SP]+=1
                 self.pc += self.num_of_operands(instruction_to_excecute)
             else:
                 print ("idk what to to")
