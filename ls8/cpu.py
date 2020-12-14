@@ -11,6 +11,7 @@ class CPU:
         self.ram = [0] * 256
         self.reg = [0] * 8
         self.pc = 0
+        self.flag = 0b00000000
         self.reg[7] = 0xf4
         self.running = False
         self.branchTable = {
@@ -19,10 +20,14 @@ class CPU:
             162: self.mult,
             160: self.add,
             1: self.halt,
+            85: self.jeq_run,
+            86: self.jne_run,
             69: self.pushy,
             70: self.poppy,
             80: self.cal,
-            17: self.retrn
+            17: self.retrn,
+            84: self.jump,
+            167: self.cmp_run
         }
 
     def load(self):
@@ -37,14 +42,17 @@ class CPU:
                 sys.exit(1)
 
             with open(sys.argv[1]) as f:
+                code_line = 0
                 for line in f:
                     split_line = line.split("#")[0]
                     stripped_line = split_line.strip()
                     # print(int(stripped_line, 2))
                     if stripped_line != "":
                         command = int(stripped_line, 2)
-                        print(command)
+                        # print(command, code_line)
+
                         self.ram[address] = command
+                        code_line += 1
                         address += 1
         except FileNotFoundError:
             print(f'Error from {sys.argv[0]}: {sys.argv[1]} not found')
@@ -75,10 +83,22 @@ class CPU:
             self.reg[reg_a] -= self.reg[reg_b]
             self.pc += 2
         elif op == 'MUL':
-            print("multiply")
+            # print("multiply")
             result = self.reg[reg_a] * self.reg[reg_b]
             self.pc += 2
             return result
+        elif op == "CMP":
+            # print("reg_a vs reg_b", reg_a, reg_b)
+            if self.reg[reg_a] < self.reg[reg_b]:
+                # print("less than")
+                self.flag = 0b00000100
+            if self.reg[reg_a] > self.reg[reg_b]:
+                # print("greater than")
+                self.flag = 0b00000010
+            if self.reg[reg_a] == self.reg[reg_b]:
+                # print("equal")
+                self.flag = 0b00000001
+            self.pc += 3
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -111,7 +131,7 @@ class CPU:
         self.pc += 2
 
     def halt(self):
-        print("Halt")
+        # print("Halt")
         self.running = False
 
     def mult(self):
@@ -149,6 +169,37 @@ class CPU:
         self.reg[7] += 1
         self.pc = return_address
 
+    def cmp_run(self):
+        print("alu cmp", self.alu("CMP"))
+
+    def jeq_run(self):
+        if self.flag == 1:
+            # print("it is true")
+            address = self.ram[self.pc + 1]
+            jump_address = self.reg[address]
+            self.pc = jump_address
+        else:
+            self.pc += 2
+
+    def jne_run(self):
+        # print("JNE")
+        if self.flag == 4 or self.flag == 2:
+            # print("jne true")
+            address = self.ram[self.pc + 1]
+            # print(address)
+            jump_address = self.reg[address]
+            # print("jump address", jump_address)
+            self.pc = jump_address
+        else:
+            self.pc += 2
+
+    def jump(self):
+        # print("JUMP")
+        given_address = self.ram[self.pc + 1]
+        address_to_jump_to = self.reg[given_address]
+        # print(address_to_jump_to)
+        self.pc = address_to_jump_to
+
     def run(self):
         self.running = True
 
@@ -164,6 +215,7 @@ class CPU:
                 print(
                     f'Could not find that particular instruction.{instruction}')
                 self.running = False
+                break
 
     # def run(self):
     #     ldi = 130
