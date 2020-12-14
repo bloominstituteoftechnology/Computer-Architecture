@@ -1,6 +1,7 @@
 """CPU functionality."""
 
 import sys
+import time
 
 HLT = 0b00000001
 LDI = 0b10000010
@@ -9,12 +10,16 @@ MUL = 0b10100010
 ADD = 0b10100000
 PUSH = 0b01000101
 POP = 0b01000110
-CMP = 0b10100111
 CALL = 0b01010000
 RET  = 0b00010001
+
+# sprint challenge for MVP
+CMP = 0b10100111
 JEQ = 0b01010101
 JNE = 0b01010110
 JMP = 0b01010100
+
+# stretch opcodes
 SHL = 0b10101100
 SHR = 0b10101101
 MOD = 0b10100100
@@ -22,6 +27,7 @@ NOT = 0b01101001
 OR = 0b10101010
 AND = 0b10101000
 XOR = 0b10101011
+
 
 class CPU:
     """Main CPU class."""
@@ -31,8 +37,12 @@ class CPU:
         self.ram = [0] * 256
         self.reg = [0] * 8
         self.reg[7] = 0xF4
-        self.reg[6] = 0 # flags reg
+        # flags reg
+        self.reg[6] = 0
         self.pc = 0
+        self.running = True
+        # all flags set to false on initialization
+        self.fl = 0b00000000
         self.branchtable = {
             HLT: self.hlt,
             LDI: self.ldi,
@@ -41,15 +51,14 @@ class CPU:
             POP: self.pop, 
             CALL: self.call,
             RET: self.ret,
-            #JEQ: self.jeq,
-            #JNE: self.jne,
-            #JMP: self.jmp
+            JEQ: self.jeq,
+            JNE: self.jne,
+            JMP: self.jmp,
         }
 
 
     def load(self):
         """Load a program into memory."""
-
         if (len(sys.argv)) != 2:
             print('remember to pass the second file name')
             print('usage: python fileio.py <second_filename.py>')
@@ -123,19 +132,15 @@ class CPU:
         Handy function to print out the CPU state. You might want to call this
         from run() if you need help debugging.
         """
-
         print(f"TRACE: %02X | %02X %02X %02X |" % (
             self.pc,
-            #self.fl,
-            #self.ie,
+            self.fl,
             self.ram_read(self.pc),
             self.ram_read(self.pc + 1),
             self.ram_read(self.pc + 2)
         ), end='')
-
         for i in range(8):
             print(" %02X" % self.reg[i], end='')
-
         print()
 
 
@@ -174,10 +179,36 @@ class CPU:
     
 
     def jmp(self, operand_a, operand_b):
-
         reg_idx = self.reg[operand_a]
-
         self.pc = reg_idx
+
+    
+    def jeq(self, operand_a, operand_b):
+        # If equal flag is set (true), jump to the 
+        # address stored in the given register
+        flags = self.reg[6]
+        equal_is_flagged = (flags << 7) & 0b10000000 == 128
+        if equal_is_flagged:
+            # jump to address stored in reg
+            given_reg_value = self.reg[operand_a]
+            self.pc = given_reg_value
+        else:
+            # just increment 
+            self.pc += 2
+
+
+    def jne(self, operand_a, operand_b):
+        # If E flag is clear (false, 0), jump to 
+        # the address stored in the given register
+        flags = self.reg[6]
+        equal_is_flagged = flags == 1
+        if equal_is_flagged:
+            # just increment
+            self.pc += 2
+        else:
+            # jump to address stored in reg
+            given_reg_value = self.reg[operand_a]
+            self.pc = given_reg_value
 
 
     def push(self, operand_a, operand_b):
@@ -199,6 +230,7 @@ class CPU:
         self.reg[operand_a] = value
         # increment SP
         self.reg[7] += 1
+
 
     def call(self, operand_a, operand_b):
         # PUSH
@@ -226,6 +258,35 @@ class CPU:
         self.pc = return_address
         # increment stack
         self.reg[7] += 1
+
+
+    def check_inter(self):
+        interrupts = self.reg[self.im] & self.reg[self.isr]
+        for interrupt in range(8):
+            bit = 1 << interrupt
+            #if an interrupt is triggered
+            if interrupts & bit:
+                # save the old interrupt state
+                self.old_im = self.reg[self.im]
+                # disable interrupts
+                self.reg[self.im] = 0
+                # clear the interrupt
+                self.reg[self.isr] &= (255 ^ bit)
+                # decrement the stack pointer
+                self.reg[self.sp] -= 1
+                # push the pc to the stack
+                self.ram_write(self.reg[self.sp], self.pc)
+                #decrement the stack pointer
+                self.reg[self.sp] -= 1
+                # push the flags to the stack
+                self.ram_write(self.reg[self.sp], self.fl)
+                # push the registers to the stack R0-R6
+                for i in range(7):
+                    self.reg[self.sp] -= 1
+                    self.ram_write(self.reg[self.sp], self.reg[i])
+                self.pc = self.ram[0xF8 + interrupt]
+                # break out and stop checking interrupts
+                break
 
 
 if __name__ == '__main__':
