@@ -27,28 +27,25 @@ class CPU:
 
         address = 0
        # program = []
-
-        with open(filename) as f:
-            for line in f:
-                comment_split = line.split("#")
-                maybe_binary_number = comment_split[0].strip()
-
-                try:
-                    x = int(maybe_binary_number, 2)
-                   # program.append(x)
-                    
-                except:
-                    continue
-
-           # for instruction in program:
-                self.ram[address] = x
-                address += 1
+        try: 
+            with open(filename) as f:
+                for line in f:
+                    comment_split = line.split("#")
+                    maybe_binary_number = comment_split[0]
+                    try:
+                        x = int(maybe_binary_number, 2)
+                        self.ram_write(x, address)
+                        address += 1
+                    except:
+                        continue
+        except FileNotFoundError:
+            print("Cannot find this file..")
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
-        if op == "ADD":
-            self.reg[reg_a] += self.reg[reg_b]
-        elif op == "MUL": 
+        # if op == "ADD":
+        #     self.reg[reg_a] += self.reg[reg_b]
+        if op == MUL: 
             self.reg[reg_a] *= self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
@@ -87,14 +84,14 @@ class CPU:
             operand_b = self.ram_read(self.pc+2)
             if instruction_to_excecute == LDI:
                 self.reg[operand_a] = operand_b
-                self.pc += 3
+                self.pc += self.num_of_operands(instruction_to_excecute)
             elif instruction_to_excecute == PRN:
                 reg = self.reg[operand_a]
                 print (reg)
-                self.pc +=2
+                self.pc += self.num_of_operands(instruction_to_excecute)
             elif instruction_to_excecute == HLT:
                 self.running = False
-                self.pc +=1 
+                self.pc += self.num_of_operands(instruction_to_excecute)
             elif instruction_to_excecute == MUL:
                 self.alu(instruction_to_excecute,operand_a,operand_b)
                 self.pc += self.num_of_operands(instruction_to_excecute)
