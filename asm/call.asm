@@ -1,3 +1,4 @@
+
 ; Demonstrate calls
 ;
 ; Expected output:

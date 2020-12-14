@@ -8,6 +8,8 @@ PRN = 0b01000111
 MUL = 0b10100010
 PUSH = 0b01000101
 POP = 0b01000110
+CALL = 0b01010000
+RET = 0b00010001
 
 SP = 7 
 
@@ -107,9 +109,20 @@ class CPU:
                 self.reg[operand_a] = self.ram_read(self.reg[SP])
                 self.reg[SP]+=1
                 self.pc += self.num_of_operands(instruction_to_excecute)
+            elif instruction_to_excecute == CALL: 
+                self.reg[SP]-=1
+                addr_of_next_inst = self.pc+2
+                self.ram_write(addr_of_next_inst,self.reg[SP])
+                reg_to_get_addr_from = operand_a
+                jump_to_addr = self.reg[reg_to_get_addr_from]
+                self.pc = jump_to_addr
+            elif instruction_to_excecute == RET:
+                addr_to_return = self.ram_read(self.reg[SP])
+                self.pc = addr_to_return
+                self.reg[SP]+=1
             else:
                 print ("idk what to to")
-                pass
+                sys.exit()
 
    
         
