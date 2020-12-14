@@ -2,41 +2,61 @@
 
 import sys
 
-class CPU:
-    """Main CPU class."""
+HLT = 0b00000001
+LDI = 0b10000010
+PRN = 0b01000111
+MUL = 0b10100010
+PUSH = 0b01000101
+POP = 0b01000110
+CALL = 0b01010000
+RET = 0b00010001
+JMP = 0b01010100
+CMP = 0b10100111
+JEQ = 0b01010101
+JNE = 0b01010110
+SP = 7 
 
+class CPU:
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.ram = [0] * 256
+        self.pc = 0
+        self.reg = [0] * 8
+        self.reg[7] = 0xF4 #refer PowerON state in Spec
+        self.running = True
+        self.fl = 0b00000000
 
-    def load(self):
+    def ram_read(self,addr):
+        return self.ram[addr]
+
+    def ram_write(self,val,addr):
+        self.ram[addr] = val
+
+    def load(self,filename):
         """Load a program into memory."""
 
         address = 0
-
-        # For now, we've just hardcoded a program:
-
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
-
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
-
+       # program = []
+        try: 
+            with open(filename) as f:
+                for line in f:
+                    comment_split = line.split("#")
+                    maybe_binary_number = comment_split[0].strip()
+                    try:
+                        x = int(maybe_binary_number, 2)
+                        self.ram_write(x, address)
+                        address += 1
+                    except:
+                        continue
+        except FileNotFoundError:
+            print("Cannot find this file..")
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
-
-        if op == "ADD":
-            self.reg[reg_a] += self.reg[reg_b]
-        #elif op == "SUB": etc
+        # if op == "ADD":
+        #     self.reg[reg_a] += self.reg[reg_b]
+        if op == MUL: 
+            self.reg[reg_a] *= self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -60,6 +80,74 @@ class CPU:
 
         print()
 
+
+    def num_of_operands(self, instruction_to_execute):
+        return ((instruction_to_execute >> 6) & 0b11) + 1
+
     def run(self):
         """Run the CPU."""
-        pass
+        
+        #self.load()
+        while self.running:
+            instruction_to_excecute = self.ram[self.pc]
+            operand_a = self.ram_read(self.pc+1)
+            operand_b = self.ram_read(self.pc+2)
+            if instruction_to_excecute == LDI:
+                self.reg[operand_a] = operand_b
+                self.pc += self.num_of_operands(instruction_to_excecute)
+            elif instruction_to_excecute == PRN:
+                reg = self.reg[operand_a]
+                print (reg)
+                self.pc += self.num_of_operands(instruction_to_excecute)
+            elif instruction_to_excecute == HLT:
+                self.running = False
+                self.pc += self.num_of_operands(instruction_to_excecute)
+            elif instruction_to_excecute == MUL:
+                self.alu(instruction_to_excecute,operand_a,operand_b)
+                self.pc += self.num_of_operands(instruction_to_excecute)
+            elif instruction_to_excecute == PUSH:
+                self.reg[SP] -=1 # decrement the stack pointer
+                self.ram_write(self.reg[operand_a],self.reg[SP])
+                self.pc += self.num_of_operands(instruction_to_excecute)
+            elif instruction_to_excecute == POP:
+                self.reg[operand_a] = self.ram_read(self.reg[SP])
+                self.reg[SP]+=1
+                self.pc += self.num_of_operands(instruction_to_excecute)
+            elif instruction_to_excecute == CALL: 
+                self.reg[SP]-=1
+                addr_of_next_inst = self.pc+2
+                self.ram_write(addr_of_next_inst,self.reg[SP])
+                reg_to_get_addr_from = operand_a
+                jump_to_addr = self.reg[reg_to_get_addr_from]
+                self.pc = jump_to_addr
+            elif instruction_to_excecute == RET:
+                addr_to_return = self.ram_read(self.reg[SP])
+                self.pc = addr_to_return
+                self.reg[SP]+=1
+            elif instruction_to_excecute == JMP:
+                self.pc = self.reg[operand_a]
+            elif instruction_to_excecute == CMP:
+                if self.reg[operand_a]>self.reg[operand_b]:
+                    self.fl = 0b00000010
+                elif self.reg[operand_a]<self.reg[operand_b]:
+                    self.fl = 0b00000100
+                else:
+                    self.fl = 0b00000001
+                self.pc += self.num_of_operands(instruction_to_excecute)
+            elif instruction_to_excecute == JNE:
+                if self.fl != 0b00000001:
+                    self.pc = self.reg[operand_a]
+                else:
+                    self.pc += self.num_of_operands(instruction_to_excecute)
+            elif instruction_to_excecute == JEQ:
+                if self.fl == 0b00000001:
+                    self.pc = self.reg[operand_a]
+                else:
+                    self.pc += self.num_of_operands(instruction_to_excecute)
+            else:
+                print ("idk what to to")
+                sys.exit()
+
+
+   
+        
