@@ -60,8 +60,12 @@ but you'll have to implement those three above instructions first!
 ## Step 0: IMPORTANT: inventory what is here!
 
 * Make a list of files here.
+  We have a ls8 file and a cpu file. 
 * Write a short 3-10-word description of what each file does.
+  The cpu file is setting up a cpu class with methods.
+  The ls8 file calls the class and runs the Run method on the cpu class. 
 * Note what has been implemented, and what hasn't.
+  Alu and trace have some work done, but looks like the rest need built out≥
 * Read this whole file.
 * Skim the spec.
 
@@ -478,3 +482,20 @@ Doing this correctly requires implementing `CMP`, and some comparative forms of
 Hint: Look in the `asm/` directory and learn how to use the `asm.js` assembler.
 This way you can write your code in assembly language and use the assembler to
 build it to machine code and then run it on your emulator.
+
+
+What we have built:
+1. Ram - self.ram
+2. registers
+3. CPU - self.run()
+4. ALU 
+5. Why ls8? - All instructions are 8 bits.  
+  Also, 8-bit CPU and ALU architectures are those that are based on registers, address buses, and data buses of that size. 
+
+  Address bus is the 8 wires running from cpu to ram
+  With 8 bits, the cpu can address 256 bytes of ram
+  To have more ram you need more wires. 
+
+  General calculating machines, vs specialized calculating machines. 
+    "computer" "calculator"
+  
