@@ -18,6 +18,8 @@ JEQ  = 0b01010101
 JNE  = 0b01010110
 
 
+
+
 class CPU:
     """Main CPU class."""
 
@@ -220,9 +222,9 @@ class CPU:
         self.pc = self.reg[self.operand_a]
 
     def execute_JEQ(self):
-        if self.fl = 0b00000001:
+        if self.fl == 0b00000001:
             self.execute_JMP()
-            
+
         else:
             self.pc += self.instruction_size
 
