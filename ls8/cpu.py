@@ -1,6 +1,7 @@
 """CPU functionality."""
 
 import sys
+import os.path
 
 HLT = 0b00000001
 LDI = 0b10000010
@@ -47,30 +48,77 @@ class CPU:
         # INITIALIZE THE STACKPOINTER
         self.reg[7] = 0xF4
 
+        self.branchtable = {}
+        self.branchtable[HLT] = self.execute_HLT
+        self.branchtable[LDI] = self.execute_LDI
+        self.branchtable[PRN] = self.execute_PRN
+        self.branchtable[MUL] = self.execute_MUL
+        self.branchtable[PUSH] = self.execute_PUSH
+        self.branchtable[POP] = self.execute_POP
+        self.branchtable[CALL] = self.execute_CALL
+        self.branchtable[RET] = self.execute_RET
+        self.branchtable[ADD] = self.execute_ADD
+
+          @property
+           def sp(self):
+                return self.reg[7]
+
+            @sp.setter
+            def sp(self, a):
+                self.reg[7] = a & 0xFF
+
+            # Computed Properties
+
+            @property
+            def operand_a(self):
+                return self.ram_read(self.pc + 1)
+
+            @property
+            def operand_b(self):
+                return self.ram_read(self.pc + 2)
+
+            @property
+            def instruction_size(self):
+                return ((self.ir >> 6) & 0b11) + 1
+
+            @property
+            def instruction_sets_pc(self):
+                return ((self.ir >> 4) & 0b0001) == 1
+
     # `RAM_READ()` - SHOULD ACCEPT THE ADDRESS TO READ AND RETURN THE VALUE STORED
-    def ram_read(self, address):
-        return self.ram[address]
+    def ram_read(self, mar):
+        if mar >= 0 and mar < len(self.ram):
+            return self.ram[mar]
+        else:
+            print(
+                f"Error: No memory at address '{mar}' ")
+            return -1
 
     # `RAM_WRITE()` - SHOULD ACCEPT A VALUE TO WRITE AND THE ADDRESS TO WRITE IT TO
     def ram_write(self, value, address):
-        self.ram[address] = value
+        if mar >= 0 and mar < len(self.ram):
+            self.ram[mar] = mdr & 0xFF
+        else:
+            print(f"Error: Unable to write to memory at address '{mar}' ")
 
     def load(self, filename):
         """Load a program into memory."""
-
         address = 0
 
-        # For now, we've just hardcoded a program:
-
-        with open(filename) as file:
-            for line in file:
-                comment_split = line.split("#")
-                num = comment_split[0].strip()
-                if num == "":
-                    continue
-                value = int(num, 2)
-                self.ram_write(address, value)
-                address += 1
+        file_path = os.path.join(os.path.dirname(__file__), file_name)
+        try:
+            with open(file_path) as file:
+                for line in file:
+                    num = line.split("#")[0].strip() # "10000010"
+                    try:
+                        instruction = int(num, 2)
+                        self.ram[address] = instruction
+                        address += 1
+                    except:
+                        continue
+        except:
+            print(f"Could not find file with name '{file_name}' ")
+            sys.exit(1)
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -104,23 +152,46 @@ class CPU:
     def run(self):
         """Run the CPU."""
         while self.running:
-            command_to_execute = self.ram_read(self.pc)
-            operation_1 = self.ram_read(self.pc + 1)
-            operation_2 = self.ram_read(self.pc + 2)
+            
+            self.ir = self.ram_read(self.pc)
 
-            self.execute_instruction(
-                command_to_execute, operation_1, operation_2)
+            if self.ir in self.branchtable:
+                self.branchtable[self.ir]()
+            else:
+                print(f"Operation '{self.ir}' could be found")
+                sys.exit(1)
 
-    def execute_instruction(self, instruction, operation_1, operation_2):
-        if instruction == LDI:
-            self.reg[operation_1] = operation_2
-            self.pc += 3
-        elif instruction == PRN:
-            print(self.reg[operation_1])
-            self.pc += 2
-        elif instruction == HLT:
-            self.running = False
-            self.pc += 1
-        else:
-            print("INVALID INSTRUCTION")
-            pass
+
+    def execute_HLT(self):
+        self.halted = True
+
+    def execute_LDI(self):
+        self.reg[self.operand_a] = self.operand_b
+
+    def execute_PRN(self):
+        print(self.reg[self.operand_a])
+
+    def execute_MUL(self):
+        self.reg[self.operand_a] *= self.reg[self.operand_b]
+
+    def execute_PUSH(self):
+        self.sp -= 1
+        self.mdr = self.reg[self.operand_a]
+        self.ram_write(self.sp, self.mdr)
+
+    def execute_POP(self):
+        self.mdr = self.ram_read(self.sp)
+        self.reg[self.operand_a] = self.mdr
+        self.sp += 1
+
+    def execute_CALL(self):
+        self.sp -= 1
+        self.ram_write(self.sp, self.pc + self.instruction_size)
+        self.pc = self.reg[self.operand_a]
+
+    def execute_RET(self):
+        self.pc = self.ram_read(self.sp)
+        self.sp += 1
+
+    def execute_ADD(self):
+        self.reg[self.operand_a] += self.reg[self.operand_b] 
