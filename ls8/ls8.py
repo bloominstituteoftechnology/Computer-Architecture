@@ -7,12 +7,11 @@ from cpu import *
 
 cpu = CPU()
 
-try:
-    filename = sys.argv[1]
-    with open(filename) as f:
-        cpu.load(filename)
-        cpu.run()
-except IndexError:
-    print("Please provide an input")
-except FileNotFoundError:
+if len(sys.argv) != 2:
     print(f"Error from {sys.argv[0]}: {sys.argv[1]} not found")
+    sys.exit(1)
+else:
+    file_name = sys.argv[1]
+
+cpu.load(file_name)
+cpu.run()

@@ -12,6 +12,10 @@ POP = 0b01000110
 CALL = 0b01010000
 RET = 0b00010001
 ADD = 0b10100000
+CMP = 0b10100111
+JMP = 0b01010100
+JEQ = 0b01010101
+JNE = 0b01010110
 
 
 class CPU:
@@ -58,34 +62,37 @@ class CPU:
         self.branchtable[CALL] = self.execute_CALL
         self.branchtable[RET] = self.execute_RET
         self.branchtable[ADD] = self.execute_ADD
+        self.branchtable[CMP] = self.execute_CMP
+        self.branchtable[JMP] = self.execute_JMP
+        self.branchtable[JEQ] = self.execute_JEQ
+        self.branchtable[JNE] = self.execute_JNE
 
-          @property
-           def sp(self):
-                return self.reg[7]
+    @property
+    def sp(self):
+        return self.reg[7]
 
-            @sp.setter
-            def sp(self, a):
-                self.reg[7] = a & 0xFF
+    @sp.setter
+    def sp(self, a):
+        self.reg[7] = a & 0xFF
 
-            # Computed Properties
+    @property
+    def operand_a(self):
+        return self.ram_read(self.pc + 1)
 
-            @property
-            def operand_a(self):
-                return self.ram_read(self.pc + 1)
+    @property
+    def operand_b(self):
+        return self.ram_read(self.pc + 2)
 
-            @property
-            def operand_b(self):
-                return self.ram_read(self.pc + 2)
+    @property
+    def instruction_size(self):
+        return ((self.ir >> 6) & 0b11) + 1
 
-            @property
-            def instruction_size(self):
-                return ((self.ir >> 6) & 0b11) + 1
-
-            @property
-            def instruction_sets_pc(self):
-                return ((self.ir >> 4) & 0b0001) == 1
+    @property
+    def instruction_sets_pc(self):
+        return ((self.ir >> 4) & 0b0001) == 1
 
     # `RAM_READ()` - SHOULD ACCEPT THE ADDRESS TO READ AND RETURN THE VALUE STORED
+
     def ram_read(self, mar):
         if mar >= 0 and mar < len(self.ram):
             return self.ram[mar]
@@ -95,7 +102,7 @@ class CPU:
             return -1
 
     # `RAM_WRITE()` - SHOULD ACCEPT A VALUE TO WRITE AND THE ADDRESS TO WRITE IT TO
-    def ram_write(self, value, address):
+    def ram_write(self, mar, mdr):
         if mar >= 0 and mar < len(self.ram):
             self.ram[mar] = mdr & 0xFF
         else:
@@ -105,11 +112,11 @@ class CPU:
         """Load a program into memory."""
         address = 0
 
-        file_path = os.path.join(os.path.dirname(__file__), file_name)
+        file_path = os.path.join(os.path.dirname(__file__), filename)
         try:
             with open(file_path) as file:
                 for line in file:
-                    num = line.split("#")[0].strip() # "10000010"
+                    num = line.split("#")[0].strip()
                     try:
                         instruction = int(num, 2)
                         self.ram[address] = instruction
@@ -117,7 +124,7 @@ class CPU:
                     except:
                         continue
         except:
-            print(f"Could not find file with name '{file_name}' ")
+            print(f"Could not find file with name '{filename}' ")
             sys.exit(1)
 
     def alu(self, op, reg_a, reg_b):
@@ -152,7 +159,7 @@ class CPU:
     def run(self):
         """Run the CPU."""
         while self.running:
-            
+
             self.ir = self.ram_read(self.pc)
 
             if self.ir in self.branchtable:
@@ -161,6 +168,9 @@ class CPU:
                 print(f"Operation '{self.ir}' could be found")
                 sys.exit(1)
 
+            # ENSURE THAT THE PROGRAM COUNTER IS INCREMENTED
+            if not self.instruction_sets_pc:
+                self.pc += self.instruction_size
 
     def execute_HLT(self):
         self.halted = True
@@ -194,4 +204,27 @@ class CPU:
         self.sp += 1
 
     def execute_ADD(self):
-        self.reg[self.operand_a] += self.reg[self.operand_b] 
+        self.reg[self.operand_a] += self.reg[self.operand_b]
+
+    def execute_CMP(self):
+        if self.reg[self.operand_a] < self.reg[self.operand_b]:
+            self.fl = 0b00000100
+        elif self.reg[self.operand_a] > self.reg[self.operand_b]:
+            self.fl = 0b00000010
+        else:
+            self.fl = 0b00000001
+
+    def execute_JMP(self):
+        self.pc = self.reg[self.operand_a]
+
+    def execute_JEQ(self):
+        if self.fl == 0b00000001:
+            self.execute_JMP()
+        else:
+            self.pc += self.instruction_size
+
+    def execute_JNE(self):
+        if self.fl != 0b00000001:
+            self.execute_JMP()
+        else:
+            self.pc += self.instruction_size
