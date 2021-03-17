@@ -3,12 +3,17 @@
 import sys
 
 # opcodes
-LDI = 0b10000010
-PRN = 0b01000111
-HLT = 0b00000001
 CALL = 0b01010000
 CMP = 0b10100111
+HLT = 0b00000001
+LDI = 0b10000010
 MUL = 0b10100010
+POP = 0b01000110
+PUSH = 0b01000101
+PRN = 0b01000111
+
+# Stack Pointer is the index for Register
+SP = 7
 
 sys_file = ""
 if len(sys.argv) < 2:
@@ -25,6 +30,8 @@ class CPU:
         self.pc = 0
         self.ram = [0] * 255
         self.register = [0] * 8
+        # Set starting stack location within ram to hexadecimal 244
+        self.register[SP] = 0xf4
 
     def load(self):
         """Load a program into memory."""
@@ -73,7 +80,7 @@ class CPU:
     def CALL(self):
         # I believe this is like a repeat: change self.pc = to the value in the next self.ram
         ram_index = self.ram[self.pc + 1]
-        self.pc = ram_index
+        # self.pc = ram_index
 
     def CMP(self):
         index_a = self.ram[self.pc + 1]
@@ -86,35 +93,40 @@ class CPU:
             self.ram[index_a] = self.ram[index_a] & 11111010
         else:
             self.ram[index_a] = self.ram[index_a] & 11111001
-        self.pc += 3
 
     def HLT(self):
         running = False
+        sys.exit(0)
 
     def LDI(self):
         num = self.ram[self.pc + 1]
         value = self.ram[self.pc + 2]
         self.register[num] = value
-        self.pc += 3
 
-    def MUL(self):
-        reg_index_a = self.ram[self.pc + 1]
-        reg_index_b = self.ram[self.pc + 2]
-        self.register[reg_index_a] = self.register[reg_index_a] * \
-            self.register[reg_index_b]
-        self.pc += 3
+    def PUSH(self, op_a):
+        # decrement the SP to point to open space in ram
+        self.register[SP] -= 1
+        # at that location in ram save the value from reg[pc+1]
+        self.ram[self.register[SP]] = self.register[op_a]
 
-    def PRN(self):
-        reg_index = self.ram[self.pc + 1]
-        print(self.register[reg_index])
-        self.pc += 2
+    def POP(self, op_a):
+        # copy value from ram at the index stored in reg[SP] to reg at next index (op_a)
+        self.register[op_a] = self.ram[self.register[SP]]
+        # move the SP back up
+        self.register[SP] += 1
 
+    def PRN(self, op_a):
+        print(self.register[op_a])
+
+    # Arithmetic Logic Unit
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
 
         if op == "ADD":
-            self.reg[reg_a] += self.reg[reg_b]
+            self.register[reg_a] += self.register[reg_b]
         # elif op == "SUB": etc
+        elif op == "MUL":
+            self.register[reg_a] *= self.register[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -140,23 +152,39 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
+
         running = True
         while running:
             # fetch
             inst = self.ram[self.pc]
+            op_a = self.ram[self.pc + 1]
+            op_b = self.ram[self.pc + 2]
+
+            # decode opcode size
+            opcode_size = (inst >> 6) + 1
 
             # decode
             if inst == LDI:
                 self.LDI()
 
             elif inst == MUL:
-                self.MUL()
+                self.alu("MUL", op_a, op_b)
+
+            elif inst == POP:
+                self.POP(op_a)
 
             elif inst == PRN:
-                self.PRN()
+                self.PRN(op_a)
+
+            elif inst == PUSH:
+                self.PUSH(op_a)
 
             elif inst == HLT:
                 self.HLT()
 
             else:
                 print("Command not understood")
+                running = False
+                # sys.exit(1)
+
+            self.pc += opcode_size
