@@ -3,6 +3,7 @@
 import sys
 
 # opcodes
+ADD = 0b10100000
 CALL = 0b01010000
 CMP = 0b10100111
 HLT = 0b00000001
@@ -11,6 +12,7 @@ MUL = 0b10100010
 POP = 0b01000110
 PUSH = 0b01000101
 PRN = 0b01000111
+RET = 0b00010001
 
 # Stack Pointer is the index for Register
 SP = 7
@@ -77,10 +79,14 @@ class CPU:
     def ram_write(self, value, address):
         self.ram[address] = value
 
-    def CALL(self):
-        # I believe this is like a repeat: change self.pc = to the value in the next self.ram
-        ram_index = self.ram[self.pc + 1]
-        # self.pc = ram_index
+    def CALL(self, op_a):
+        # decrement the stack pointer so we have an empty slot to store a value
+        self.register[SP] -= 1
+        # Store the return address from reg[pc+2] in ram so that when the subroutine is done we can return back where we left off
+        self.ram[self.register[SP]] = self.pc+2
+        # Go to subroutine reg[pc+1]
+        self.pc = self.register[op_a]
+        # Don't increment the pc!!!
 
     def CMP(self):
         index_a = self.ram[self.pc + 1]
@@ -117,6 +123,12 @@ class CPU:
 
     def PRN(self, op_a):
         print(self.register[op_a])
+
+    def RET(self):
+        # set pc = to the return address
+        self.pc = self.ram[self.register[SP]]
+        # increment the SP because that value has been popped
+        self.register[SP] += 1
 
     # Arithmetic Logic Unit
     def alu(self, op, reg_a, reg_b):
@@ -167,6 +179,15 @@ class CPU:
             if inst == LDI:
                 self.LDI()
 
+            elif inst == ADD:
+                self.alu("ADD", op_a, op_b)
+
+            elif inst == CALL:
+                self.CALL(op_a)
+
+            elif inst == HLT:
+                self.HLT()
+
             elif inst == MUL:
                 self.alu("MUL", op_a, op_b)
 
@@ -179,12 +200,13 @@ class CPU:
             elif inst == PUSH:
                 self.PUSH(op_a)
 
-            elif inst == HLT:
-                self.HLT()
+            elif inst == RET:
+                self.RET()
 
             else:
                 print("Command not understood")
                 running = False
                 # sys.exit(1)
 
-            self.pc += opcode_size
+            if inst & 0b00010000 == 0:
+                self.pc += opcode_size
