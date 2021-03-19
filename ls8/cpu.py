@@ -171,12 +171,7 @@ class CPU:
 
         elif op == "XOR":
             # exclusive or (one or other can be 1, but not both)
-            # find the AND between the two nums
-            and_result = self.register[reg_a] & self.register[reg_b]
-            # find the OR between the two nums
-            or_result = self.register[reg_a] | self.register[reg_b]
-            # combine those results with AND, then take the opposite
-            self.register[reg_a] = ~(and_result & or_result)
+            self.register[reg_a] = self.register[reg_a] ^ self.register[reg_b]
 
         else:
             raise Exception("Unsupported ALU operation")
