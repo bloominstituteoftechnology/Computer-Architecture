@@ -4,15 +4,21 @@ import sys
 
 # opcodes
 ADD = 0b10100000
+AND = 0b10101000
 CALL = 0b01010000
 CMP = 0b10100111
 HLT = 0b00000001
+JEQ = 0b01010101
+JMP = 0b01010100
+JNE = 0b01010110
 LDI = 0b10000010
 MUL = 0b10100010
+OR = 0b10101010
 POP = 0b01000110
 PUSH = 0b01000101
 PRN = 0b01000111
 RET = 0b00010001
+XOR = 0b10101011
 
 # Stack Pointer is the index for Register
 SP = 7
@@ -34,6 +40,7 @@ class CPU:
         self.register = [0] * 8
         # Set starting stack location within ram to hexadecimal 244
         self.register[SP] = 0xf4
+        self.fl = 0
 
     def load(self):
         """Load a program into memory."""
@@ -88,21 +95,26 @@ class CPU:
         self.pc = self.register[op_a]
         # Don't increment the pc!!!
 
-    def CMP(self):
-        index_a = self.ram[self.pc + 1]
-        index_b = self.ram[self.pc + 2]
-        value_a = self.register[index_a]
-        value_b = self.register[index_b]
-        if value_a < value_b:
-            self.ram[index_a] = self.ram[index_a] & 11111100
-        elif value_a > value_b:
-            self.ram[index_a] = self.ram[index_a] & 11111010
-        else:
-            self.ram[index_a] = self.ram[index_a] & 11111001
-
     def HLT(self):
         running = False
         sys.exit(0)
+
+    def JEQ(self, op_a):
+        # check if the 2 values set the flag = equal
+        if self.fl == 0b00000001:
+            self.pc = self.register[op_a]
+        else:
+            self.pc += 2
+
+    def JMP(self, op_a):
+        self.pc = self.register[op_a]
+
+    def JNE(self, op_a):
+        # check if the 2 values set the flag to not equal
+        if self.fl != 0b00000001:
+            self.pc = self.register[op_a]
+        else:
+            self.pc += 2
 
     def LDI(self):
         num = self.ram[self.pc + 1]
@@ -137,8 +149,35 @@ class CPU:
         if op == "ADD":
             self.register[reg_a] += self.register[reg_b]
         # elif op == "SUB": etc
+
+        elif op == "AND":
+            self.register[op_a] = self.register[op_a] & self.register[op_b]
+
+        elif op == "CMP":
+            value_a = self.register[reg_a]
+            value_b = self.register[reg_b]
+            if value_a < value_b:
+                self.fl = 0b00000100
+            elif value_a > value_b:
+                self.fl = 0b00000010
+            else:
+                self.fl = 0b00000001
+
         elif op == "MUL":
             self.register[reg_a] *= self.register[reg_b]
+
+        elif op == "OR":
+            self.register[reg_a] = self.register[reg_a] | self.register[reg_b]
+
+        elif op == "XOR":
+            # exclusive or (one or other can be 1, but not both)
+            # find the AND between the two nums
+            and_result = self.register[reg_a] & self.register[reg_b]
+            # find the OR between the two nums
+            or_result = self.register[reg_a] | self.register[reg_b]
+            # combine those results with AND, then take the opposite
+            self.register[reg_a] = ~(and_result & or_result)
+
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -182,14 +221,32 @@ class CPU:
             elif inst == ADD:
                 self.alu("ADD", op_a, op_b)
 
+            elif inst == AND:
+                self.alu("AND", op_a, op_b)
+
             elif inst == CALL:
                 self.CALL(op_a)
+
+            elif inst == CMP:
+                self.alu("CMP", op_a, op_b)
 
             elif inst == HLT:
                 self.HLT()
 
+            elif inst == JEQ:
+                self.JEQ(op_a)
+
+            elif inst == JMP:
+                self.JMP(op_a)
+
+            elif inst == JNE:
+                self.JNE(op_a)
+
             elif inst == MUL:
                 self.alu("MUL", op_a, op_b)
+
+            elif inst == OR:
+                self.alu("OR", op_a, op_b)
 
             elif inst == POP:
                 self.POP(op_a)
@@ -202,6 +259,9 @@ class CPU:
 
             elif inst == RET:
                 self.RET()
+
+            elif inst == XOR:
+                self.alu("XOR", op_a, op_b)
 
             else:
                 print("Command not understood")
