@@ -1,13 +1,21 @@
 """CPU functionality."""
-
+#
 import sys
+
+#instruction set:
+HLT = 0
+LDI = 0, 8
+PRN = 0
 
 class CPU:
     """Main CPU class."""
 
     def __init__(self):
-        """Construct a new CPU."""
-        pass
+        self.registers = [0] * 8
+        self.ram = [0] * 256
+        self.pc = 0
+#not really sure where to put this
+        running = True
 
     def load(self):
         """Load a program into memory."""
@@ -30,6 +38,15 @@ class CPU:
             self.ram[address] = instruction
             address += 1
 
+    def ram_read(self, address):
+        for value in address:
+            self.ram[address.value] = value
+            return value
+
+    def ram_write(newvalue, address):
+        for value in address:
+            value.replace(value, newvalue)
+            return value
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -60,6 +77,37 @@ class CPU:
 
         print()
 
-    def run(self):
-        """Run the CPU."""
-        pass
+#From the spec:
+#When the LS-8 is booted, the following steps occur:
+
+#R0-R6 are cleared to 0.
+#R7 is set to 0xF4.
+#PC and FL registers are cleared to 0.
+#RAM is cleared to 0.
+#Subsequently, the program can be loaded into RAM starting at address 0x00.
+
+    def run(self, pc):
+        instruction = self.ram[pc]
+        operand_a = self.ram[pc + 1]
+        operand_b = self.ram[pc + 2]
+#potential structure for LDI
+        if instruction == LDI:
+            reg_index = operand_a
+            num = operand_b
+            num = int(self.registers[reg_index])
+            print(num)
+            pc += 3
+#potential structure for PRN
+        elif instruction == PRN:
+            reg_index = operand_a
+            num = self.registers[reg_index]
+            print(num)
+            pc += 2
+#potential structure for HLT
+        elif instruction == HLT:
+            running = False
+            sys.exit(0)
+
+        else:
+            print("WRONG WAY")
+            sys.exit(1)
