@@ -3,9 +3,9 @@
 import sys
 
 #instruction set:
-HLT = 0
-LDI = 0, 8
-PRN = 0
+HLT = 0b00000001
+LDI = 0b10000010
+PRN = 0b01000111
 
 class CPU:
     """Main CPU class."""
@@ -14,39 +14,34 @@ class CPU:
         self.registers = [0] * 8
         self.ram = [0] * 256
         self.pc = 0
-#not really sure where to put this
-        running = True
+        
+#originally this part is `hardcoded` and needs the parser instead
 
-    def load(self):
+    def load(self, filename):
         """Load a program into memory."""
+    try:
+        address = 0 #constant ram address
+        with open(filename) as f:
+            for line in f:
+                comment_split = line.split("#")
+                num = comment_split[0].strip()
+                if num == '':
+                    continue
 
-        address = 0
+                ram[address] = int(num)
+                address += 1
 
-        # For now, we've just hardcoded a program:
+        except FileNotFoundError:
+            print("file not found")
+            sys.exit(2)
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
-
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
-
+    load(filename)
+      
     def ram_read(self, address):
-        for value in address:
-            self.ram[address.value] = value
-            return value
+        return self.ram[address]
 
-    def ram_write(newvalue, address):
-        for value in address:
-            value.replace(value, newvalue)
-            return value
+    def ram_write(self, newvalue, address):
+        self.ram[address] = newvalue
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -86,28 +81,29 @@ class CPU:
 #RAM is cleared to 0.
 #Subsequently, the program can be loaded into RAM starting at address 0x00.
 
-    def run(self, pc):
-        instruction = self.ram[pc]
-        operand_a = self.ram[pc + 1]
-        operand_b = self.ram[pc + 2]
-#potential structure for LDI
-        if instruction == LDI:
-            reg_index = operand_a
-            num = operand_b
-            num = int(self.registers[reg_index])
-            print(num)
-            pc += 3
-#potential structure for PRN
-        elif instruction == PRN:
-            reg_index = operand_a
-            num = self.registers[reg_index]
-            print(num)
-            pc += 2
-#potential structure for HLT
-        elif instruction == HLT:
-            running = False
-            sys.exit(0)
+    def run(self):
+        running = True
+        while running:
+            instruction = self.ram[self.pc]
+            operand_a = self.ram[self.pc + 1]
+            operand_b = self.ram[self.pc + 2]
+# LDI
+            if instruction == LDI:
+                reg_index = operand_a
+                num = operand_b
+                self.registers[reg_index] = num
+                self.pc += 3
+# PRN
+            elif instruction == PRN:
+                reg_index = operand_a
+                num = self.registers[reg_index]
+                print(num)
+                self.pc += 2
+# HLT
+            elif instruction == HLT:
+                running = False
+                sys.exit(0)
 
-        else:
-            print("WRONG WAY")
-            sys.exit(1)
+            else:
+                print("WRONG WAY")
+                sys.exit(1)
