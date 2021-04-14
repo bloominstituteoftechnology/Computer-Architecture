@@ -1,44 +1,59 @@
 """CPU functionality."""
-
+#
 import sys
+
+#instruction set:
+HLT = 0b00000001
+LDI = 0b10000010
+PRN = 0b01000111
+MUL = 0b10100010
 
 class CPU:
     """Main CPU class."""
 
     def __init__(self):
-        """Construct a new CPU."""
-        pass
+        self.registers = [0] * 8
+        self.ram = [0] * 256
+        self.pc = 0
 
-    def load(self):
+#originally this part is `hardcoded` and needs the parser instead
+
+    def load(self, filename):
         """Load a program into memory."""
+        try:
+            address = 0 #constant ram address
+            with open(filename) as f:
+                for line in f:
+                    comment_split = line.split("#")
+                    num = comment_split[0].strip()
+                    if num == '':
+                        continue
 
-        address = 0
+                    ram[address] = int(num)
+                    address += 1
 
-        # For now, we've just hardcoded a program:
+        except FileNotFoundError:
+            print("file not found")
+            sys.exit(2)
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+    load(filename)
+      
+    def ram_read(self, address):
+        return self.ram[address]
 
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
-
+    def ram_write(self, newvalue, address):
+        self.ram[address] = newvalue
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
-        #elif op == "SUB": etc
-        else:
-            raise Exception("Unsupported ALU operation")
+            self.pc += 3
+        elif op == "MUL":
+            self.reg[reg_a] *= self.reg[reg_b]
+            self.pc += 3
+            print()
 
     def trace(self):
         """
@@ -60,6 +75,43 @@ class CPU:
 
         print()
 
+#From the spec:
+#When the LS-8 is booted, the following steps occur:
+
+#R0-R6 are cleared to 0.
+#R7 is set to 0xF4.
+#PC and FL registers are cleared to 0.
+#RAM is cleared to 0.
+#Subsequently, the program can be loaded into RAM starting at address 0x00.
+
     def run(self):
-        """Run the CPU."""
-        pass
+        running = True
+        while running:
+            instruction = self.ram[self.pc]
+            operand_a = self.ram[self.pc + 1]
+            operand_b = self.ram[self.pc + 2]
+# LDI
+            if instruction == LDI:
+                reg_index = operand_a
+                num = operand_b
+                self.registers[reg_index] = num
+                self.pc += 3
+# PRN
+            elif instruction == PRN:
+                reg_index = operand_a
+                num = self.registers[reg_index]
+                print(num)
+                self.pc += 2
+#MUL
+            elif instruction == MUL:
+                reg_index = operand_a
+                reg_index = operand_b
+                alu("MUL", self.reg_a, self.reg_b)
+# HLT
+            elif instruction == HLT:
+                running = False
+                sys.exit(0)
+
+            else:
+                print("WRONG WAY")
+                sys.exit(1)
