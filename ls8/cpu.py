@@ -6,6 +6,7 @@ import sys
 HLT = 0b00000001
 LDI = 0b10000010
 PRN = 0b01000111
+MUL = 0b10100010
 
 class CPU:
     """Main CPU class."""
@@ -14,22 +15,22 @@ class CPU:
         self.registers = [0] * 8
         self.ram = [0] * 256
         self.pc = 0
-        
+
 #originally this part is `hardcoded` and needs the parser instead
 
     def load(self, filename):
         """Load a program into memory."""
-    try:
-        address = 0 #constant ram address
-        with open(filename) as f:
-            for line in f:
-                comment_split = line.split("#")
-                num = comment_split[0].strip()
-                if num == '':
-                    continue
+        try:
+            address = 0 #constant ram address
+            with open(filename) as f:
+                for line in f:
+                    comment_split = line.split("#")
+                    num = comment_split[0].strip()
+                    if num == '':
+                        continue
 
-                ram[address] = int(num)
-                address += 1
+                    ram[address] = int(num)
+                    address += 1
 
         except FileNotFoundError:
             print("file not found")
@@ -48,9 +49,11 @@ class CPU:
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
-        #elif op == "SUB": etc
-        else:
-            raise Exception("Unsupported ALU operation")
+            self.pc += 3
+        elif op == "MUL":
+            self.reg[reg_a] *= self.reg[reg_b]
+            self.pc += 3
+            print()
 
     def trace(self):
         """
@@ -99,6 +102,11 @@ class CPU:
                 num = self.registers[reg_index]
                 print(num)
                 self.pc += 2
+#MUL
+            elif instruction == MUL:
+                reg_index = operand_a
+                reg_index = operand_b
+                alu("MUL", self.reg_a, self.reg_b)
 # HLT
             elif instruction == HLT:
                 running = False
