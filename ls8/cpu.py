@@ -7,6 +7,8 @@ HLT = 0b00000001
 LDI = 0b10000010
 PRN = 0b01000111
 MUL = 0b10100010
+PUSH = 8
+POP = 10
 
 class CPU:
     """Main CPU class."""
@@ -15,6 +17,9 @@ class CPU:
         self.registers = [0] * 8
         self.ram = [0] * 256
         self.pc = 0
+        self.sp = 0 #set it to the first one in the stack?
+
+        self.registers[self.sp] = 0xf4
 
 #originally this part is `hardcoded` and needs the parser instead
 
@@ -29,7 +34,7 @@ class CPU:
                     if num == '':
                         continue
 
-                    ram[address] = int(num)
+                    self.ram[address] = int(num)
                     address += 1
 
         except FileNotFoundError:
@@ -106,7 +111,24 @@ class CPU:
             elif instruction == MUL:
                 reg_index = operand_a
                 reg_index = operand_b
-                alu("MUL", self.reg_a, self.reg_b)
+                self.alu("MUL", self.reg_a, self.reg_b)
+#PUSH       
+            elif instruction == PUSH:
+                reg_index = self.ram[self.pc + 1]
+                val = self.registers[reg_index]
+                
+                self.registers[self.sp] -= 1
+
+                self.ram[self.registers[self.sp]] = val
+                self.pc += 2
+#POP
+            elif instruction == POP:
+                reg_index = self.ram[self.pc + 1]
+
+                self.registers[reg_index] = self.ram[self.registers[self.sp]]
+
+                self.registers[self.sp] += 1
+                self.pc += 2
 # HLT
             elif instruction == HLT:
                 running = False
