@@ -16,6 +16,11 @@ JMP = 0b01010100
 JEQ = 0b01010101 
 JNE = 0b01010110
 
+# flags
+L = 0b100
+G = 0b10
+E = 0b1 
+
 class CPU:
     """Main CPU class."""
 
@@ -24,7 +29,7 @@ class CPU:
         self.ram = [0] * 256
         self.pc = 0
         self.sp = 0 #set it to the first one in the stack?
-        self.fl = 0
+        self.fl = self.reg
 
         self.reg[self.sp] = 0xf4
 
@@ -65,6 +70,12 @@ class CPU:
             self.reg[reg_a] *= self.reg[reg_b]
             self.pc += 3
             print()
+        elif op == "CMP":
+            if self.reg[reg_a] == self.reg[reg_b]:
+                self.fl = 1
+            else:
+                self.fl = 0
+            self.pc += 3
 
     def trace(self):
         """
@@ -140,7 +151,27 @@ class CPU:
             elif instruction == RET:
                 self.pc = self.ram[self.reg[self.sp]]
                 self.reg[self.sp] + 1
-#
+# CMP
+            elif instruction == CMP:
+                # if self.reg[self.ram_read(operand_a)] == self.reg[self.ram_read(operand_b)]:
+                #     self.reg[self.fl] = self.ref[self.fl] | (1<<0)
+                # else: self.reg[self.fl] 
+                self.alu("CMP", operand_a, operand_b)
+#JMP 
+            elif instruction == JMP:
+               self.pc = self.reg[operand_a]
+#JEP 
+            elif instruction == JEQ:
+                if self.fl & E:
+                    self.pc = self.reg[operand_a]
+                else:
+                    self.pc += 2
+#JNE 
+            elif instruction == JNE:
+                if not self.fl & E:
+                    self.pc = self.reg[operand_a]
+                else:
+                    self.pc += 2 
 
             else:
                 print("WRONG WAY")
