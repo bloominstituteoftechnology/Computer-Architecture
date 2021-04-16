@@ -29,7 +29,7 @@ class CPU:
         self.ram = [0] * 256
         self.pc = 0
         self.sp = 0 #set it to the first one in the stack?
-        self.fl = self.reg
+        self.fl = 0
 
         self.reg[self.sp] = 0xf4
 
