@@ -9,6 +9,8 @@ PRN = 0b01000111
 MUL = 0b10100010
 PUSH = 8
 POP = 10
+CALL = 11
+RET = 12
 
 class CPU:
     """Main CPU class."""
@@ -114,7 +116,7 @@ class CPU:
                 self.alu("MUL", self.reg_a, self.reg_b)
 #PUSH       
             elif instruction == PUSH:
-                reg_index = self.ram[self.pc + 1]
+                reg_index = operand_a
                 val = self.registers[reg_index]
                 
                 self.registers[self.sp] -= 1
@@ -123,7 +125,7 @@ class CPU:
                 self.pc += 2
 #POP
             elif instruction == POP:
-                reg_index = self.ram[self.pc + 1]
+                reg_index = operand_a
 
                 self.registers[reg_index] = self.ram[self.registers[self.sp]]
 
@@ -133,6 +135,18 @@ class CPU:
             elif instruction == HLT:
                 running = False
                 sys.exit(0)
+# CALL
+            elif instruction == CALL:
+                address_to_return_to = self.pc + 2
+                self.registers[self.pc] -= 1
+                self.ram[self.registers[self.sp]] = address_to_return_to
+                reg_index = operand_a
+                address_to_call = self.registers[reg_index]
+                self.pc = address_to_call
+
+            elif instruction == RET:
+                self.pc = self.ram[self.registers[self.sp]]
+                self.registers[self.sp] + 1
 
             else:
                 print("WRONG WAY")
