@@ -7,10 +7,10 @@ HLT = 0b00000001
 LDI = 0b10000010
 PRN = 0b01000111
 MUL = 0b10100010
-PUSH = 8
-POP = 10
-CALL = 11
-RET = 12
+PUSH = 0b01000101
+POP = 0b01000110
+CALL = 0b01010000
+RET = 0b00010001
 
 class CPU:
     """Main CPU class."""
@@ -81,15 +81,6 @@ class CPU:
             print(" %02X" % self.reg[i], end='')
 
         print()
-
-#From the spec:
-#When the LS-8 is booted, the following steps occur:
-
-#R0-R6 are cleared to 0.
-#R7 is set to 0xF4.
-#PC and FL registers are cleared to 0.
-#RAM is cleared to 0.
-#Subsequently, the program can be loaded into RAM starting at address 0x00.
 
     def run(self):
         running = True
