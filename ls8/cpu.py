@@ -11,17 +11,22 @@ PUSH = 0b01000101
 POP = 0b01000110
 CALL = 0b01010000
 RET = 0b00010001
+CMP = 0b10100111
+JMP = 0b01010100
+JEQ = 0b01010101 
+JNE = 0b01010110
 
 class CPU:
     """Main CPU class."""
 
     def __init__(self):
-        self.registers = [0] * 8
+        self.reg = [0] * 8
         self.ram = [0] * 256
         self.pc = 0
         self.sp = 0 #set it to the first one in the stack?
+        self.fl = 0
 
-        self.registers[self.sp] = 0xf4
+        self.reg[self.sp] = 0xf4
 
 #originally this part is `hardcoded` and needs the parser instead
 
@@ -36,14 +41,13 @@ class CPU:
                     if num == '':
                         continue
 
-                    self.ram[address] = int(num)
+                    self.ram[address] = int(num, 2)
                     address += 1
 
         except FileNotFoundError:
             print("file not found")
             sys.exit(2)
 
-    load(filename)
       
     def ram_read(self, address):
         return self.ram[address]
@@ -92,35 +96,33 @@ class CPU:
             if instruction == LDI:
                 reg_index = operand_a
                 num = operand_b
-                self.registers[reg_index] = num
+                self.reg[reg_index] = num
                 self.pc += 3
 # PRN
             elif instruction == PRN:
                 reg_index = operand_a
-                num = self.registers[reg_index]
+                num = self.reg[reg_index]
                 print(num)
                 self.pc += 2
 #MUL
             elif instruction == MUL:
-                reg_index = operand_a
-                reg_index = operand_b
-                self.alu("MUL", self.reg_a, self.reg_b)
+                self.alu("MUL", operand_a, operand_b)
 #PUSH       
             elif instruction == PUSH:
                 reg_index = operand_a
-                val = self.registers[reg_index]
+                val = self.reg[reg_index]
                 
-                self.registers[self.sp] -= 1
+                self.reg[self.sp] -= 1
 
-                self.ram[self.registers[self.sp]] = val
+                self.ram[self.reg[self.sp]] = val
                 self.pc += 2
 #POP
             elif instruction == POP:
                 reg_index = operand_a
 
-                self.registers[reg_index] = self.ram[self.registers[self.sp]]
+                self.reg[reg_index] = self.ram[self.reg[self.sp]]
 
-                self.registers[self.sp] += 1
+                self.reg[self.sp] += 1
                 self.pc += 2
 # HLT
             elif instruction == HLT:
@@ -129,15 +131,16 @@ class CPU:
 # CALL
             elif instruction == CALL:
                 address_to_return_to = self.pc + 2
-                self.registers[self.pc] -= 1
-                self.ram[self.registers[self.sp]] = address_to_return_to
+                self.reg[self.pc] -= 1
+                self.ram[self.reg[self.sp]] = address_to_return_to
                 reg_index = operand_a
-                address_to_call = self.registers[reg_index]
+                address_to_call = self.reg[reg_index]
                 self.pc = address_to_call
-
+# RET
             elif instruction == RET:
-                self.pc = self.ram[self.registers[self.sp]]
-                self.registers[self.sp] + 1
+                self.pc = self.ram[self.reg[self.sp]]
+                self.reg[self.sp] + 1
+#
 
             else:
                 print("WRONG WAY")
