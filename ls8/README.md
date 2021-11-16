@@ -358,7 +358,7 @@ Add interrupts to the LS-8 emulator.
 **You must have implmented the `ST` instruction before doing this.**
 
 See the [LS-8
-spec](https://github.com/LambdaSchool/Computer-Architecture-One/blob/master/LS8-SPEC.md)
+spec](https://github.com/BloomInstituteOfTechnology/Computer-Architecture-One/blob/master/LS8-SPEC.md)
 for details on implementation.
 
 The LS-8 should fire a timer interrupt one time per second. This could be
