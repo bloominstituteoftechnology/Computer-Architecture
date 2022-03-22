@@ -60,10 +60,20 @@ but you'll have to implement those three above instructions first!
 ## Step 0: IMPORTANT: inventory what is here!
 
 * Make a list of files here.
+* cpu.py 
+  * creates cpu
+  * loads programs into memory
+  * runs progrms
+  * performs alu opertions
+  * prints current state with trace
+* ls8.py - makes cpu, loads program, runs
+* .ls8 files are programs that have binary instructions
+* 
 * Write a short 3-10-word description of what each file does.
 * Note what has been implemented, and what hasn't.
 * Read this whole file.
 * Skim the spec.
+* 
 
 ## Step 1: Add the constructor to `cpu.py`
 
@@ -297,7 +307,7 @@ exception to this.
 
 Implement a system stack per the spec. Add `PUSH` and `POP` instructions. Read
   the beginning of the spec to see which register is the stack pointer. 
-  
+
 * Values themselves should be saved in the ***portion of RAM*** _that is allocated for the stack_. 
   -  Use the stack pointer to modify the correct block of memory. 
   - Make sure you update the stack pointer appropriately as you `PUSH` and `POP` items to and from the stack.

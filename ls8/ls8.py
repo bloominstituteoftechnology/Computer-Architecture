@@ -7,5 +7,11 @@ from cpu import *
 
 cpu = CPU()
 
-cpu.load()
+if len(sys.argv) != 2:
+    print("Usage: ls8.py filename.ls8")
+    sys.exit()
+
+path = sys.argv[1]
+
+cpu.load(path)
 cpu.run()
